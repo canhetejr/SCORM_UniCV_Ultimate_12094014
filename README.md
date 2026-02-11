@@ -15,30 +15,31 @@ Player de videoaulas em estilo streaming (tipo Netflix) com rastreamento de prog
 
 ## Estrutura do repositório
 
-| Arquivo            | Função |
+| Arquivo/Pasta      | Função |
 |--------------------|--------|
 | `imsmanifest.xml`  | Manifesto SCORM — entrada do Moodle; define o pacote e aponta para `index.html`. |
 | `index.html`       | Página principal: player, cabeçalho, barra de progresso, lista de vídeos. |
-| `script.js`        | Lógica da aplicação: playlist, UI, progresso e sincronização com SCORM. |
-| `scorm.js`         | API SCORM 1.2: leitura/gravação de progresso e nota no LMS. |
 | `style.css`        | Estilos, temas e skeleton. |
+| `scorm.js`         | API SCORM 1.2: leitura/gravação de progresso e nota no LMS. |
+| `js/`              | Módulos da aplicação: `config.js` (configuração e URLs), `state.js` (estado), `api.js` (fetch playlist), `scorm-service.js` (ponte SCORM), `ui.js` (DOM e eventos), `player.js` (Vimeo), `theme.js` (tema claro/escuro), `main.js` (orquestração/init). |
 | `DOCUMENTACAO.md`  | Documentação interna (arquitetura e manutenção). |
 
 ## Como usar no Moodle
 
 1. **Obter o pacote ZIP** (uma das opções):
    - **Opção A — Release (recomendado):** vá em [Releases](https://github.com/canhetejr/SCORM_UniCV_Ultimate_12094014/releases) e baixe o ficheiro `SCORM_UniCV_Ultimate_12094014.zip` anexado à release. Esse ZIP já está pronto para o Moodle.
-   - **Opção B — Código fonte:** no GitHub, **Code → Download ZIP**. Extraia o ZIP e garanta que na **raiz** da pasta (ou do novo ZIP que for enviar ao Moodle) estejam `imsmanifest.xml`, `index.html` e os demais ficheiros, sem pasta extra na raiz.
+   - **Opção B — Código fonte:** no GitHub, **Code → Download ZIP**. Extraia o ZIP e garanta que na **raiz** da pasta (ou do novo ZIP que for enviar ao Moodle) estejam `imsmanifest.xml`, `index.html`, `style.css`, `scorm.js` e a **pasta `js/`** com todos os módulos, sem pasta extra de nível superior na raiz.
 2. No Moodle: adicione uma atividade **Pacote SCORM** e envie o ZIP.
 
 O Moodle instalará o pacote e os alunos poderão acessar as videoaulas com progresso e nota integrados.
 
 ## Configuração da playlist
 
-A vitrine de vídeos é definida em **`script.js`**:
+A vitrine de vídeos é definida em **`js/config.js`**, no objeto `UniCV.CONFIG`:
 
-- **`CONFIG.SHOWCASE_ID`**: ID da vitrine (Showcase) do Vimeo.
-- **`CONFIG.N8N_BASE`** / **`CONFIG.N8N_URL`**: URL do webhook (ex.: N8N) que devolve a lista de vídeos.
+- **`SHOWCASE_ID`**: ID da vitrine (Showcase) do Vimeo.
+- **`N8N_BASE`**: URL base do webhook (ex.: N8N) que devolve a lista de vídeos.
+- **`N8N_URL`**: URL completa (construída automaticamente a partir de `N8N_BASE` + `?id=` + `SHOWCASE_ID`).
 
 O backend deve devolver JSON no formato: `{ "videos": [ { "id", "name", "thumb", "duration" }, ... ] }`.  
 Para detalhes de arquitetura e manutenção, consulte **[DOCUMENTACAO.md](DOCUMENTACAO.md)**.

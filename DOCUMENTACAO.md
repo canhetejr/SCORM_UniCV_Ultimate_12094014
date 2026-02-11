@@ -26,39 +26,54 @@
 SCORM_UniCV_Ultimate_12094014/
 ├── imsmanifest.xml   # Manifesto SCORM (recurso, organização)
 ├── index.html        # Página única: player + header + lista
-├── script.js         # Lógica da aplicação (playlist, UI, progresso)
+├── style.css         # Estilos, temas e skeleton
 ├── scorm.js          # Ponte com a API SCORM do LMS (Moodle)
-└── style.css         # Estilos, temas e skeleton
+└── js/               # Módulos da aplicação
+    ├── config.js          # Configuração (SHOWCASE_ID, N8N_URL, etc.)
+    ├── state.js           # Estado global (playlist, progresso, activeIdx)
+    ├── api.js             # Fetch da playlist (N8N webhook)
+    ├── scorm-service.js   # Ponte SCORM (lê/grava cmi.*)
+    ├── ui.js              # Manipulação do DOM e eventos
+    ├── player.js          # Controlo do player Vimeo
+    ├── theme.js           # Tema claro/escuro (localStorage)
+    └── main.js            # Orquestração e inicialização
 ```
 
 ### Papel de cada arquivo
 
 | Arquivo | Função |
 |---------|--------|
-| **imsmanifest.xml** | Define o pacote SCORM: título, item “Videoaulas”, recurso que aponta para `index.html` e arquivos (HTML, JS, CSS). O Moodle usa isso para instalar o pacote. |
-| **index.html** | Shell da aplicação: iframe do player Vimeo, overlay de “Iniciar”, cabeçalho com título, barra de progresso, botões (anterior/próximo, marcar concluída, tema) e container da lista (`#videoList`). Carrega `scorm.js` e `script.js`. |
-| **script.js** | Carrega a playlist via webhook N8N, renderiza a lista, controla qual vídeo está em reprodução, marca conclusão, navega anterior/próximo, sincroniza progresso com SCORM e aplica tema (localStorage). |
-| **scorm.js** | Encontra a API do LMS (SCORM 1.2), inicializa, lê/grava `cmi.suspend_data`, `cmi.core.score.raw`, `cmi.core.lesson_status` e chama Commit/Finish. |
+| **imsmanifest.xml** | Define o pacote SCORM: título, item "Videoaulas", recurso que aponta para `index.html` e arquivos (HTML, JS, CSS). O Moodle usa isso para instalar o pacote. |
+| **index.html** | Shell da aplicação: iframe do player Vimeo, overlay de "Iniciar", cabeçalho com título, barra de progresso, botões (anterior/próximo, marcar concluída, tema) e container da lista (`#videoList`). Carrega `scorm.js` e os scripts em **js/**. |
 | **style.css** | Variáveis de tema (claro/escuro), layout do app-shell, player, lista, skeleton e estados (ativo, concluído). |
+| **scorm.js** | Encontra a API do LMS (SCORM 1.2), inicializa, lê/grava `cmi.suspend_data`, `cmi.core.score.raw`, `cmi.core.lesson_status` e chama Commit/Finish. |
+| **js/config.js** | Configuração centralizada: `SHOWCASE_ID`, `N8N_BASE`, `N8N_URL` (construído), timeouts, debounce, SVG de ícones. |
+| **js/state.js** | Estado global da aplicação: array `playlist`, objeto `progress` (índice → concluído), `activeIdx` (vídeo atual). |
+| **js/api.js** | Fetch da playlist via webhook N8N; retorna `{ videos: [...] }`. |
+| **js/scorm-service.js** | Ponte com a API SCORM: aguarda inicialização, lê/grava `suspend_data`, `score`, `lesson_status`, `lesson_location`, faz commit e finish. |
+| **js/ui.js** | Manipulação do DOM: renderiza lista, atualiza barra de progresso, texto de percentual, botões anterior/próximo, estado "concluída". |
+| **js/player.js** | Controlo do player Vimeo: carrega vídeo, monta URL, esconde overlay, atualiza título. |
+| **js/theme.js** | Tema claro/escuro: aplica classe no `body`, lê/grava em `localStorage` (`unicv_theme`). |
+| **js/main.js** | Orquestração e inicialização: carrega playlist, aguarda SCORM, restaura progresso, liga eventos, inicia a aplicação. |
 
 ---
 
 ## Fluxo de Dados
 
 1. **Carregamento**
-   - `window.onload` em `script.js` chama o webhook N8N com `SHOWCASE_ID` e recebe `{ videos: [...] }`.
+   - `window.onload` em **js/main.js** chama **js/api.js** que faz fetch ao webhook N8N (URL em **js/config.js**) e recebe `{ videos: [...] }`.
    - Cada vídeo tem: `id`, `name`, `thumb`, `duration`.
-   - Após ~800 ms (para dar tempo do SCORM inicializar), lê `cmi.suspend_data`, restaura o objeto `progress` e chama `renderList()`.
+   - Após aguardar a inicialização do SCORM (timeout configurável em **js/config.js**), **js/scorm-service.js** lê `cmi.suspend_data`, **js/state.js** restaura o objeto `progress` e **js/ui.js** renderiza a lista.
 
 2. **Progresso**
-   - `progress` é um objeto cuja chave é o índice do vídeo e o valor é `true` se a aula foi marcada concluída.
-   - `sync()` calcula: `score = (número de concluídas / total) * 100`, atualiza a barra e o texto “X%”, grava em SCORM (`suspend_data`, `score.raw`, `lesson_status`) e chama `scorm.save()`.
+   - `progress` (em **js/state.js**) é um objeto cuja chave é o índice do vídeo e o valor é `true` se a aula foi marcada concluída.
+   - Função de sincronização (em **js/scorm-service.js** ou **js/ui.js**) calcula: `score = (número de concluídas / total) * 100`, atualiza a barra e o texto "X%" via **js/ui.js**, e grava em SCORM (`suspend_data`, `score.raw`, `lesson_status`) chamando **js/scorm-service.js**.
 
 3. **Reprodução**
-   - `play(idx)` define `activeIdx`, monta a URL do Vimeo com `autoplay=1`, atualiza o título, esconde o overlay e chama `updateUI()` (botões, estado “concluída”, barra, sync).
+   - **js/player.js** define `activeIdx` em **js/state.js**, monta a URL do Vimeo com `autoplay=1`, atualiza o título, esconde o overlay e chama funções de **js/ui.js** para atualizar botões, estado "concluída", barra de progresso e sincronizar com SCORM.
 
 4. **Tema**
-   - Classe em `body`: `theme-dark` ou `theme-light`. Preferência salva em `localStorage` (`unicv_theme`) e aplicada no load.
+   - **js/theme.js** aplica classe em `body`: `theme-dark` ou `theme-light`. Preferência salva em `localStorage` (`unicv_theme`) e aplicada no load.
 
 ---
 
@@ -66,14 +81,19 @@ SCORM_UniCV_Ultimate_12094014/
 
 ### Trocar a vitrine de vídeos (playlist)
 
-Em **script.js**, linhas 2–3:
+Em **js/config.js**, no objeto `UniCV.CONFIG`:
 
 ```javascript
-const SHOWCASE_ID = "12094014";
-const N8N_URL = "https://n8n.canhete.com.br/webhook/vimeo-playlist?id=" + SHOWCASE_ID;
+global.UniCV.CONFIG = {
+  SHOWCASE_ID: "12094014",
+  N8N_BASE: "https://n8n.canhete.com.br/webhook/vimeo-playlist",
+  // ...
+};
 ```
 
 - Altere `SHOWCASE_ID` para o ID da vitrine (Showcase) do Vimeo desejada.
+- Se necessário, altere `N8N_BASE` para o URL base do webhook.
+- O `N8N_URL` é construído automaticamente (`N8N_BASE + "?id=" + SHOWCASE_ID`).
 - O webhook N8N deve devolver JSON no formato: `{ "videos": [ { "id", "name", "thumb", "duration" }, ... ] }`.
 
 ### Cores e tema
@@ -89,13 +109,13 @@ Ajuste essas variáveis para manter consistência entre claro e escuro.
 ### SCORM (campos usados)
 
 - **cmi.suspend_data**: JSON string do objeto `progress` (índice → true/false).
-- **cmi.core.score.raw**: “0” a “100” (percentual de aulas concluídas).
+- **cmi.core.score.raw**: "0" a "100" (percentual de aulas concluídas).
 - **cmi.core.lesson_status**: `"incomplete"` ou `"completed"` (100%).
 - **cmi.core.lesson_location**: índice do último vídeo assistido (retomada).
 - **cmi.core.entry**: `"ab-initio"` ou `"resume"` (indica se há progresso anterior).
 - **cmi.core.session_time**: tempo de sessão em formato PT0H0M0S.
 
-Se o Moodle usar outro padrão (ex.: SCORM 2004), será necessário adaptar os nomes dos campos em **scorm.js** e nas chamadas em **script.js**.
+Se o Moodle usar outro padrão (ex.: SCORM 2004), será necessário adaptar os nomes dos campos em **scorm.js** e nas chamadas em **js/scorm-service.js**.
 
 ### CORS para GitHub Pages (webhook N8N)
 
@@ -121,7 +141,7 @@ Se usar um servidor proxy (nginx, Cloudflare, etc.) na frente do N8N, também é
 
 ### Skeleton
 
-O skeleton está no **index.html** dentro de `#videoList` (div com classes `video-item skeleton-item`, etc.). Ao chamar `renderList()` em **script.js**, o conteúdo de `#videoList` é substituído pela lista real; não é necessário alterar o HTML para manter o skeleton, apenas não remover a lógica de “carregando” antes do `fetch` concluir.
+O skeleton está no **index.html** dentro de `#videoList` (div com classes `video-item skeleton-item`, etc.). Ao chamar `renderList()` em **js/ui.js**, o conteúdo de `#videoList` é substituído pela lista real; não é necessário alterar o HTML para manter o skeleton, apenas não remover a lógica de "carregando" antes do `fetch` concluir.
 
 ---
 
@@ -129,11 +149,11 @@ O skeleton está no **index.html** dentro de `#videoList` (div com classes `vide
 
 | O que fazer | Onde |
 |-------------|------|
-| Mudar playlist (vitrine) | `script.js`: `SHOWCASE_ID` e, se necessário, `N8N_URL`. |
-| Mudar cores/tema | `style.css`: variáveis em `:root` e `.theme-dark`. |
-| Ajustar texto/rotulos | `index.html` (títulos, botões) e strings em `script.js`. |
-| Compatibilizar com outro LMS/SCORM | `scorm.js` (nomes dos cmi.* e chamadas da API). |
-| Ajustar layout (mobile/desktop) | `style.css`: `.app-shell`, `.viewport-player`, `.content-scroll` e media query em `1024px`. |
+| Mudar playlist (vitrine) | **js/config.js**: `SHOWCASE_ID` e, se necessário, `N8N_BASE`. |
+| Mudar cores/tema | **style.css**: variáveis em `:root` e `.theme-dark`. |
+| Ajustar texto/rotulos | **index.html** (títulos, botões) e strings em **js/ui.js** ou **js/main.js**. |
+| Compatibilizar com outro LMS/SCORM | **scorm.js** (nomes dos cmi.* e chamadas da API) e **js/scorm-service.js**. |
+| Ajustar layout (mobile/desktop) | **style.css**: `.app-shell`, `.viewport-player`, `.content-scroll` e media query em `1024px`. |
 
 ---
 
