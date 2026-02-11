@@ -8,21 +8,6 @@
   </organizations>
   <resources><resource identifier="R1" type="webcontent" adlcp:scormtype="sco" href="index.html">
     <file href="index.html"/>
-    <file href="style.css"/>
-    <file href="scorm.js"/>
-    <file href="css/variables.css"/>
-    <file href="css/base.css"/>
-    <file href="css/layout.css"/>
-    <file href="css/components.css"/>
-    <file href="css/responsive.css"/>
-    <file href="js/config.js"/>
-    <file href="js/state.js"/>
-    <file href="js/api.js"/>
-    <file href="js/scorm-service.js"/>
-    <file href="js/ui.js"/>
-    <file href="js/player.js"/>
-    <file href="js/theme.js"/>
-    <file href="js/main.js"/>
   </resource>
   </resources>
 </manifest>
