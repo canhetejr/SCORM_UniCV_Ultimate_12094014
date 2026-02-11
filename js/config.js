@@ -1,10 +1,10 @@
 /**
  * UniCV Play — Configuração centralizada
+ * Suporta override via window.UniCV_CONFIG (injetado antes do carregamento)
  */
 (function (global) {
   "use strict";
-  global.UniCV = global.UniCV || {};
-  global.UniCV.CONFIG = {
+  var baseConfig = {
     SHOWCASE_ID: "12094014",
     N8N_BASE: "https://n8n.canhete.com.br/webhook/vimeo-playlist",
     SCORM_WAIT_TIMEOUT_MS: 2000,
@@ -12,6 +12,10 @@
     SAVE_DEBOUNCE_MS: 400,
     AUTO_NEXT_DELAY_MS: 1000
   };
+  global.UniCV = global.UniCV || {};
+  global.UniCV.CONFIG = (typeof window !== "undefined" && window.UniCV_CONFIG)
+    ? Object.assign({}, baseConfig, window.UniCV_CONFIG)
+    : baseConfig;
   global.UniCV.CONFIG.N8N_URL =
     global.UniCV.CONFIG.N8N_BASE + "?id=" + global.UniCV.CONFIG.SHOWCASE_ID;
   global.UniCV.CHECK_ICON_SVG =
