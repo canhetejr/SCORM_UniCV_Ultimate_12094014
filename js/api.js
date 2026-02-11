@@ -7,7 +7,17 @@
   if (!CONFIG) return;
 
   function fetchPlaylist() {
-    return fetch(CONFIG.N8N_URL)
+    var headers = {};
+    
+    // Adicionar Authorization header se o token estiver configurado
+    if (CONFIG.N8N_API_TOKEN) {
+      headers["Authorization"] = "Bearer " + CONFIG.N8N_API_TOKEN;
+    }
+
+    return fetch(CONFIG.N8N_URL, {
+      method: "GET",
+      headers: headers
+    })
       .then(function (res) {
         if (!res.ok) throw new Error("Erro ao carregar vitrine.");
         return res.json();

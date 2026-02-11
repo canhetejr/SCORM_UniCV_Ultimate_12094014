@@ -7,6 +7,7 @@
   var baseConfig = {
     SHOWCASE_ID: "12094014",
     N8N_BASE: "https://n8n.canhete.com.br/webhook/vimeo-playlist",
+    N8N_API_TOKEN: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjNTVjMjljZC1lNTNkLTQ4MmYtOTkxOS01ZWM4ZDgwNzgxNzMiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzcwNzc0Mzc1LCJleHAiOjE3NzMzNTY0MDB9.A5aHTtIG_4yAzeEze4a_J3soVm8FTFiIBZt2KopPRYQ",
     SCORM_WAIT_TIMEOUT_MS: 2000,
     SCORM_WAIT_INTERVAL_MS: 100,
     SAVE_DEBOUNCE_MS: 400,
