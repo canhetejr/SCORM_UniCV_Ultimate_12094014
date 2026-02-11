@@ -6,6 +6,8 @@
   </metadata>
   <organizations default="ORG"><organization identifier="ORG"><title>UniCV Ultimate Player</title><item identifier="I1" identifierref="R1" isvisible="true"><title>Videoaulas</title></item></organization>
   </organizations>
-  <resources><resource identifier="R1" type="webcontent" adlcp:scormtype="sco" href="index.html"><file href="index.html"/><file href="script.js"/><file href="style.css"/><file href="scorm.js"/></resource>
+  <resources><resource identifier="R1" type="webcontent" adlcp:scormtype="sco" href="index.html">
+    <file href="index.html"/>
+  </resource>
   </resources>
 </manifest>
