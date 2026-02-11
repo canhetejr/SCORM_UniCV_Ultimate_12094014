@@ -1,0 +1,46 @@
+# EditorConfig: https://EditorConfig.org
+
+# Arquivo raiz
+root = true
+
+# Padrões para todos os arquivos
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# JavaScript, JSON, YAML
+[*.{js,json,yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# CSS
+[*.css]
+indent_style = space
+indent_size = 2
+
+# HTML, XML
+[*.{html,xml}]
+indent_style = space
+indent_size = 4
+
+# Markdown
+[*.md]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = false
+
+# Package.json (manter formatação do npm)
+[package.json]
+indent_style = space
+indent_size = 2
+
+# CSV
+[*.csv]
+trim_trailing_whitespace = false
+insert_final_newline = false
+
+# Makefiles (precisam de tabs)
+[Makefile]
+indent_style = tab

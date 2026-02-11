@@ -1,0 +1,43 @@
+version: 2
+updates:
+  # Atualizar dependências npm
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Atlantic/Cape_Verde"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "canhetejr"
+    labels:
+      - "dependencies"
+      - "npm"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    # Agrupar atualizações de devDependencies para reduzir ruído
+    groups:
+      dev-dependencies:
+        patterns:
+          - "*"
+        dependency-type: "development"
+
+  # Atualizar GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Atlantic/Cape_Verde"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "canhetejr"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
