@@ -1,6 +1,10 @@
 # Player UniCV
 
+[![SCORM 1.2](https://img.shields.io/badge/SCORM-1.2-blue)](https://scorm.com/scorm-explained/) [![Moodle](https://img.shields.io/badge/Moodle-compatible-orange)](https://moodle.org/)
+
 Player de videoaulas em estilo streaming (tipo Netflix) com rastreamento de progresso e temas claro/escuro, para uso no **Moodle** como atividade **SCORM 1.2**.
+
+**Repositório:** [github.com/canhetejr/SCORM_UniCV_Ultimate_12094014](https://github.com/canhetejr/SCORM_UniCV_Ultimate_12094014)
 
 ## Funcionalidades
 
@@ -22,9 +26,10 @@ Player de videoaulas em estilo streaming (tipo Netflix) com rastreamento de prog
 
 ## Como usar no Moodle
 
-1. Faça o **download do repositório como ZIP** (no GitHub: Code → Download ZIP) ou use uma [Release](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository) se tiver criado uma.
-2. Garanta que na **raiz do ZIP** estejam `imsmanifest.xml`, `index.html` e os demais arquivos (sem pasta extra na raiz).
-3. No Moodle: adicione uma atividade **Pacote SCORM** e envie esse ZIP.
+1. **Obter o pacote ZIP** (uma das opções):
+   - **Opção A — Release (recomendado):** vá em [Releases](https://github.com/canhetejr/SCORM_UniCV_Ultimate_12094014/releases) e baixe o ficheiro `SCORM_UniCV_Ultimate_12094014.zip` anexado à release. Esse ZIP já está pronto para o Moodle.
+   - **Opção B — Código fonte:** no GitHub, **Code → Download ZIP**. Extraia o ZIP e garanta que na **raiz** da pasta (ou do novo ZIP que for enviar ao Moodle) estejam `imsmanifest.xml`, `index.html` e os demais ficheiros, sem pasta extra na raiz.
+2. No Moodle: adicione uma atividade **Pacote SCORM** e envie o ZIP.
 
 O Moodle instalará o pacote e os alunos poderão acessar as videoaulas com progresso e nota integrados.
 
@@ -38,35 +43,24 @@ A vitrine de vídeos é definida em **`script.js`**:
 O backend deve devolver JSON no formato: `{ "videos": [ { "id", "name", "thumb", "duration" }, ... ] }`.  
 Para detalhes de arquitetura e manutenção, consulte **[DOCUMENTACAO.md](DOCUMENTACAO.md)**.
 
-## Publicar no GitHub
+## Repositório e publicação
 
-### 1. Inicializar repositório e enviar para o GitHub
+O projeto está hospedado em [github.com/canhetejr/SCORM_UniCV_Ultimate_12094014](https://github.com/canhetejr/SCORM_UniCV_Ultimate_12094014). Em cada **Release** publicada, o GitHub Actions gera automaticamente um ZIP do pacote SCORM anexado à release (pronto para importar no Moodle).
 
-```bash
-git init
-git add .
-git commit -m "Initial commit - Player UniCV SCORM 1.2"
-git branch -M main
-git remote add origin https://github.com/<seu-usuario>/SCORM_UniCV_Ultimate_12094014.git
-git push -u origin main
-```
-
-Substitua `<seu-usuario>` pelo seu nome de usuário do GitHub. Se o repositório ainda não existir, crie-o em [github.com/new](https://github.com/new) antes do push.
-
-### 2. Ativar GitHub Pages (preview da interface)
+### Ativar GitHub Pages (preview da interface)
 
 1. No GitHub, abra o repositório e vá em **Settings**.
 2. No menu lateral, clique em **Pages**.
 3. Em **Source**, escolha **Deploy from a branch**.
 4. Selecione a branch **main** e pasta **/ (root)**.
 5. Salve. A página ficará disponível em:
-   `https://<seu-usuario>.github.io/SCORM_UniCV_Ultimate_12094014/`
+   `https://canhetejr.github.io/SCORM_UniCV_Ultimate_12094014/`
 
 > **Nota:** O GitHub Pages serve apenas para visualizar a interface. O rastreamento SCORM só funciona quando o pacote é carregado dentro do Moodle (upload do ZIP).
 
 ### CORS para GitHub Pages
 
-A playlist é carregada via `fetch(CONFIG.N8N_URL)`. Se a página for servida em `github.io`, a origem é diferente da do webhook. Para a lista de vídeos aparecer no preview, o servidor (ex.: N8N) precisa enviar o cabeçalho `Access-Control-Allow-Origin` adequado (ex.: `*` ou `https://<seu-usuario>.github.io`). Caso contrário, a lista pode não carregar na Page (no Moodle, dentro do LMS, CORS costuma não ser problema).
+A playlist é carregada via `fetch(CONFIG.N8N_URL)`. Se a página for servida em `github.io`, a origem é diferente da do webhook. Para a lista de vídeos aparecer no preview, o servidor (ex.: N8N) precisa enviar o cabeçalho `Access-Control-Allow-Origin` adequado (ex.: `*` ou `https://canhetejr.github.io`). Caso contrário, a lista pode não carregar na Page (no Moodle, dentro do LMS, CORS costuma não ser problema).
 
 ## Licença
 

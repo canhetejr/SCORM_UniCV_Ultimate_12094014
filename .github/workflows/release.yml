@@ -1,0 +1,27 @@
+# Gera um ZIP do pacote SCORM em cada Release (pronto para upload no Moodle)
+name: Release SCORM ZIP
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-zip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Criar ZIP do pacote SCORM
+        run: |
+          zip -r SCORM_UniCV_Ultimate_12094014.zip . \
+            -x "*.git*" \
+            -x ".github/*" \
+            -x "CONFIGURAR_GITHUB.md"
+          echo "ZIP criado: $(ls -la *.zip)"
+
+      - name: Anexar ZIP à Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: SCORM_UniCV_Ultimate_12094014.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
