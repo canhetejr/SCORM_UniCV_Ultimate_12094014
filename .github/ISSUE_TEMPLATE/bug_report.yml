@@ -1,0 +1,105 @@
+name: 🐛 Bug Report
+description: Reportar um bug ou comportamento inesperado
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por reportar um bug! Por favor, preencha o máximo de informações possível.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descrição do Bug
+      description: Uma descrição clara e concisa do que está acontecendo.
+      placeholder: O player não carrega os vídeos quando...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Passos para Reproduzir
+      description: Como reproduzir o problema?
+      placeholder: |
+        1. Faça upload do pacote SCORM no Moodle
+        2. Abra a atividade
+        3. Clique em '...'
+        4. Observe o erro
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamento Esperado
+      description: O que deveria acontecer?
+      placeholder: O player deveria carregar a lista de vídeos
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Comportamento Atual
+      description: O que está acontecendo?
+      placeholder: A lista fica em branco com erro de CORS
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Ambiente
+      description: Onde o bug ocorre?
+      options:
+        - Moodle (LMS)
+        - GitHub Pages (preview)
+        - Desenvolvimento local
+        - Outro
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Navegador
+      description: Qual navegador está usando?
+      placeholder: Chrome 120, Firefox 121, Safari 17, etc.
+    validations:
+      required: false
+
+  - type: input
+    id: moodle-version
+    attributes:
+      label: Versão do Moodle
+      description: Se aplicável, qual versão do Moodle?
+      placeholder: 4.1, 4.2, etc.
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs do Console
+      description: Se houver erros no console do navegador, cole aqui
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Se aplicável, adicione screenshots para ajudar a explicar o problema
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Informações Adicionais
+      description: Qualquer outra informação relevante
+    validations:
+      required: false

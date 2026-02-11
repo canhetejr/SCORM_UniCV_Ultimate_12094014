@@ -1,0 +1,73 @@
+name: ✨ Feature Request
+description: Sugerir uma nova funcionalidade ou melhoria
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por sugerir uma melhoria! Descreva sua ideia detalhadamente.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema ou Necessidade
+      description: Qual problema esta funcionalidade resolveria?
+      placeholder: Seria útil se o player pudesse...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solução Proposta
+      description: Como você imagina que esta funcionalidade funcionaria?
+      placeholder: Adicionar um botão que...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas Consideradas
+      description: Você pensou em outras formas de resolver isto?
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Prioridade
+      description: Quão importante é esta funcionalidade para você?
+      options:
+        - Baixa (seria bom ter)
+        - Média (melhoraria significativamente)
+        - Alta (essencial para meu uso)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Componente Afetado
+      description: Qual parte do sistema seria afetada?
+      multiple: true
+      options:
+        - Player de vídeo
+        - Lista de aulas
+        - Progresso/SCORM
+        - Tema/UI
+        - Configuração
+        - Documentação
+        - Build/Deploy
+        - Outro
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Informações Adicionais
+      description: Qualquer contexto adicional, screenshots, mockups, etc.
+    validations:
+      required: false

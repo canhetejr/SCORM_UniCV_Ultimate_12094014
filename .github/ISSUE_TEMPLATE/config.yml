@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Documentação
+    url: https://github.com/canhetejr/SCORM_UniCV_Ultimate_12094014/blob/main/DOCUMENTACAO.md
+    about: Consulte a documentação técnica do projeto
+  - name: 💬 Discussões
+    url: https://github.com/canhetejr/SCORM_UniCV_Ultimate_12094014/discussions
+    about: Perguntas gerais e discussões da comunidade
