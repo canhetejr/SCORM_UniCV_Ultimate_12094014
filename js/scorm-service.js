@@ -19,6 +19,7 @@
         if (elapsed >= timeoutMs) {
           clearInterval(t);
           resolve(false);
+          return;
         }
       }, CONFIG.SCORM_WAIT_INTERVAL_MS);
     });
