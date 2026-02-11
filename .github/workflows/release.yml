@@ -1,4 +1,4 @@
-# Gera um ZIP do pacote SCORM em cada Release (pronto para upload no Moodle)
+# Gera ZIP minimal do pacote SCORM (apenas manifest + index com URLs jsDelivr)
 name: Release SCORM ZIP
 
 on:
@@ -11,12 +11,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Criar ZIP do pacote SCORM
+      - name: Build index.html com URLs jsDelivr
+        env:
+          BASE: "https://cdn.jsdelivr.net/gh/${{ github.repository }}@${{ github.ref_name }}/"
         run: |
-          zip -r SCORM_UniCV_Ultimate_12094014.zip . \
-            -x "*.git*" \
-            -x ".github/*" \
-            -x "CONFIGURAR_GITHUB.md"
+          BASE="$BASE"
+          sed -e "s|href=\"style.css\"|href=\"${BASE}style.css\"|g" \
+              -e "s|src=\"scorm.js\"|src=\"${BASE}scorm.js\"|g" \
+              -e "s|src=\"js/config.js\"|src=\"${BASE}js/config.js\"|g" \
+              -e "s|src=\"js/state.js\"|src=\"${BASE}js/state.js\"|g" \
+              -e "s|src=\"js/api.js\"|src=\"${BASE}js/api.js\"|g" \
+              -e "s|src=\"js/scorm-service.js\"|src=\"${BASE}js/scorm-service.js\"|g" \
+              -e "s|src=\"js/ui.js\"|src=\"${BASE}js/ui.js\"|g" \
+              -e "s|src=\"js/player.js\"|src=\"${BASE}js/player.js\"|g" \
+              -e "s|src=\"js/theme.js\"|src=\"${BASE}js/theme.js\"|g" \
+              -e "s|src=\"js/main.js\"|src=\"${BASE}js/main.js\"|g" \
+              index.html > index.release.html
+          mv index.release.html index.html
+
+      - name: Criar ZIP minimal (manifest + index)
+        run: |
+          zip SCORM_UniCV_Ultimate_12094014.zip imsmanifest.xml index.html
           echo "ZIP criado: $(ls -la *.zip)"
 
       - name: Anexar ZIP à Release
