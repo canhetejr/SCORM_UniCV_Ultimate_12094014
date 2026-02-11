@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>UniCV SCORM Builder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/builder.css">
+</head>
+<body class="theme-dark builder-page">
+    <main class="builder-shell">
+        <header class="builder-header">
+            <div>
+                <p class="eyebrow">UniCV Ultimate</p>
+                <h1>SCORM Builder</h1>
+                <p class="subtitle">Envie um CSV e gere pacotes SCORM em lote.</p>
+            </div>
+            <button id="themeToggle" class="theme-btn" type="button" aria-label="Alternar tema">
+                <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </button>
+        </header>
+
+        <section class="builder-grid">
+            <article class="builder-card">
+                <h2>1. Upload do CSV</h2>
+                <p class="card-help">Formato esperado: <code>disciplina,vimeo_id</code>.</p>
+                <label id="dropZone" class="drop-zone" for="csvInput">
+                    <input id="csvInput" type="file" accept=".csv,text/csv">
+                    <strong>Arraste o CSV aqui</strong>
+                    <span>ou clique para selecionar arquivo</span>
+                </label>
+                <p id="csvMeta" class="meta-info">Nenhum arquivo selecionado.</p>
+                <p id="errorBox" class="error-box" role="alert" aria-live="polite"></p>
+            </article>
+
+            <article class="builder-card">
+                <h2>2. Configuração</h2>
+                <div class="config-row">
+                    <label class="switch">
+                        <input id="cdnToggle" type="checkbox">
+                        <span class="switch-slider"></span>
+                    </label>
+                    <div>
+                        <strong>Usar CDN</strong>
+                        <p class="card-help">Com CDN, o ZIP inclui apenas <code>index.html</code> e <code>imsmanifest.xml</code>.</p>
+                    </div>
+                </div>
+
+                <div id="cdnFieldWrap" class="cdn-wrap is-hidden">
+                    <label for="cdnInput">URL base do CDN</label>
+                    <input id="cdnInput" type="url" placeholder="https://cdn.exemplo.com/unicv/">
+                </div>
+            </article>
+        </section>
+
+        <section class="builder-card">
+            <div class="table-head">
+                <h2>3. Disciplinas e geração</h2>
+                <button id="toggleAllBtn" class="action-btn" type="button" disabled>Selecionar todas</button>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Gerar</th>
+                            <th>Disciplina</th>
+                            <th>Vimeo ID</th>
+                            <th>Nome do ZIP</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rowsContainer">
+                        <tr>
+                            <td colspan="4" class="empty-row">Carregue um CSV para visualizar as disciplinas.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="generation-area">
+                <button id="generateBtn" class="action-btn primary-btn" type="button" disabled>Gerar pacotes SCORM</button>
+                <div class="progress-track builder-progress">
+                    <div id="progressBar" class="progress-bar"></div>
+                </div>
+                <p id="statusText" class="meta-info">Aguardando CSV.</p>
+            </div>
+        </section>
+
+        <section class="builder-card">
+            <div class="table-head">
+                <h2>Pacotes gerados</h2>
+                <button id="downloadAllBtn" class="action-btn" type="button" disabled>Baixar todos</button>
+            </div>
+            <div id="downloadsList" class="downloads-list">
+                <p class="empty-row">Os downloads aparecerão aqui após a geração.</p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/e5d62d3f-95a3-4443-9f60-27b4469525a1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:'verification-pre-fix',hypothesisId:'H9',location:'builder.html',message:'html bootstrap executed',data:{href:location.href,path:location.pathname,hasFetch:typeof fetch==='function'},timestamp:Date.now()})}).catch(()=>{});
+        window.addEventListener('error',function(ev){
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/e5d62d3f-95a3-4443-9f60-27b4469525a1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:'verification-pre-fix',hypothesisId:'H10',location:'builder.html',message:'window error',data:{message:ev&&ev.message?ev.message:'unknown'},timestamp:Date.now()})}).catch(()=>{});
+          // #endregion
+        });
+        window.addEventListener('unhandledrejection',function(ev){
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/e5d62d3f-95a3-4443-9f60-27b4469525a1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:'verification-pre-fix',hypothesisId:'H10',location:'builder.html',message:'unhandled rejection',data:{reason:ev&&ev.reason?String(ev.reason):'unknown'},timestamp:Date.now()})}).catch(()=>{});
+          // #endregion
+        });
+        // #endregion
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="js/builder.js?v=debug8"></script>
+    <script>
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/e5d62d3f-95a3-4443-9f60-27b4469525a1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({runId:'verification-pre-fix',hypothesisId:'H9',location:'builder.html',message:'post-scripts state',data:{hasJSZip:typeof window.JSZip!=='undefined',hasBuilderLoaded:!!window.__builderLoaded},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
+    </script>
+</body>
+</html>
