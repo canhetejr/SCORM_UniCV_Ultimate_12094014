@@ -1,0 +1,14 @@
+{
+  "name": "unicv-scorm",
+  "version": "1.0.0",
+  "description": "UniCV Play — Pacotes SCORM para videoaulas Vimeo",
+  "scripts": {
+    "build:packages": "node build-packages.js disciplinas.csv"
+  },
+  "keywords": ["scorm", "moodle", "vimeo", "unicv"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "archiver": "^7.0.0"
+  }
+}
