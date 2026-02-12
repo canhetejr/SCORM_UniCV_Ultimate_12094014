@@ -1,0 +1,32 @@
+{
+  "name": "@unicv/studio-api",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.0.0",
+    "@fastify/cors": "^10.0.0",
+    "@fastify/formbody": "^8.0.0",
+    "@fastify/sensible": "^6.0.0",
+    "@prisma/client": "^6.0.0",
+    "archiver": "^7.0.0",
+    "fastify": "^5.0.0",
+    "jose": "^6.0.0",
+    "prisma": "^6.0.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}
+

@@ -1,0 +1,17 @@
+{
+  "name": "unicv-scorm-ultimate",
+  "private": true,
+  "workspaces": [
+    "studio/*"
+  ],
+  "scripts": {
+    "build:packages": "node build-packages.js disciplinas.csv",
+    "studio:dev": "npm --workspace studio/api run dev",
+    "studio:build": "npm --workspace studio/api run build",
+    "studio:start": "npm --workspace studio/api run start",
+    "studio:web:dev": "npm --workspace studio/web run dev",
+    "studio:web:build": "npm --workspace studio/web run build",
+    "studio:web:preview": "npm --workspace studio/web run preview"
+  }
+}
+

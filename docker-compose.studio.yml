@@ -1,0 +1,76 @@
+# UniCV Studio — deploy no Coolify/VPS
+# Build: na raiz do repositório (contexto .) para a API ter acesso a index.html, imsmanifest.xml, css/, js/
+# Em produção, defina BASE_URL com a URL pública da API (ex: https://api.seudominio.com)
+# Variáveis sensíveis: configure no Coolify (Environment) e não commite .env com chaves
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: unicv
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - unicv_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d unicv"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: studio/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3001
+      BASE_URL: ${BASE_URL:-http://localhost:3001}
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@db:5432/unicv?schema=public
+      EXPORT_DIR: var/exports
+      VIMEO_CLIENT_ID: ${VIMEO_CLIENT_ID:-}
+      VIMEO_CLIENT_SECRET: ${VIMEO_CLIENT_SECRET:-}
+      VIMEO_REDIRECT_URI: ${VIMEO_REDIRECT_URI:-}
+      COOKIE_SECRET: ${COOKIE_SECRET:-troque-este-segredo-por-um-bem-grande}
+      LTI_PLATFORM_ISSUER: ${LTI_PLATFORM_ISSUER:-}
+      LTI_PLATFORM_CLIENT_ID: ${LTI_PLATFORM_CLIENT_ID:-}
+      LTI_PLATFORM_AUTH_LOGIN_URL: ${LTI_PLATFORM_AUTH_LOGIN_URL:-}
+      LTI_PLATFORM_KEYSET_URL: ${LTI_PLATFORM_KEYSET_URL:-}
+      LTI_PLATFORM_DEPLOYMENT_ID: ${LTI_PLATFORM_DEPLOYMENT_ID:-}
+      LTI_TOOL_PRIVATE_KEY_PEM: ${LTI_TOOL_PRIVATE_KEY_PEM:-}
+      LTI_TOOL_KID: ${LTI_TOOL_KID:-unicv-tool-1}
+      LRS_ENDPOINT: ${LRS_ENDPOINT:-}
+      LRS_BASIC_AUTH: ${LRS_BASIC_AUTH:-}
+    ports:
+      - "3001:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - unicv_exports:/app/studio/api/var/exports
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  web:
+    build:
+      context: .
+      dockerfile: studio/web/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+
+volumes:
+  unicv_pg:
+  unicv_exports:
+

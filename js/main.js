@@ -27,6 +27,11 @@
       if (idx < 0 || idx >= UniCV.state.videos.length) return;
       UniCV.state.progress[idx] = !UniCV.state.progress[idx];
       UniCV.updateUI();
+      if (UniCV.state.progress[idx] && typeof UniCV.emitXapi === "function") {
+        try {
+          UniCV.emitXapi("completed", { video: UniCV.state.videos[idx], idx: idx });
+        } catch (e) {}
+      }
       if (UniCV.state.progress[idx] && idx < UniCV.state.videos.length - 1) {
         setTimeout(function () {
           UniCV.play(idx + 1);

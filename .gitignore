@@ -1,3 +1,17 @@
+dist/
+node_modules/
+.env
+.env.*
+!.env.studio.example
+.DS_Store
+Thumbs.db
+
+# Studio (nova app)
+studio/.env
+studio/node_modules/
+studio/dist/
+studio/.next/
+studio/.turbo/
 # Sistema
 Thumbs.db
 Desktop.ini

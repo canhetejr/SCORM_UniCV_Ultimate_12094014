@@ -1,0 +1,177 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Núcleo do domínio:
+// - Conexão Vimeo (OAuth) por workspace/conta
+// - Vitrines (playlist) podem vir de Showcase (import) ou serem manuais
+// - Vídeos guardam metadados + hash do embed (para privados/ocultos quando existir)
+
+model Account {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  vimeoConnections VimeoConnection[]
+  vitrines         Vitrine[]
+  exports          ExportJob[]
+  ltiDeployments   LtiDeployment[]
+
+  @@index([createdAt])
+}
+
+model VimeoConnection {
+  id             String   @id @default(cuid())
+  accountId      String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Vimeo OAuth
+  vimeoUserId     String?
+  accessToken     String
+  refreshToken    String?
+  tokenType       String? // geralmente "bearer"
+  scope           String?
+  expiresAt       DateTime?
+
+  // Auditoria simples
+  lastSyncAt      DateTime?
+
+  account         Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([vimeoUserId])
+}
+
+model Vitrine {
+  id             String   @id @default(cuid())
+  accountId      String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  title          String
+  description    String?
+
+  // Se a vitrine foi importada de um Showcase/Album do Vimeo
+  vimeoShowcaseId String?
+  vimeoSource     VitrineSource @default(MANUAL)
+
+  videos         VitrineVideo[]
+
+  account        Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([vimeoShowcaseId])
+}
+
+model Video {
+  id          String   @id @default(cuid())
+  accountId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Vimeo
+  vimeoVideoId String
+
+  title       String
+  thumbnailUrl String?
+  durationSec Int?
+
+  // Para vídeos privados/não listados quando o embed exigir: ?h=HASH
+  // Guardamos apenas o valor do hash (sem "h=")
+  embedHash   String?
+
+  // URLs úteis (não confiáveis para segredo, mas úteis para preview/admin)
+  playerUrl   String? // ex: https://player.vimeo.com/video/{id}
+
+  vitrines    VitrineVideo[]
+
+  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, vimeoVideoId])
+  @@index([accountId])
+}
+
+model VitrineVideo {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  vitrineId String
+  videoId   String
+  position  Int
+
+  vitrine   Vitrine  @relation(fields: [vitrineId], references: [id], onDelete: Cascade)
+  video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([vitrineId, videoId])
+  @@unique([vitrineId, position])
+  @@index([videoId])
+}
+
+model ExportJob {
+  id         String   @id @default(cuid())
+  accountId  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  type       ExportType
+  status     ExportStatus @default(PENDING)
+
+  vitrineId  String?
+  title      String
+
+  // Path local no volume (ou URL futura)
+  artifactPath String?
+  errorMessage String?
+
+  account    Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId, createdAt])
+  @@index([status])
+}
+
+model LtiDeployment {
+  id            String   @id @default(cuid())
+  accountId     String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Config LTI 1.3 (por deployment)
+  issuer        String
+  clientId      String
+  deploymentId  String
+  jwksKid       String
+
+  // URL de launch no nosso sistema (útil para UI)
+  launchUrl     String
+
+  account       Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([issuer, clientId, deploymentId])
+  @@index([accountId])
+}
+
+enum VitrineSource {
+  MANUAL
+  VIMEO_SHOWCASE
+}
+
+enum ExportType {
+  HTML
+  SCORM12
+  IFRAME
+}
+
+enum ExportStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+

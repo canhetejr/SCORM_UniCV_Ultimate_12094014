@@ -14,10 +14,11 @@
     UniCV.state.activeIdx = idx;
     var v = UniCV.state.videos[idx];
     var videoId = v.id.replace(/[^0-9]/g, "") || v.id;
-    els.frame.src =
-      "https://player.vimeo.com/video/" +
-      videoId +
-      "?autoplay=1&badge=0&autopause=0&dnt=1";
+    var src = "https://player.vimeo.com/video/" + videoId + "?autoplay=1&badge=0&autopause=0&dnt=1";
+    if (v && typeof v.hash === "string" && v.hash) {
+      src += "&h=" + encodeURIComponent(v.hash);
+    }
+    els.frame.src = src;
     els.title.textContent = idx + 1 + ". " + v.name;
     els.boot.style.display = "none";
     UniCV.updateUI();

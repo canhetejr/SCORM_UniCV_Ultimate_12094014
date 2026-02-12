@@ -5,7 +5,13 @@
 (function (global) {
   "use strict";
 
-  var DEBUG_ENDPOINT = "http://127.0.0.1:7242/ingest/e5d62d3f-95a3-4443-9f60-27b4469525a1";
+  // Endpoint de debug usado durante desenvolvimento interno.
+  // Mantemos DESABILITADO por padrão para evitar tráfego inesperado em produção.
+  // Para habilitar: defina window.__UNICV_BUILDER_DEBUG_ENDPOINT antes de carregar este script.
+  var DEBUG_ENDPOINT =
+    (typeof window !== "undefined" && window.__UNICV_BUILDER_DEBUG_ENDPOINT)
+      ? String(window.__UNICV_BUILDER_DEBUG_ENDPOINT)
+      : "";
 
   var FILES_FOR_BUNDLE = [
     "style.css",
@@ -34,6 +40,7 @@
 
   function debugLog(hypothesisId, message, data, runId) {
     // #region agent log
+    if (!DEBUG_ENDPOINT) return;
     fetch(DEBUG_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
