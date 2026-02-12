@@ -77,6 +77,10 @@ export async function exportScorm12Zip(input: ScormExportInput): Promise<{ zipPa
     const archive = archiver("zip", { zlib: { level: 9 } });
 
     output.on("close", () => resolve());
+    output.on("error", (err) => {
+      archive.destroy();
+      reject(err);
+    });
     archive.on("error", (err) => reject(err));
 
     archive.pipe(output);
@@ -135,6 +139,10 @@ export async function exportHtmlZip(input: ScormExportInput): Promise<{ zipPath:
     const archive = archiver("zip", { zlib: { level: 9 } });
 
     output.on("close", () => resolve());
+    output.on("error", (err) => {
+      archive.destroy();
+      reject(err);
+    });
     archive.on("error", (err) => reject(err));
 
     archive.pipe(output);

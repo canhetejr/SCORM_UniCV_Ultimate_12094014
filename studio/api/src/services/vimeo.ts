@@ -49,7 +49,7 @@ export async function exchangeCodeForToken(input: {
     headers: {
       Accept: VIMEO_ACCEPT,
       "Content-Type": "application/json",
-      Authorization: `basic ${basic}`
+      Authorization: `Basic ${basic}`
     },
     body: JSON.stringify({
       grant_type: "authorization_code",
@@ -76,7 +76,7 @@ export async function vimeoGet<T>(input: { accessToken: string; path: string; qu
     method: "GET",
     headers: {
       Accept: VIMEO_ACCEPT,
-      Authorization: `bearer ${input.accessToken}`
+      Authorization: `Bearer ${input.accessToken}`
     }
   });
 
