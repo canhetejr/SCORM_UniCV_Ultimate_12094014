@@ -34,12 +34,20 @@ export async function buildServer(): Promise<FastifyInstance> {
   });
 
   function getRepoRoot(): string {
-    // src/server.ts e dist/server.js ficam em studio/api/src e studio/api/dist (mesma profundidade).
-    // 3 níveis acima = repo root (dev e prod/Docker). 4 níveis apontaria acima da raiz e quebraria.
     const here = path.dirname(new URL(import.meta.url).pathname);
     const normalizedHere = process.platform === "win32" && here.startsWith("/") ? here.slice(1) : here;
-    return path.resolve(normalizedHere, "..", "..", "..");
+    // Em dev: studio/api/src ou studio/api/dist → 3 níveis = repo root.
+    // Em Docker: dist/server.js em /app/studio/api/dist → 3 níveis = /app (onde estão index.html, style.css, etc.).
+    const candidate3 = path.resolve(normalizedHere, "..", "..", "..");
+    if (fs.existsSync(path.join(candidate3, "index.html"))) return candidate3;
+    const candidate4 = path.resolve(normalizedHere, "..", "..", "..", "..");
+    if (fs.existsSync(path.join(candidate4, "index.html"))) return candidate4;
+    throw new Error(
+      `Repo root não encontrado (index.html ausente). Procurou em: ${candidate3} e ${candidate4}.`
+    );
   }
+
+  const repoRoot = getRepoRoot();
 
   await app.register(sensible);
   await app.register(cors, {
@@ -201,7 +209,6 @@ export async function buildServer(): Promise<FastifyInstance> {
     const q = req.query as Record<string, string | undefined>;
     const vitrineId = String(q.vitrine_id || "").trim();
     const showcaseId = String(q.showcase_id || q.id || "").trim();
-    const repoRoot = getRepoRoot();
     const template = fs.readFileSync(path.join(repoRoot, "index.html"), "utf8");
 
     const config = vitrineId
@@ -214,26 +221,22 @@ export async function buildServer(): Promise<FastifyInstance> {
   });
 
   app.get("/player/style.css", async (req, reply) => {
-    const repoRoot = getRepoRoot();
     reply.header("Content-Type", "text/css; charset=utf-8");
     return reply.send(fs.createReadStream(path.join(repoRoot, "style.css")));
   });
   app.get("/player/scorm.js", async (req, reply) => {
-    const repoRoot = getRepoRoot();
     reply.header("Content-Type", "application/javascript; charset=utf-8");
     return reply.send(fs.createReadStream(path.join(repoRoot, "scorm.js")));
   });
   app.get("/player/css/:file", async (req, reply) => {
     const file = String((req.params as any).file || "").trim();
     if (!playerCssFiles.has(file)) return reply.notFound();
-    const repoRoot = getRepoRoot();
     reply.header("Content-Type", "text/css; charset=utf-8");
     return reply.send(fs.createReadStream(path.join(repoRoot, "css", file)));
   });
   app.get("/player/js/:file", async (req, reply) => {
     const file = String((req.params as any).file || "").trim();
     if (!playerJsFiles.has(file)) return reply.notFound();
-    const repoRoot = getRepoRoot();
     reply.header("Content-Type", "application/javascript; charset=utf-8");
     return reply.send(fs.createReadStream(path.join(repoRoot, "js", file)));
   });
