@@ -34,10 +34,11 @@ export async function buildServer(): Promise<FastifyInstance> {
   });
 
   function getRepoRoot(): string {
-    // server.ts -> studio/api/src/server.ts
+    // src/server.ts e dist/server.js ficam em studio/api/src e studio/api/dist (mesma profundidade).
+    // 3 níveis acima = repo root (dev e prod/Docker). 4 níveis apontaria acima da raiz e quebraria.
     const here = path.dirname(new URL(import.meta.url).pathname);
     const normalizedHere = process.platform === "win32" && here.startsWith("/") ? here.slice(1) : here;
-    return path.resolve(normalizedHere, "..", "..", "..", "..");
+    return path.resolve(normalizedHere, "..", "..", "..");
   }
 
   await app.register(sensible);
