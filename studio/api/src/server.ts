@@ -64,7 +64,7 @@ export async function buildServer(): Promise<FastifyInstance> {
     const authLoginUrl = getConfig("LTI_PLATFORM_AUTH_LOGIN_URL") ?? env.LTI_PLATFORM_AUTH_LOGIN_URL;
     const keysetUrl = getConfig("LTI_PLATFORM_KEYSET_URL") ?? env.LTI_PLATFORM_KEYSET_URL;
     const deploymentId = getConfig("LTI_PLATFORM_DEPLOYMENT_ID") ?? env.LTI_PLATFORM_DEPLOYMENT_ID;
-    if (!issuer || !clientId || !authLoginUrl || !keysetUrl || !deploymentId) {
+    if (issuer == null || clientId == null || authLoginUrl == null || keysetUrl == null || deploymentId == null) {
       throw new Error("Config LTI incompleta. Defina variáveis LTI_PLATFORM_* no servidor ou em Admin > Configurações.");
     }
     return { issuer, clientId, authLoginUrl, keysetUrl, deploymentId };
