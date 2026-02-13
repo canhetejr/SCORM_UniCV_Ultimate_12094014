@@ -13,13 +13,20 @@ export function createOAuthState(): string {
   return crypto.randomBytes(24).toString("hex");
 }
 
-export function getRedirectUri(env: {
-  BASE_URL?: string;
-  VIMEO_REDIRECT_URI?: string;
-}): string {
-  if (env.VIMEO_REDIRECT_URI) return env.VIMEO_REDIRECT_URI;
-  if (!env.BASE_URL) throw new Error("BASE_URL ou VIMEO_REDIRECT_URI é obrigatório para OAuth.");
-  return new URL("/auth/vimeo/callback", env.BASE_URL).toString();
+export function getRedirectUri(
+  envOrGetConfig:
+    | { BASE_URL?: string; VIMEO_REDIRECT_URI?: string }
+    | ((key: string) => string | undefined)
+): string {
+  const get = (k: string): string | undefined =>
+    typeof envOrGetConfig === "function"
+      ? envOrGetConfig(k)
+      : (envOrGetConfig as any)[k];
+  const redirectUri = get("VIMEO_REDIRECT_URI");
+  if (redirectUri) return redirectUri;
+  const baseUrl = get("BASE_URL");
+  if (!baseUrl) throw new Error("BASE_URL ou VIMEO_REDIRECT_URI é obrigatório para OAuth.");
+  return new URL("/auth/vimeo/callback", baseUrl).toString();
 }
 
 export function buildAuthorizeUrl(params: {

@@ -7,14 +7,45 @@ Player de videoaulas em formato SCORM 1.2 (Moodle) com vitrines Vimeo, progresso
 - **Raiz**: player estático (HTML/JS), `index.html`, `imsmanifest.xml`, `builder.html` e script de pacotes SCORM (`build-packages.js`).
 - **studio/api**: API Node (Fastify + Prisma) — OAuth Vimeo, vitrines, playlist, export, LTI, xAPI.
 - **studio/web**: Painel React (Vite) para administrar vitrines e exportações.
-- **Deploy**: `docker-compose.studio.yml` para rodar db + api + web (Coolify/VPS).
+- **Deploy**: `docker-compose.studio.yml` para rodar db + api + web.
 
-Documentação detalhada do player: [DOCUMENTACAO.md](DOCUMENTACAO.md).  
-Deploy no Coolify e Docker Hub: [studio/DEPLOY_COOLIFY.md](studio/DEPLOY_COOLIFY.md).
+```mermaid
+flowchart LR
+  subgraph raiz [Raiz do repo]
+    Player[Player HTML/JS]
+    Manifest[imsmanifest.xml]
+    Build[build-packages.js]
+  end
+  subgraph studio [studio/]
+    API[API Fastify]
+    Web[Painel React]
+    DB[(Postgres)]
+  end
+  subgraph deploy [Deploy]
+    Docker[docker-compose.studio.yml]
+  end
+  Player --> Manifest
+  Build --> Player
+  API --> DB
+  Web --> API
+  Docker --> API
+  Docker --> Web
+  Docker --> DB
+```
+
+## Documentação — onde encontrar
+
+| Objetivo | Documento |
+|----------|-----------|
+| Player (arquitetura, fluxo, configuração, SCORM) | [DOCUMENTACAO.md](DOCUMENTACAO.md) |
+| Studio (API + painel, endpoints, LTI) | [studio/README.md](studio/README.md) |
+| Deploy (Docker, variáveis) | [studio/DEPLOY.md](studio/DEPLOY.md) |
+| Variáveis de ambiente | [.env.studio.example](.env.studio.example) |
+| Índice completo da documentação | [docs/README.md](docs/README.md) |
 
 ## Antes de commitar
 
-- **Não commite** arquivos `.env` com chaves ou senhas (use [.env.studio.example](.env.studio.example) como referência e configure valores no Coolify).
+- **Não commite** arquivos `.env` com chaves ou senhas (use [.env.studio.example](.env.studio.example) como referência).
 - Rode `git status` e confira se não há `studio/.env`, `.env` ou arquivos sensíveis listados.
 
 ## Build local e Docker
@@ -46,4 +77,4 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-As imagens serão publicadas como `DOCKERHUB_USERNAME/unicv-studio-api` e `DOCKERHUB_USERNAME/unicv-studio-web`. Detalhes em [studio/DEPLOY_COOLIFY.md](studio/DEPLOY_COOLIFY.md#docker-hub).
+As imagens serão publicadas como `DOCKERHUB_USERNAME/unicv-studio-api` e `DOCKERHUB_USERNAME/unicv-studio-web`. Detalhes em [studio/DEPLOY.md](studio/DEPLOY.md).

@@ -30,7 +30,7 @@ COPY --from=build /app/studio/api/dist ./dist
 COPY --from=build /app/studio/api/prisma ./prisma
 
 # O player/exporter usa templates do repo (index.html, imsmanifest.xml, css/, js/, etc.)
-# No Coolify, a forma mais simples é buildar o repo todo como contexto.
+# Em deploy, o contexto de build é a raiz do repo.
 COPY index.html /app/index.html
 COPY imsmanifest.xml /app/imsmanifest.xml
 COPY style.css /app/style.css

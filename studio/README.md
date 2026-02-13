@@ -1,6 +1,6 @@
 # UniCV Studio (VPS)
 
-Este diretório contém a nova aplicação para **gerenciar vitrines/vídeos**, **integrar com Vimeo (OAuth)** e **exportar** (HTML/SCORM/iframe) + **LTI/xAPI**.
+Este diretório contém a aplicação para **gerenciar vitrines/vídeos**, **integrar com Vimeo (OAuth)** e **exportar** (HTML/SCORM/iframe) + **LTI/xAPI**. Para a documentação do **Player** (HTML/JS/SCORM na raiz), veja [DOCUMENTACAO.md](../DOCUMENTACAO.md). Para deploy em produção, veja [DEPLOY.md](DEPLOY.md).
 
 ## Stack escolhida
 

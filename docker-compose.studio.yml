@@ -1,7 +1,6 @@
-# UniCV Studio — deploy no Coolify/VPS
+# UniCV Studio — deploy via Docker
 # Build: na raiz do repositório (contexto .) para a API ter acesso a index.html, imsmanifest.xml, css/, js/
 # Em produção, defina BASE_URL com a URL pública da API (ex: https://api.seudominio.com)
-# Variáveis sensíveis: configure no Coolify (Environment) e não commite .env com chaves
 
 services:
   db:

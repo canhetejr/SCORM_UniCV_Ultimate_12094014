@@ -1,4 +1,9 @@
 // Runtime config (pode ser sobrescrito no deploy)
 // Ex.: window.__UNICV_API_BASE = "https://sua-vps";
-window.__UNICV_API_BASE = window.__UNICV_API_BASE || "http://localhost:3001";
+(function() {
+  if (window.__UNICV_API_BASE) return;
+  var host = window.location.hostname;
+  var apiPort = "3001";
+  window.__UNICV_API_BASE = "http://" + host + ":" + apiPort;
+})();
 

@@ -2,15 +2,8 @@ import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
 import archiver from "archiver";
-
-function escapeXml(str: string): string {
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
+import { getRepoRoot } from "../lib/repoRoot.js";
+import { escapeXml } from "../lib/xml.js";
 
 export type ScormExportInput = {
   title: string;
@@ -26,17 +19,20 @@ type Templates = {
 };
 
 async function loadRepoTemplates(): Promise<Templates> {
-  // Assume que este arquivo está em studio/api/dist ou studio/api/src
-  const here = path.dirname(new URL(import.meta.url).pathname);
-  // Windows: URL pathname pode começar com /C:/...
-  const normalizedHere = process.platform === "win32" && here.startsWith("/") ? here.slice(1) : here;
-
-  // repoRoot = .../SCORM_UniCV_Ultimate_12094014
-  const repoRoot = path.resolve(normalizedHere, "..", "..", "..", "..");
-
+  const repoRoot = getRepoRoot();
   const indexHtml = await fsp.readFile(path.join(repoRoot, "index.html"), "utf8");
   const manifestXml = await fsp.readFile(path.join(repoRoot, "imsmanifest.xml"), "utf8");
   return { indexHtml, manifestXml };
+}
+
+function appendPlayerAssets(
+  archive: ReturnType<typeof archiver>,
+  repoRoot: string
+): void {
+  archive.file(path.join(repoRoot, "style.css"), { name: "style.css" });
+  archive.file(path.join(repoRoot, "scorm.js"), { name: "scorm.js" });
+  archive.directory(path.join(repoRoot, "css"), "css");
+  archive.directory(path.join(repoRoot, "js"), "js");
 }
 
 function buildIndexHtml(template: string, config: Record<string, unknown>): string {
@@ -77,25 +73,18 @@ export async function exportScorm12Zip(input: ScormExportInput): Promise<{ zipPa
     const archive = archiver("zip", { zlib: { level: 9 } });
 
     output.on("close", () => resolve());
-    output.on("error", (err) => {
+    output.on("error", (err: Error) => {
       archive.destroy();
       reject(err);
     });
-    archive.on("error", (err) => reject(err));
+    archive.on("error", (err: Error) => reject(err));
 
     archive.pipe(output);
     archive.append(indexHtml, { name: "index.html" });
     archive.append(manifestXml, { name: "imsmanifest.xml" });
 
     if (input.selfContained) {
-      const here = path.dirname(new URL(import.meta.url).pathname);
-      const normalizedHere = process.platform === "win32" && here.startsWith("/") ? here.slice(1) : here;
-      const repoRoot = path.resolve(normalizedHere, "..", "..", "..", "..");
-
-      archive.file(path.join(repoRoot, "style.css"), { name: "style.css" });
-      archive.file(path.join(repoRoot, "scorm.js"), { name: "scorm.js" });
-      archive.directory(path.join(repoRoot, "css"), "css");
-      archive.directory(path.join(repoRoot, "js"), "js");
+      appendPlayerAssets(archive, getRepoRoot());
     } else {
       // Modo CDN: consumidor deve hospedar assets (GitHub Pages/jsDelivr etc.)
       // Neste MVP, deixamos a opção; o CDN base pode ser ajustado depois no template.
@@ -139,24 +128,17 @@ export async function exportHtmlZip(input: ScormExportInput): Promise<{ zipPath:
     const archive = archiver("zip", { zlib: { level: 9 } });
 
     output.on("close", () => resolve());
-    output.on("error", (err) => {
+    output.on("error", (err: Error) => {
       archive.destroy();
       reject(err);
     });
-    archive.on("error", (err) => reject(err));
+    archive.on("error", (err: Error) => reject(err));
 
     archive.pipe(output);
     archive.append(indexHtml, { name: "index.html" });
 
     if (input.selfContained) {
-      const here = path.dirname(new URL(import.meta.url).pathname);
-      const normalizedHere = process.platform === "win32" && here.startsWith("/") ? here.slice(1) : here;
-      const repoRoot = path.resolve(normalizedHere, "..", "..", "..", "..");
-
-      archive.file(path.join(repoRoot, "style.css"), { name: "style.css" });
-      archive.file(path.join(repoRoot, "scorm.js"), { name: "scorm.js" });
-      archive.directory(path.join(repoRoot, "css"), "css");
-      archive.directory(path.join(repoRoot, "js"), "js");
+      appendPlayerAssets(archive, getRepoRoot());
     }
 
     archive.finalize().catch(reject);

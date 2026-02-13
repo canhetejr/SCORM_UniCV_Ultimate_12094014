@@ -17,7 +17,7 @@ FROM nginx:alpine AS runtime
 
 COPY --from=build /app/studio/web/dist/ /usr/share/nginx/html/
 
-# Exponha config.js para runtime (pode ser sobrescrito via volume no Coolify)
+# config.js para runtime (pode ser sobrescrito via volume)
 COPY studio/web/public/config.js /usr/share/nginx/html/config.js
 
 EXPOSE 80

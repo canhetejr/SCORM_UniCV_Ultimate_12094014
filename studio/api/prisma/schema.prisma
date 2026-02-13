@@ -20,8 +20,10 @@ model Account {
 
   vimeoConnections VimeoConnection[]
   vitrines         Vitrine[]
+  videos           Video[]
   exports          ExportJob[]
   ltiDeployments   LtiDeployment[]
+  dashboardEvents  DashboardEvent[]
 
   @@index([createdAt])
 }
@@ -173,5 +175,29 @@ enum ExportStatus {
   RUNNING
   SUCCEEDED
   FAILED
+}
+
+// Configuração editável pela UI (variáveis de ambiente). Env do sistema tem prioridade se definido.
+model AppConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String?
+  updatedAt DateTime @updatedAt
+}
+
+// Eventos coletados para o dashboard (métricas, ações, acessos)
+model DashboardEvent {
+  id        String   @id @default(cuid())
+  accountId String?
+  type      String   // ex: "playlist_view", "export", "vitrine_created", "player_launch"
+  source    String?  // ex: "player", "studio", "api"
+  payload   Json?    // dados extras (vitrineId, duration, etc.)
+  createdAt DateTime @default(now())
+
+  account   Account? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+
+  @@index([accountId])
+  @@index([type])
+  @@index([createdAt])
 }
 

@@ -1,5 +1,7 @@
 # Player UniCV — Documentação de Arquitetura e Manutenção
 
+Documentação técnica do **Player UniCV** (pacote SCORM na raiz do repositório). Para o Studio (API e painel), veja [studio/README.md](studio/README.md). Para deploy em produção, veja [studio/DEPLOY.md](studio/DEPLOY.md).
+
 ## Resumo do Projeto
 
 | Campo | Valor |
@@ -95,6 +97,7 @@ global.UniCV.CONFIG = {
 - Se necessário, altere `N8N_BASE` para o URL base do webhook.
 - O `N8N_URL` é construído automaticamente (`N8N_BASE + "?id=" + SHOWCASE_ID`).
 - O webhook N8N deve devolver JSON no formato: `{ "videos": [ { "id", "name", "thumb", "duration" }, ... ] }`.
+- A playlist também pode ser obtida pela **Studio API** (`GET /v1/playlist?showcase_id=...`), quando a vitrine estiver importada no banco; ver [studio/README.md](studio/README.md).
 
 ### Cores e tema
 

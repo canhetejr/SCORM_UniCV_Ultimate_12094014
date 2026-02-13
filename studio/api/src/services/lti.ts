@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
-import { createRemoteJWKSet, importPKCS8, exportJWK, jwtVerify, type JWTPayload, type KeyLike } from "jose";
+import type { KeyObject } from "node:crypto";
+import { createRemoteJWKSet, importPKCS8, exportJWK, jwtVerify, type JWTPayload } from "jose";
 
 export type LtiPlatformConfig = {
   issuer: string;
@@ -11,7 +12,7 @@ export type LtiPlatformConfig = {
 
 export type ToolKeys = {
   kid: string;
-  privateKey: KeyLike;
+  privateKey: KeyObject | CryptoKey;
   publicJwk: Record<string, unknown>;
 };
 
@@ -20,18 +21,18 @@ export async function loadToolKeys(input: { kid: string; privateKeyPem?: string 
 
   if (input.privateKeyPem && input.privateKeyPem.trim()) {
     const privateKey = await importPKCS8(input.privateKeyPem, "RS256");
-    const publicJwk = await exportJWK(privateKey);
-    (publicJwk as any).use = "sig";
-    (publicJwk as any).alg = "RS256";
-    (publicJwk as any).kid = kid;
+    const publicJwk = (await exportJWK(privateKey)) as Record<string, unknown>;
+    publicJwk.use = "sig";
+    publicJwk.alg = "RS256";
+    publicJwk.kid = kid;
     // exportJWK de chave privada inclui parâmetros privados; removemos na resposta JWKS.
-    delete (publicJwk as any).d;
-    delete (publicJwk as any).p;
-    delete (publicJwk as any).q;
-    delete (publicJwk as any).dp;
-    delete (publicJwk as any).dq;
-    delete (publicJwk as any).qi;
-    delete (publicJwk as any).oth;
+    delete publicJwk.d;
+    delete publicJwk.p;
+    delete publicJwk.q;
+    delete publicJwk.dp;
+    delete publicJwk.dq;
+    delete publicJwk.qi;
+    delete publicJwk.oth;
     return { kid, privateKey, publicJwk };
   }
 
