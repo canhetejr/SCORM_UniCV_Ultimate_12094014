@@ -2,6 +2,30 @@ import crypto from "node:crypto";
 
 const VIMEO_ACCEPT = "application/vnd.vimeo.*+json;version=3.4";
 
+export type VimeoApiError = {
+  status: number;
+  code: string;
+  message: string;
+  details?: string;
+};
+
+function mapVimeoStatus(status: number): { code: string; message: string } {
+  if (status === 401 || status === 403) {
+    return { code: "vimeo_disconnected", message: "Vimeo desconectado. Refazer conexão." };
+  }
+  if (status === 429) {
+    return { code: "vimeo_rate_limit", message: "Limite do Vimeo atingido. Tente novamente em alguns minutos." };
+  }
+  if (status >= 500) {
+    return { code: "vimeo_unavailable", message: "Vimeo instável no momento. Tente novamente." };
+  }
+  return { code: "vimeo_error", message: `Erro Vimeo (HTTP ${status}).` };
+}
+
+export function isVimeoApiError(e: unknown): e is VimeoApiError {
+  return typeof e === "object" && e !== null && "code" in e && "status" in e && "message" in e;
+}
+
 export type VimeoTokenResponse = {
   access_token: string;
   token_type?: string;
@@ -66,8 +90,10 @@ export async function exchangeCodeForToken(input: {
   });
 
   if (!res.ok) {
-    const txt = await res.text().catch(() => "");
-    throw new Error(`Falha ao trocar code por token no Vimeo (HTTP ${res.status}). ${txt}`);
+    const details = await res.text().catch(() => "");
+    const { code, message } = mapVimeoStatus(res.status);
+    const err: VimeoApiError = { status: res.status, code, message, details: details || undefined };
+    throw err;
   }
 
   return (await res.json()) as VimeoTokenResponse;
@@ -88,8 +114,10 @@ export async function vimeoGet<T>(input: { accessToken: string; path: string; qu
   });
 
   if (!res.ok) {
-    const txt = await res.text().catch(() => "");
-    throw new Error(`Vimeo GET ${url.pathname} falhou (HTTP ${res.status}). ${txt}`);
+    const details = await res.text().catch(() => "");
+    const { code, message } = mapVimeoStatus(res.status);
+    const err: VimeoApiError = { status: res.status, code, message, details: details || undefined };
+    throw err;
   }
   return (await res.json()) as T;
 }

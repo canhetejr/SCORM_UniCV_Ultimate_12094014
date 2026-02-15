@@ -1,5 +1,10 @@
 FROM node:20-alpine AS build
 
+ARG VITE_API_BASE_URL=
+ARG VITE_PUBLIC_BASE_URL=
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_PUBLIC_BASE_URL=$VITE_PUBLIC_BASE_URL
+
 WORKDIR /app
 COPY studio/web/package.json studio/web/package.json
 COPY studio/web/tsconfig.json studio/web/tsconfig.json

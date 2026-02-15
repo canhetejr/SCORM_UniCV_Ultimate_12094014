@@ -4,10 +4,19 @@ import {
   createOAuthState,
   exchangeCodeForToken,
   getRedirectUri,
+  isVimeoApiError,
   parseVimeoUserIdFromUri
 } from "../services/vimeo.js";
 import { prisma } from "../db.js";
 import type { ServerDeps } from "./deps.js";
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 
 const authVimeoRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts) => {
   const { deps } = opts;
@@ -23,8 +32,8 @@ const authVimeoRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, op
   app.get("/vimeo/start", async (req, reply) => {
     if (!vimeoClientId() || !vimeoClientSecret()) {
       return reply.status(503).send({
-        error: "Vimeo não configurado",
-        message: "Configure VIMEO_CLIENT_ID e VIMEO_CLIENT_SECRET em Admin > Configurações > Dados do ambiente ou no .env do servidor."
+        code: "vimeo_not_configured",
+        message: "Configure VIMEO_CLIENT_ID e VIMEO_CLIENT_SECRET em Admin > Configurações ou no .env do servidor."
       });
     }
 
@@ -50,49 +59,68 @@ const authVimeoRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, op
   });
 
   app.get("/vimeo/callback", async (req, reply) => {
+    const baseUrl = (getConfig("BASE_URL") ?? env.BASE_URL ?? "").replace(/\/+$/, "") || "/";
+
     if (!vimeoClientId() || !vimeoClientSecret()) {
-      return reply.status(503).send({
-        error: "Vimeo não configurado",
-        message: "Configure VIMEO_CLIENT_ID e VIMEO_CLIENT_SECRET em Admin > Configurações > Dados do ambiente."
-      });
+      const msg = "Configure VIMEO_CLIENT_ID e VIMEO_CLIENT_SECRET em Admin > Configurações.";
+      return reply.status(503).type("text/html").send(
+        `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Erro Vimeo</title></head><body><p>${escapeHtml(msg)}</p><p><a href="${escapeHtml(baseUrl)}/">Voltar ao Studio</a></p></body></html>`
+      );
     }
 
     const q = req.query as Record<string, string | undefined>;
     const code = (q.code || "").trim();
     const state = (q.state || "").trim();
 
-    if (!code || !state) return reply.badRequest("Callback inválida do Vimeo (faltando code/state).");
+    if (!code || !state) {
+      const msg = "Callback inválida do Vimeo (faltando code ou state).";
+      return reply.status(400).type("text/html").send(
+        `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Erro Vimeo</title></head><body><p>${escapeHtml(msg)}</p><p><a href="${escapeHtml(baseUrl)}/">Voltar ao Studio</a></p></body></html>`
+      );
+    }
 
     const cookieState = req.cookies?.vimeo_oauth_state;
     const unsigned = cookieState ? req.unsignCookie(cookieState) : null;
     const expectedState = unsigned && unsigned.valid ? unsigned.value : null;
-    if (!expectedState || expectedState !== state) return reply.unauthorized("State inválido.");
+    if (!expectedState || expectedState !== state) {
+      const msg = "State inválido. Tente conectar novamente.";
+      return reply.status(401).type("text/html").send(
+        `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Erro Vimeo</title></head><body><p>${escapeHtml(msg)}</p><p><a href="${escapeHtml(baseUrl)}/">Voltar ao Studio</a></p></body></html>`
+      );
+    }
 
-    const redirectUri = getRedirectUri(getConfig);
-    const token = await exchangeCodeForToken({
-      clientId: vimeoClientId()!,
-      clientSecret: vimeoClientSecret()!,
-      code,
-      redirectUri
-    });
+    try {
+      const redirectUri = getRedirectUri(getConfig);
+      const token = await exchangeCodeForToken({
+        clientId: vimeoClientId()!,
+        clientSecret: vimeoClientSecret()!,
+        code,
+        redirectUri
+      });
 
-    const accountId = await getOrCreateDefaultAccountId();
-    const vimeoUserId = parseVimeoUserIdFromUri(token.user?.uri || null);
+      const accountId = await getOrCreateDefaultAccountId();
+      const vimeoUserId = parseVimeoUserIdFromUri(token.user?.uri || null);
 
-    await prisma.vimeoConnection.create({
-      data: {
-        accountId,
-        vimeoUserId: vimeoUserId || undefined,
-        accessToken: token.access_token,
-        refreshToken: null,
-        tokenType: token.token_type || "bearer",
-        scope: token.scope || null,
-        expiresAt: null
-      }
-    });
+      await prisma.vimeoConnection.create({
+        data: {
+          accountId,
+          vimeoUserId: vimeoUserId || undefined,
+          accessToken: token.access_token,
+          refreshToken: null,
+          tokenType: token.token_type || "bearer",
+          scope: token.scope || null,
+          expiresAt: null
+        }
+      });
 
-    reply.clearCookie("vimeo_oauth_state", { path: "/" });
-    return { ok: true, vimeoUserId };
+      reply.clearCookie("vimeo_oauth_state", { path: "/" });
+      return reply.redirect(`${baseUrl}/?vimeo_connected=1`);
+    } catch (e: unknown) {
+      const message = isVimeoApiError(e) ? e.message : e instanceof Error ? e.message : "Erro ao conectar com Vimeo.";
+      return reply.status(400).type("text/html").send(
+        `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Erro Vimeo</title></head><body><p><strong>Erro ao conectar Vimeo:</strong> ${escapeHtml(message)}</p><p><a href="${escapeHtml(baseUrl)}/">Voltar ao Studio</a></p></body></html>`
+      );
+    }
   });
 };
 

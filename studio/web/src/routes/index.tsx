@@ -1,9 +1,13 @@
 import React from "react";
-import { Outlet, Route, Routes } from "react-router-dom";
+import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
+import { getAuthToken } from "../api";
 import { AppLayout } from "../layouts/AppLayout";
+import { LoginPage } from "../pages/login/LoginPage";
 import { HomePage } from "../pages/home/HomePage";
 import { ConfigPage } from "../pages/admin/config/ConfigPage";
 import { DashboardPage } from "../pages/dashboard/DashboardPage";
+import { ExportacoesPage } from "../pages/exportacoes/ExportacoesPage";
+import { VitrineDetalhePage } from "../pages/vitrines/VitrineDetalhePage";
 
 export type MenuItem = {
   path: string;
@@ -13,23 +17,33 @@ export type MenuItem = {
 
 export const MENU_ITEMS: MenuItem[] = [
   { path: "/", label: "Início" },
+  { path: "/exportacoes", label: "Exportações" },
   { path: "/dashboard", label: "Dashboard" },
   { path: "/admin/config", label: "Configurações", parentLabel: "Admin" }
 ];
 
-const ROUTE_ELEMENTS: Record<string, React.ReactNode> = {
-  "/": <HomePage />,
-  "/dashboard": <DashboardPage />,
-  "/admin/config": <ConfigPage />
-};
+function ProtectedRoute() {
+  const location = useLocation();
+  if (!getAuthToken()) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+  return <Outlet />;
+}
 
 export function AppRoutes() {
   return (
     <Routes>
+      <Route path="/login" element={<AppLayout />}>
+        <Route index element={<LoginPage />} />
+      </Route>
       <Route path="/" element={<AppLayout />}>
-        <Route index element={ROUTE_ELEMENTS["/"]} />
-        <Route path="dashboard" element={ROUTE_ELEMENTS["/dashboard"]} />
-        <Route path="admin/config" element={ROUTE_ELEMENTS["/admin/config"]} />
+        <Route element={<ProtectedRoute />}>
+          <Route index element={<HomePage />} />
+          <Route path="vitrines/:id" element={<VitrineDetalhePage />} />
+          <Route path="exportacoes" element={<ExportacoesPage />} />
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="admin/config" element={<ConfigPage />} />
+        </Route>
       </Route>
     </Routes>
   );

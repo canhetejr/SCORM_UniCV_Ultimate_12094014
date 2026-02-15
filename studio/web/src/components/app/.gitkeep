@@ -1,0 +1,8 @@
+# Componentes específicos de aplicação
+
+Esta pasta é reservada para componentes reutilizáveis específicos de páginas/features:
+- Tabelas especializadas
+- Cards customizados
+- Formulários compostos
+
+Mantenha componentes UI genéricos em `../ui/`.

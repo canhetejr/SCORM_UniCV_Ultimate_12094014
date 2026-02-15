@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
-import { API_BASE } from "../api";
+import { API_BASE, getAuthToken, clearAuthToken } from "../api";
 import { MENU_ITEMS } from "../routes";
 import { Button, Input } from "../components/ui";
 
@@ -9,6 +9,13 @@ const WORKSPACE_KEY = "unicv_workspace";
 
 export function AppLayout() {
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    clearAuthToken();
+    navigate("/login", { replace: true });
+  };
+
   const [workspace, setWorkspace] = useState(
     () => (typeof window !== "undefined" ? localStorage.getItem(WORKSPACE_KEY) || "" : "")
   );
@@ -53,6 +60,11 @@ export function AppLayout() {
             onChange={(v) => saveWorkspace(v)}
             className="input-workspace"
           />
+          {getAuthToken() && (
+            <Button variant="secondary" onClick={handleLogout} title="Terminar sessão">
+              Sair
+            </Button>
+          )}
           <Button variant="secondary" onClick={toggleTheme} title={theme === "dark" ? "Modo claro" : "Modo escuro"}>
             {theme === "dark" ? "☀️" : "🌙"}
           </Button>

@@ -16,17 +16,28 @@ docker compose -f docker-compose.studio.yml up -d
 
 ### Variáveis de ambiente
 
-Configure no `.env` na raiz ou via variáveis de ambiente. Mínimo:
+Configure no `.env` na raiz ou via variáveis de ambiente (Coolify: env vars da aplicação).
 
-- `POSTGRES_PASSWORD` — senha do Postgres
+#### ENV REQUIRED (obrigatório em produção)
+
+| Variável | Descrição |
+|----------|-----------|
+| `ADMIN_USER` | Login do painel admin |
+| `ADMIN_PASSWORD` | Senha do painel admin |
+| `COOKIE_SECRET` | Segredo para cookies (mín. 16 caracteres) |
+| `PUBLIC_BASE_URL` | URL pública do player (links partilháveis; ex.: `https://ava.seudominio.com`) |
+| `DATABASE_URL` | Connection string Postgres. No compose usa: `postgresql://postgres:SENHA@db:5432/unicv?schema=public` |
+
+#### Outras (recomendadas)
+
+- `POSTGRES_PASSWORD` — senha do Postgres (usada para montar `DATABASE_URL` no compose)
 - `BASE_URL` — URL pública da API (ex.: `https://api.seudominio.com`)
-- `COOKIE_SECRET` — segredo para cookies (>= 16 chars)
 - `VIMEO_CLIENT_ID`, `VIMEO_CLIENT_SECRET` — para OAuth Vimeo
 
 ## Volumes
 
 - **Postgres**: `unicv_pg` — dados do banco
-- **Exports**: `unicv_exports` — ZIPs gerados
+- **Exports**: `exports_data` — ZIPs gerados em `/data/exports`
 
 ## Migrações (Prisma)
 

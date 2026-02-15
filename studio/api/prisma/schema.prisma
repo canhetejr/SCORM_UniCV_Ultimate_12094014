@@ -59,6 +59,8 @@ model Vitrine {
 
   title          String
   description    String?
+  slug           String?
+  status         VitrineStatus @default(ACTIVE)
 
   // Se a vitrine foi importada de um Showcase/Album do Vimeo
   vimeoShowcaseId String?
@@ -162,6 +164,12 @@ model LtiDeployment {
 enum VitrineSource {
   MANUAL
   VIMEO_SHOWCASE
+}
+
+enum VitrineStatus {
+  ACTIVE   // Ativa
+  EDITING  // Em edição
+  INACTIVE // Inativa
 }
 
 enum ExportType {

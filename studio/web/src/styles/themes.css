@@ -1,4 +1,12 @@
 /* UniCV Studio - temas e espaçamentos */
+
+/* Importar tokens centralizados */
+@import "./tokens.css";
+
+/* Importar utilitários base */
+@import "./utilities.css";
+
+/* ========== TEMAS (dark/light) ========== */
 :root,
 [data-theme="dark"] {
   color-scheme: dark;
@@ -18,18 +26,6 @@
   --text-muted: #64748b;
   --border: rgba(100, 116, 139, 0.3);
   --input-bg: #fff;
-}
-
-:root {
-  --unicv: #5c9a40;
-  --unicv-light: rgba(92, 154, 64, 0.25);
-  --unicv-bg: rgba(92, 154, 64, 0.12);
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 12px;
-  --space-lg: 16px;
-  --space-xl: 20px;
-  --space-2xl: 28px;
 }
 
 body {
@@ -95,47 +91,7 @@ a:hover {
   font-size: 13px;
 }
 
-.btn {
-  background: var(--unicv);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  padding: var(--space-md) var(--space-lg);
-  cursor: pointer;
-  font-weight: 500;
-  transition: opacity 0.15s, transform 0.1s;
-}
-
-.btn:hover:not(:disabled) {
-  opacity: 0.9;
-  filter: brightness(1.05);
-}
-
-.btn:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-.btn.secondary {
-  background: rgba(148, 163, 184, 0.2);
-  color: var(--text);
-}
-
-.btn.secondary:hover:not(:disabled) {
-  background: rgba(148, 163, 184, 0.28);
-}
-
-.btn.danger {
-  background: rgba(239, 68, 68, 0.9);
-}
-
-.btn.danger:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 1);
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+/* .btn removido - usar utilities.css */
 
 .field {
   display: grid;
@@ -143,9 +99,8 @@ a:hover {
   margin: var(--space-md) 0;
 }
 
-.input {
-  width: 100%;
-}
+/* .input base removido - usar utilities.css */
+/* Mantendo apenas variantes específicas de layout */
 
 .input.input-workspace {
   width: 140px;
@@ -163,22 +118,7 @@ a:hover {
 
 .mb-0 { margin-bottom: 0; }
 
-.field input,
-.field textarea,
-.field select,
-select {
-  background: var(--input-bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: var(--space-md) var(--space-lg);
-  color: var(--text);
-}
-
-.field input:focus,
-.field textarea:focus {
-  outline: none;
-  border-color: var(--unicv-light);
-}
+/* .field input/textarea/select removido - usar utilities.css */
 
 .list {
   display: grid;
@@ -403,21 +343,21 @@ code {
   padding: 0;
 }
 
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
+/* .table removido - usar utilities.css */
+
+/* Exportações — azul petróleo (teal) como destaque */
+.page-exportacoes .btn:not(.secondary):not(.danger) {
+  background: #0d9488;
 }
-.table th,
-.table td {
-  padding: var(--space-sm) var(--space-md);
-  text-align: left;
-  border-bottom: 1px solid var(--border);
+.page-exportacoes .btn:not(.secondary):not(.danger):hover:not(:disabled) {
+  background: #0f766e;
 }
-.table th {
-  color: var(--text-muted);
-  font-weight: 500;
+.page-exportacoes a.btn {
+  background: #0d9488;
+  color: white;
+  text-decoration: none;
+  display: inline-block;
 }
-.table tbody tr:hover {
-  background: rgba(148, 163, 184, 0.06);
+.page-exportacoes a.btn:hover {
+  background: #0f766e;
 }

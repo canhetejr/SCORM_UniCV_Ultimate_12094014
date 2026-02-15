@@ -9,10 +9,12 @@ import { loadToolKeys } from "./services/lti.js";
 import { loadDbConfig, createConfigGetter } from "./services/appConfig.js";
 import { getRepoRoot } from "./lib/repoRoot.js";
 import type { ServerDeps, ToolKeys } from "./routes/deps.js";
+import { verifyAdminToken } from "./services/adminAuth.js";
 import healthRoutes from "./routes/health.js";
 import ltiRoutes from "./routes/lti.js";
 import authVimeoRoutes from "./routes/auth-vimeo.js";
 import playerRoutes from "./routes/player.js";
+import adminLoginRoutes from "./routes/adminLogin.js";
 import vimeoRoutes from "./routes/vimeo.js";
 import configRoutes from "./routes/config.js";
 import playlistRoutes from "./routes/playlist.js";
@@ -20,6 +22,7 @@ import vitrinesRoutes from "./routes/vitrines.js";
 import exportsRoutes from "./routes/exports.js";
 import xapiRoutes from "./routes/xapi.js";
 import dashboardRoutes from "./routes/dashboard.js";
+import publishedRoutes from "./routes/published.js";
 
 export async function buildServer(): Promise<FastifyInstance> {
   const env = loadEnv();
@@ -96,6 +99,7 @@ export async function buildServer(): Promise<FastifyInstance> {
   await app.register(ltiRoutes, { prefix: "/lti", ...routeOpts });
   await app.register(authVimeoRoutes, { prefix: "/auth", ...routeOpts });
   await app.register(playerRoutes, { prefix: "/player", ...routeOpts });
+  await app.register(adminLoginRoutes, { prefix: "/v1/admin", ...routeOpts });
   await app.register(vimeoRoutes, { prefix: "/v1/vimeo", ...routeOpts });
   await app.register(configRoutes, { prefix: "/v1/config", ...routeOpts });
   await app.register(playlistRoutes, { prefix: "/v1", ...routeOpts });
@@ -103,6 +107,45 @@ export async function buildServer(): Promise<FastifyInstance> {
   await app.register(exportsRoutes, { prefix: "/v1/exports", ...routeOpts });
   await app.register(xapiRoutes, { prefix: "/v1/xapi", ...routeOpts });
   await app.register(dashboardRoutes, { prefix: "/v1/dashboard", ...routeOpts });
+  await app.register(publishedRoutes, { prefix: "/p", ...routeOpts });
+
+  // Rotas públicas (sem token). Tudo o resto exige JWT admin (incluindo /v1/exports/*: status, download, POST export).
+  function isPublicPath(path: string, method: string): boolean {
+    if (path === "/health") return true;
+    if (path.startsWith("/lti")) return true;
+    if (path.startsWith("/player")) return true;
+    if (path === "/v1/playlist") return true;
+    if (path === "/v1/config/status") return true;
+    if (path.startsWith("/v1/xapi")) return true;
+    if (path === "/auth/vimeo/callback") return true;
+    if (path.startsWith("/p/")) return true;
+    if (path === "/v1/admin/login" && method === "POST") return true;
+    return false;
+  }
+
+  app.addHook("preHandler", async (request, reply) => {
+    const path = request.url.split("?")[0];
+    const method = request.method;
+    if (isPublicPath(path, method)) return;
+
+    const adminUser = env.ADMIN_USER ?? "";
+    const adminPassword = env.ADMIN_PASSWORD ?? "";
+    if (!adminUser || !adminPassword) {
+      return reply.status(503).send({
+        error: "admin_not_configured",
+        message: "Defina ADMIN_USER e ADMIN_PASSWORD no .env do servidor."
+      });
+    }
+
+    const authHeader = request.headers.authorization;
+    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    if (!token || !(await verifyAdminToken(token, env))) {
+      return reply.status(401).send({
+        error: "unauthorized",
+        message: "Token em falta ou inválido. Faça login em /login."
+      });
+    }
+  });
 
   return app;
 }

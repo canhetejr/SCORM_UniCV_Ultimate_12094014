@@ -10,7 +10,9 @@ O **UniCV** é um player de videoaulas em formato SCORM 1.2 (Moodle) com vitrine
 | Rodar o **Studio** localmente (API + painel, endpoints, LTI) | [studio/README.md](../studio/README.md) |
 | Fazer **deploy** (Docker, variáveis, Docker Hub) | [studio/DEPLOY.md](../studio/DEPLOY.md) |
 | **Variáveis de ambiente** (referência) | [.env.studio.example](../.env.studio.example) |
+| **ENV REQUIRED** (produção/Coolify) | [studio/DEPLOY.md](../studio/DEPLOY.md#variáveis-de-ambiente) |
 | Visão geral e quick start | [README.md](../README.md) (raiz do repositório) |
+| **Rebuild em Laravel (PHP)** — plano completo de refatoração | [PLANO_REBUILD_LARAVEL.md](PLANO_REBUILD_LARAVEL.md) |
 
 ## Outros documentos
 

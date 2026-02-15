@@ -3,6 +3,7 @@ node_modules/
 .env
 .env.*
 !.env.studio.example
+!.env.development
 .DS_Store
 Thumbs.db
 

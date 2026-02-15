@@ -18,8 +18,8 @@ const EnvSchema = z.object({
   // Cookie secret para state (OAuth)
   COOKIE_SECRET: z.string().min(16).optional().default("change-me-change-me-change-me"),
 
-  // Diretório para artifacts de exportação (volume mapeado no Docker)
-  EXPORT_DIR: z.string().optional().default("var/exports"),
+  // Diretório para artifacts de exportação. Produção: /data/exports (volume persistente). mkdirp na API.
+  EXPORTS_DIR: z.string().optional().default("/data/exports"),
 
   // LTI 1.3 (Moodle como plataforma)
   LTI_PLATFORM_ISSUER: z.string().optional(), // ex: https://seu-moodle
@@ -34,7 +34,12 @@ const EnvSchema = z.object({
 
   // xAPI/LRS (opcional)
   LRS_ENDPOINT: z.union([z.string().url(), z.literal("")]).optional(),
-  LRS_BASIC_AUTH: z.string().optional() // base64(user:pass) ou "user:pass"
+  LRS_BASIC_AUTH: z.string().optional(), // base64(user:pass) ou "user:pass"
+
+  // Admin (proteção das rotas de gestão)
+  ADMIN_USER: z.string().optional(),
+  ADMIN_PASSWORD: z.string().optional(),
+  ADMIN_JWT_SECRET: z.string().min(16).optional() // se vazio, usa COOKIE_SECRET
 });
 
 export type Env = z.infer<typeof EnvSchema>;

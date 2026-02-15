@@ -1,6 +1,10 @@
-import type { FastifyPluginAsync } from "fastify";
+import type { FastifyPluginAsync, FastifyReply } from "fastify";
 import {
+  buildAuthorizeUrl,
+  createOAuthState,
   extractEmbedHash,
+  getRedirectUri,
+  isVimeoApiError,
   parseVimeoUserIdFromUri,
   vimeoGet
 } from "../services/vimeo.js";
@@ -9,14 +13,60 @@ import type { ServerDeps } from "./deps.js";
 
 const VIMEO_PROFILES_KEY = "vimeo_profiles";
 
+async function sendVimeoError(e: unknown, reply: FastifyReply): Promise<FastifyReply> {
+  if (isVimeoApiError(e)) {
+    if (e.status === 401 || e.status === 403) {
+      await prisma.vimeoConnection.deleteMany({});
+    }
+    const status = e.status === 429 ? 429 : e.status >= 500 ? 502 : 401;
+    const body: { code: string; message: string; details?: string } = {
+      code: e.code,
+      message: e.message
+    };
+    if (e.details) body.details = e.details.length > 500 ? e.details.slice(0, 497) + "…" : e.details;
+    return reply.status(status).send(body);
+  }
+  const message = e instanceof Error ? e.message : "Erro ao contactar Vimeo.";
+  return reply.status(502).send({ code: "vimeo_error", message });
+}
+
 const vimeoRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts) => {
   const { deps } = opts;
-  const { getConfig, vimeoClientId, vimeoClientSecret } = deps;
+  const { env, getConfig, vimeoClientId, vimeoClientSecret } = deps;
+
+  app.get("/oauth/start", async (req, reply) => {
+    if (!vimeoClientId() || !vimeoClientSecret()) {
+      return reply.status(503).send({
+        code: "vimeo_not_configured",
+        message: "Configure VIMEO_CLIENT_ID e VIMEO_CLIENT_SECRET em Admin > Configurações ou no .env do servidor."
+      });
+    }
+
+    const state = createOAuthState();
+    reply.setCookie("vimeo_oauth_state", state, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      secure: env.NODE_ENV === "production",
+      signed: true,
+      maxAge: 10 * 60
+    });
+
+    const redirectUri = getRedirectUri(getConfig);
+    const authorizeUrl = buildAuthorizeUrl({
+      clientId: vimeoClientId()!,
+      redirectUri,
+      state,
+      scope: "public private"
+    });
+
+    return reply.send({ url: authorizeUrl });
+  });
 
   app.post("/connect-token", async (req, reply) => {
     const body = (req.body || {}) as { accessToken?: string };
     const accessToken = String(body.accessToken || "").trim();
-    if (!accessToken) return reply.badRequest("accessToken é obrigatório.");
+    if (!accessToken) return reply.status(400).send({ code: "bad_request", message: "accessToken é obrigatório." });
 
     try {
       const me = await vimeoGet<{ uri?: string }>({
@@ -40,40 +90,43 @@ const vimeoRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts) 
 
       return { ok: true, vimeoUserId };
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : "Token inválido. Verifique em developer.vimeo.com/apps > Generate access token.";
-      return reply.badRequest(message);
+      return sendVimeoError(e, reply);
     }
   });
 
   app.get("/showcases", async (req, reply) => {
     const conn = await deps.getPrimaryVimeoConnection();
-    if (!conn) return reply.unauthorized("Conecte o Vimeo primeiro em /auth/vimeo/start.");
+    if (!conn) return reply.status(401).send({ code: "vimeo_disconnected", message: "Conecte o Vimeo primeiro em /auth/vimeo/start." });
 
     const q = req.query as { userId?: string };
     const vimeoUserId = typeof q.userId === "string" ? q.userId.trim() || null : null;
     const apiPath = vimeoUserId ? `/users/${encodeURIComponent(vimeoUserId)}/albums` : "/me/albums";
 
-    const data = await vimeoGet<{
-      data: Array<{ uri: string; name: string; description?: string | null }>;
-    }>({
-      accessToken: conn.accessToken,
-      path: apiPath,
-      query: { per_page: "50", sort: "date", direction: "desc" }
-    });
+    try {
+      const data = await vimeoGet<{
+        data: Array<{ uri: string; name: string; description?: string | null }>;
+      }>({
+        accessToken: conn.accessToken,
+        path: apiPath,
+        query: { per_page: "50", sort: "date", direction: "desc" }
+      });
 
-    const showcases = data.data.map((a) => {
-      const id = (a.uri.match(/\/albums\/(\d+)/) || [])[1] || a.uri;
-      return { id, title: a.name, description: a.description || "" };
-    });
+      const showcases = data.data.map((a) => {
+        const id = (a.uri.match(/\/albums\/(\d+)/) || [])[1] || a.uri;
+        return { id, title: a.name, description: a.description || "" };
+      });
 
-    return { showcases };
+      return { showcases };
+    } catch (e: unknown) {
+      return sendVimeoError(e, reply);
+    }
   });
 
   app.post("/showcases/:id/import", async (req, reply) => {
     const conn = await deps.getPrimaryVimeoConnection();
-    if (!conn) return reply.unauthorized("Conecte o Vimeo primeiro em /auth/vimeo/start.");
+    if (!conn) return reply.status(401).send({ code: "vimeo_disconnected", message: "Conecte o Vimeo primeiro em /auth/vimeo/start." });
     const showcaseId = String((req.params as { id?: string }).id || "").trim();
-    if (!showcaseId) return reply.badRequest("ID inválido.");
+    if (!showcaseId) return reply.status(400).send({ code: "bad_request", message: "ID inválido." });
 
     const body = (req.body || {}) as { vimeoUserId?: string };
     const vimeoUserId = typeof body.vimeoUserId === "string" ? body.vimeoUserId.trim() || null : null;
@@ -84,12 +137,13 @@ const vimeoRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts) 
 
     const accountId = conn.accountId;
 
-    const showcase = await vimeoGet<{ uri: string; name: string; description?: string | null }>({
-      accessToken: conn.accessToken,
-      path: `${basePath}/${encodeURIComponent(showcaseId)}`
-    });
+    try {
+      const showcase = await vimeoGet<{ uri: string; name: string; description?: string | null }>({
+        accessToken: conn.accessToken,
+        path: `${basePath}/${encodeURIComponent(showcaseId)}`
+      });
 
-    const videosResp = await vimeoGet<{
+      const videosResp = await vimeoGet<{
       data: Array<{
         uri: string;
         name: string;
@@ -163,12 +217,15 @@ const vimeoRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts) 
       });
     }
 
-    await prisma.vimeoConnection.update({
-      where: { id: conn.id },
-      data: { lastSyncAt: new Date() }
-    });
+      await prisma.vimeoConnection.update({
+        where: { id: conn.id },
+        data: { lastSyncAt: new Date() }
+      });
 
-    return { ok: true, vitrineId: vitrine.id, videos: videosResp.data.length };
+      return { ok: true, vitrineId: vitrine.id, videos: videosResp.data.length };
+    } catch (e: unknown) {
+      return sendVimeoError(e, reply);
+    }
   });
 
   app.post("/disconnect", async () => {
@@ -197,10 +254,10 @@ const vimeoRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts) 
 
   app.post("/showcases/import-batch", async (req, reply) => {
     const conn = await deps.getPrimaryVimeoConnection();
-    if (!conn) return reply.unauthorized("Conecte o Vimeo primeiro.");
+    if (!conn) return reply.status(401).send({ code: "vimeo_disconnected", message: "Conecte o Vimeo primeiro." });
     const body = (req.body || {}) as { ids?: string[]; vimeoUserId?: string };
     const ids = Array.isArray(body.ids) ? body.ids.filter((id) => typeof id === "string" && id.trim()) : [];
-    if (ids.length === 0) return reply.badRequest("ids é obrigatório (array de IDs de showcases).");
+    if (ids.length === 0) return reply.status(400).send({ code: "bad_request", message: "ids é obrigatório (array de IDs de showcases)." });
     const vimeoUserId = typeof body.vimeoUserId === "string" ? body.vimeoUserId.trim() || null : null;
     const results: Array<{ id: string; ok: boolean; vitrineId?: string; error?: string }> = [];
     for (const showcaseId of ids.slice(0, 20)) {
@@ -239,6 +296,10 @@ const vimeoRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts) 
         await prisma.vimeoConnection.update({ where: { id: conn.id }, data: { lastSyncAt: new Date() } });
         results.push({ id: showcaseId, ok: true, vitrineId: vitrine.id });
       } catch (e: unknown) {
+        if (isVimeoApiError(e) && (e.status === 401 || e.status === 403)) {
+          await prisma.vimeoConnection.deleteMany({});
+          return sendVimeoError(e, reply);
+        }
         const message = e instanceof Error ? e.message : "Erro";
         results.push({ id: showcaseId, ok: false, error: message });
       }

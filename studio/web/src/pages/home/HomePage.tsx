@@ -1,9 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { API_BASE, apiGet, apiPost, apiPut } from "../../api";
+import { useNavigate } from "react-router-dom";
+import { API_BASE, PUBLIC_BASE_URL, apiGet, apiPost, apiPut, getVimeoOAuthStartUrl, postVitrine, postDuplicateVitrine } from "../../api";
 import type { Vitrine } from "../../types/vitrine";
-import { Button, Input, Field, Card } from "../../components/ui";
+import { Button, Input, Field, Card, ToastContainer } from "../../components/ui";
+import { VitrineCard, NewVitrineModal } from "../../components/app";
+import { useToast } from "../../hooks/useToast";
+import { STATUS_OPTIONS } from "../../lib";
 
 export function HomePage() {
+  const navigate = useNavigate();
   const [status, setStatus] = useState<{
     connected: boolean;
     configured?: boolean;
@@ -29,6 +34,12 @@ export function HomePage() {
   const [searchShowcases, setSearchShowcases] = useState("");
   const [selectedShowcaseIds, setSelectedShowcaseIds] = useState<Set<string>>(new Set());
   const [importingBatch, setImportingBatch] = useState(false);
+  const toast = useToast();
+  const [modalNovaVitrine, setModalNovaVitrine] = useState(false);
+  const [novaVitrineTitle, setNovaVitrineTitle] = useState("");
+  const [novaVitrineStatus, setNovaVitrineStatus] = useState("EDITING");
+  const [creatingVitrine, setCreatingVitrine] = useState(false);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
 
   const selectedVitrine = useMemo(
     () => vitrines.find((v) => v.id === selectedVitrineId) || null,
@@ -40,6 +51,16 @@ export function HomePage() {
     setStatus(s);
     const v = await apiGet<{ vitrines: Vitrine[] }>("/v1/vitrines");
     setVitrines(v.vitrines);
+  }
+
+  function showVimeoError(err: unknown) {
+    const e = err as { message?: string; code?: string };
+    const message = e?.message ?? "Erro Vimeo.";
+    if (e?.code === "vimeo_disconnected") {
+      toast.warning(message);
+    } else {
+      toast.error(message);
+    }
   }
 
   async function loadProfiles() {
@@ -58,9 +79,29 @@ export function HomePage() {
   }, []);
 
   useEffect(() => {
-    refresh().catch(() => {});
+    refresh().catch((e: unknown) => {
+      const err = e as { message?: string; code?: string };
+      toast.error(err?.message ?? "Erro ao carregar.");
+    });
     loadProfiles().catch(() => {});
-  }, []);
+  }, [toast]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const vimeoError = params.get("vimeo_error");
+    const vimeoConnected = params.get("vimeo_connected");
+    if (vimeoError) {
+      toast.error(decodeURIComponent(vimeoError));
+    }
+    if (vimeoError || vimeoConnected) {
+      params.delete("vimeo_error");
+      params.delete("vimeo_connected");
+      const qs = params.toString();
+      const url = window.location.pathname + (qs ? `?${qs}` : "") + (window.location.hash || "");
+      window.history.replaceState({}, "", url);
+      if (vimeoConnected) refresh().catch(() => {});
+    }
+  }, [toast]);
 
   const vimeoUserIdForImport = selectedProfileId === "me" ? undefined : selectedProfileId;
 
@@ -91,8 +132,8 @@ export function HomePage() {
       });
       setShowcaseIdInput("");
       await refresh();
-    } catch (err: any) {
-      alert(err?.message || "Erro ao importar.");
+    } catch (err: unknown) {
+      showVimeoError(err);
     } finally {
       setImportingShowcaseByCode(false);
     }
@@ -103,7 +144,7 @@ export function HomePage() {
     const id = newColabId.trim();
     if (!id) return;
     if (colaboradores.some((c) => c.id === id)) {
-      alert("Este colaborador já está na lista.");
+      toast.warning("Este colaborador já está na lista.");
       return;
     }
     const next = [...colaboradores, { id, name: newColabName.trim() || id }];
@@ -134,9 +175,9 @@ export function HomePage() {
       const imported = res.imported || 0;
       setSelectedShowcaseIds(new Set());
       await refresh();
-      alert(`Importados ${imported} de ${ids.length} showcases.`);
-    } catch (err: any) {
-      alert(err?.message || "Erro ao importar em lote.");
+      toast.success(`Importados ${imported} de ${ids.length} showcases.`);
+    } catch (err: unknown) {
+      showVimeoError(err);
     } finally {
       setImportingBatch(false);
     }
@@ -176,8 +217,8 @@ export function HomePage() {
         setVitrines((prev) => [v, ...prev]);
       }
       setVitrineIdInput("");
-    } catch (err: any) {
-      alert(err?.message || "Vitrine não encontrada.");
+    } catch (err: unknown) {
+      showVimeoError(err);
     } finally {
       setLoadingVitrineByCode(false);
     }
@@ -186,9 +227,13 @@ export function HomePage() {
   async function connectWithToken(e: React.FormEvent) {
     e.preventDefault();
     if (!accessToken.trim()) return;
-    await apiPost("/v1/vimeo/connect-token", { accessToken: accessToken.trim() });
-    setAccessToken("");
-    await refresh();
+    try {
+      await apiPost("/v1/vimeo/connect-token", { accessToken: accessToken.trim() });
+      setAccessToken("");
+      await refresh();
+    } catch (err: unknown) {
+      showVimeoError(err);
+    }
   }
 
   async function disconnect() {
@@ -203,13 +248,43 @@ export function HomePage() {
     }
   }
 
-  async function createVitrine(form: HTMLFormElement) {
-    const fd = new FormData(form);
-    const title = String(fd.get("title") || "").trim();
-    const description = String(fd.get("description") || "").trim();
-    await apiPost("/v1/vitrines", { title, description: description || null });
-    form.reset();
-    await refresh();
+  async function handleNovaVitrine(e: React.FormEvent) {
+    e.preventDefault();
+    const title = novaVitrineTitle.trim();
+    if (!title) {
+      toast.warning("Título é obrigatório.");
+      return;
+    }
+    setCreatingVitrine(true);
+    try {
+      const { vitrine } = await postVitrine({ title, status: novaVitrineStatus });
+      setModalNovaVitrine(false);
+      setNovaVitrineTitle("");
+      setNovaVitrineStatus("EDITING");
+      toast.success("Vitrine criada.");
+      navigate(`/vitrines/${vitrine.id}`);
+      await refresh();
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error(e?.message ?? "Erro ao criar vitrine.");
+    } finally {
+      setCreatingVitrine(false);
+    }
+  }
+
+  async function handleDuplicateVitrine(vitrineId: string) {
+    setDuplicatingId(vitrineId);
+    try {
+      const { vitrine } = await postDuplicateVitrine(vitrineId);
+      toast.success("Vitrine duplicada.");
+      navigate(`/vitrines/${vitrine.id}`);
+      await refresh();
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error(e?.message ?? "Erro ao duplicar vitrine.");
+    } finally {
+      setDuplicatingId(null);
+    }
   }
 
   async function addVideo(form: HTMLFormElement) {
@@ -267,6 +342,8 @@ export function HomePage() {
 
   return (
     <>
+      <ToastContainer toasts={toast.toasts} onRemove={toast.remove} />
+
       <div className="top flex flex-wrap gap-md">
         <div className={`pill ${status.connected ? "connected" : "disconnected"}`}>
           <strong>Vimeo</strong>
@@ -305,9 +382,15 @@ export function HomePage() {
             <>
               <div className="form-row mb-lg">
                 {status.configured !== false && (
-                  <a className="btn" href={`${API_BASE}/auth/vimeo/start`}>
+                  <Button
+                    onClick={() =>
+                      getVimeoOAuthStartUrl()
+                        .then((r) => (window.location.href = r.url))
+                        .catch((e) => toast.error(e?.message ?? "Erro ao iniciar OAuth."))
+                    }
+                  >
                     Conectar com OAuth
-                  </a>
+                  </Button>
                 )}
                 <Button variant="secondary" onClick={() => refresh()}>
                   Atualizar
@@ -401,7 +484,7 @@ export function HomePage() {
               )}
 
               <Button
-                onClick={() => loadShowcases().catch((e) => alert(e.message))}
+                onClick={() => loadShowcases().catch(showVimeoError)}
                 className="mb-lg"
               >
                 Listar showcases do perfil selecionado
@@ -474,8 +557,24 @@ export function HomePage() {
         </Card>
 
         <Card plain>
-          <div className="card-section-title">Vitrines</div>
+          <div className="card-section-title" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+            Vitrines
+            <Button onClick={() => setModalNovaVitrine(true)}>
+              + Nova Vitrine
+            </Button>
+          </div>
           <p className="muted mb-lg">Selecione por ID, crie manualmente ou use vitrines já importadas.</p>
+
+          <NewVitrineModal
+            open={modalNovaVitrine}
+            onClose={() => setModalNovaVitrine(false)}
+            onSubmit={handleNovaVitrine}
+            title={novaVitrineTitle}
+            onTitleChange={setNovaVitrineTitle}
+            status={novaVitrineStatus}
+            onStatusChange={setNovaVitrineStatus}
+            creating={creatingVitrine}
+          />
 
           <form onSubmit={loadVitrineByCode} className="mb-lg">
             <Field label="Selecionar vitrine por código (ID)" className="mb-0">
@@ -493,21 +592,6 @@ export function HomePage() {
             </Field>
           </form>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              createVitrine(e.currentTarget).catch((err) => alert(err.message));
-            }}
-          >
-            <Field label="Título">
-              <input name="title" className="input" placeholder="Ex.: Enfermagem - Módulo 1" />
-            </Field>
-            <Field label="Descrição (opcional)">
-              <textarea name="description" className="input" rows={2} placeholder="Notas internas..." />
-            </Field>
-            <Button type="submit">Criar vitrine</Button>
-          </form>
-
           <div className="mt-lg form-divider">
             <div className="section-title">Vitrines disponíveis</div>
             <Input
@@ -518,26 +602,14 @@ export function HomePage() {
             />
             <div className="list mb-lg">
               {filteredVitrines.length > 0 ? filteredVitrines.map((v) => (
-                  <div
+                  <VitrineCard
                     key={v.id}
-                    className={`card vitrine-card card-padding ${selectedVitrineId === v.id ? "selected" : ""}`}
-                  >
-                    <div className="flex flex-between gap-md items-center">
-                      <div>
-                        <div><strong>{v.title}</strong></div>
-                        <div className="muted" style={{ fontSize: 12 }}>
-                          <code>{v.id}</code>
-                          {typeof v.videoCount === "number" && (
-                            <span> · {v.videoCount} vídeo{v.videoCount !== 1 ? "s" : ""}</span>
-                          )}
-                          {v.account ? ` · ${v.account.name}` : ""}
-                        </div>
-                      </div>
-                      <Button variant="secondary" onClick={() => setSelectedVitrineId(v.id)}>
-                        Selecionar
-                      </Button>
-                    </div>
-                  </div>
+                    vitrine={v}
+                    selected={selectedVitrineId === v.id}
+                    onSelect={() => setSelectedVitrineId(v.id)}
+                    onDuplicate={() => handleDuplicateVitrine(v.id)}
+                    duplicating={duplicatingId === v.id}
+                  />
                 )) : (
                   <div className="muted py-md">
                     {vitrines.length ? "Nenhum resultado na pesquisa." : "Nenhuma vitrine ainda."}
@@ -581,7 +653,7 @@ export function HomePage() {
                   className="btn secondary"
                   href={
                     selectedVitrineId
-                      ? `${API_BASE}/player/index.html?vitrine_id=${encodeURIComponent(selectedVitrineId)}`
+                      ? `${PUBLIC_BASE_URL}/player/index.html?vitrine_id=${encodeURIComponent(selectedVitrineId)}`
                       : "#"
                   }
                   target="_blank"
@@ -594,21 +666,21 @@ export function HomePage() {
                 </a>
                 <Button
                   disabled={!selectedVitrineId}
-                  onClick={() => exportScorm().catch((e) => alert(e.message))}
+                  onClick={() => exportScorm().catch(showVimeoError)}
                 >
                   Exportar SCORM
                 </Button>
                 <Button
                   variant="secondary"
                   disabled={!selectedVitrineId}
-                  onClick={() => exportHtml().catch((e) => alert(e.message))}
+                  onClick={() => exportHtml().catch(showVimeoError)}
                 >
                   Exportar HTML
                 </Button>
                 <Button
                   variant="secondary"
                   disabled={!selectedVitrineId}
-                  onClick={() => loadIframe().catch((e) => alert(e.message))}
+                  onClick={() => loadIframe().catch(showVimeoError)}
                 >
                   Gerar iframe
                 </Button>
@@ -645,8 +717,8 @@ export function HomePage() {
                 onSubmit={(e) => {
                   e.preventDefault();
                   addVideo(e.currentTarget)
-                    .then(() => alert("Vídeo adicionado"))
-                    .catch((err) => alert(err.message));
+                    .then(() => toast.success("Vídeo adicionado"))
+                    .catch((err) => toast.error(err.message));
                 }}
               >
                 <Field label="Vimeo Video ID">
@@ -677,8 +749,8 @@ export function HomePage() {
                 onSubmit={(e) => {
                   e.preventDefault();
                   importCsv(e.currentTarget)
-                    .then(() => alert("Importação concluída"))
-                    .catch((err) => alert(err.message));
+                    .then(() => toast.success("Importação concluída"))
+                    .catch((err) => toast.error(err.message));
                 }}
               >
                 <Field label="CSV">

@@ -1,6 +1,8 @@
-# UniCV Studio — deploy via Docker
+# UniCV Studio — deploy via Docker (Coolify)
 # Build: na raiz do repositório (contexto .) para a API ter acesso a index.html, imsmanifest.xml, css/, js/
-# Em produção, defina BASE_URL com a URL pública da API (ex: https://api.seudominio.com)
+#
+# ENV REQUIRED em produção: ADMIN_USER, ADMIN_PASSWORD, COOKIE_SECRET, PUBLIC_BASE_URL
+# DATABASE_URL é montado com host "db" (serviço Postgres). Volumes: unicv_pg, exports_data
 
 services:
   db:
@@ -31,11 +33,13 @@ services:
       PORT: 3001
       BASE_URL: ${BASE_URL:-http://localhost:3001}
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@db:5432/unicv?schema=public
-      EXPORT_DIR: var/exports
+      EXPORTS_DIR: ${EXPORTS_DIR:-/data/exports}
       VIMEO_CLIENT_ID: ${VIMEO_CLIENT_ID:-}
       VIMEO_CLIENT_SECRET: ${VIMEO_CLIENT_SECRET:-}
       VIMEO_REDIRECT_URI: ${VIMEO_REDIRECT_URI:-}
       COOKIE_SECRET: ${COOKIE_SECRET:-troque-este-segredo-por-um-bem-grande}
+      ADMIN_USER: ${ADMIN_USER:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       LTI_PLATFORM_ISSUER: ${LTI_PLATFORM_ISSUER:-}
       LTI_PLATFORM_CLIENT_ID: ${LTI_PLATFORM_CLIENT_ID:-}
       LTI_PLATFORM_AUTH_LOGIN_URL: ${LTI_PLATFORM_AUTH_LOGIN_URL:-}
@@ -51,7 +55,7 @@ services:
       db:
         condition: service_healthy
     volumes:
-      - unicv_exports:/app/studio/api/var/exports
+      - exports_data:/data/exports
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
       interval: 15s
@@ -63,6 +67,9 @@ services:
     build:
       context: .
       dockerfile: studio/web/Dockerfile
+      args:
+        # PUBLIC_BASE_URL → VITE_PUBLIC_BASE_URL (URL pública do player, links partilháveis)
+        VITE_PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
     restart: unless-stopped
     ports:
       - "3000:80"
@@ -71,5 +78,5 @@ services:
 
 volumes:
   unicv_pg:
-  unicv_exports:
+  exports_data:
 
