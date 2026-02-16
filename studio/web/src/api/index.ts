@@ -65,6 +65,7 @@ export {
 export {
   getDashboardSummary,
   sendDashboardEvent,
-  type DashboardSummary
+  type DashboardSummary,
+  type DashboardFilters
 } from "./dashboard";
 

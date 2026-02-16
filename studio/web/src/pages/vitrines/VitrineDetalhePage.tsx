@@ -337,29 +337,13 @@ export function VitrineDetalhePage() {
         exporting={exporting}
       />
 
-      <div
-        style={{
-          display: "flex",
-          gap: 4,
-          borderBottom: "1px solid var(--border, #e5e7eb)",
-          marginBottom: 20
-        }}
-      >
+      <div className="tabs-row">
         {tabs.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
-            style={{
-              padding: "10px 16px",
-              border: "none",
-              background: tab === t.id ? "var(--color-bg-elevated, #f3f4f6)" : "transparent",
-              borderBottom: tab === t.id ? "2px solid var(--color-primary, #3b82f6)" : "2px solid transparent",
-              cursor: "pointer",
-              fontSize: 14,
-              fontWeight: tab === t.id ? 600 : 400,
-              color: "var(--text)"
-            }}
+            className={`tab-btn ${tab === t.id ? "active" : ""}`}
           >
             {t.label}
           </button>

@@ -25,7 +25,7 @@ function log(message, color = "reset") {
 }
 
 // Configuração
-const API_URL = process.env.API_URL || process.env.VITE_API_BASE_URL || "http://localhost:3001";
+const API_URL = process.env.API_URL || process.env.VITE_API_BASE_URL || "http://localhost:3002";
 const ADMIN_USER = process.env.ADMIN_USER;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 

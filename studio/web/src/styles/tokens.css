@@ -88,4 +88,6 @@
   --z-toast: 2000;
   --z-dropdown: 100;
   --z-header: 50;
+  --z-sidebar: 900;
+  --z-sidebar-overlay: 800;
 }

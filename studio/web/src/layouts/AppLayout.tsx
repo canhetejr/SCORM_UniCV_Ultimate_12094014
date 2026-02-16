@@ -1,27 +1,24 @@
-import React, { useState } from "react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
-import { useTheme } from "../contexts/ThemeContext";
-import { API_BASE, getAuthToken, clearAuthToken } from "../api";
-import { MENU_ITEMS } from "../routes";
-import { Button, Input } from "../components/ui";
+import React, { useState, useEffect } from "react";
+import { Outlet } from "react-router-dom";
+import { Sidebar } from "../components/layout/Sidebar";
+import { API_BASE, getAuthToken } from "../api";
 
 const WORKSPACE_KEY = "unicv_workspace";
+const SIDEBAR_KEY = "unicv_sidebar_collapsed";
 
 export function AppLayout() {
-  const { theme, toggleTheme } = useTheme();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    clearAuthToken();
-    navigate("/login", { replace: true });
-  };
-
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem(SIDEBAR_KEY) === "true";
+  });
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [workspace, setWorkspace] = useState(
     () => (typeof window !== "undefined" ? localStorage.getItem(WORKSPACE_KEY) || "" : "")
   );
 
-  const topLevel = MENU_ITEMS.filter((m) => !m.parentLabel);
-  const adminItems = MENU_ITEMS.filter((m) => m.parentLabel === "Admin");
+  useEffect(() => {
+    localStorage.setItem(SIDEBAR_KEY, String(sidebarCollapsed));
+  }, [sidebarCollapsed]);
 
   const saveWorkspace = (v: string) => {
     setWorkspace(v);
@@ -29,50 +26,41 @@ export function AppLayout() {
   };
 
   return (
-    <div className="container">
-      <header className="top header-section">
-        <div>
-          <div className="brand-title">UniCV Studio</div>
-          <div className="muted" style={{ marginTop: 4 }}>
-            API: <code>{API_BASE}</code>
-            {workspace ? ` · Workspace: ${workspace}` : ""}
-          </div>
-        </div>
-        <nav className="nav-row">
-          {topLevel.map((item) => (
-            <Link key={item.path} to={item.path} className="nav-item">
-              {item.label}
-            </Link>
-          ))}
-          {adminItems.length > 0 && (
-            <span className="nav-row gap-sm">
-              <span className="muted section-title" style={{ margin: 0 }}>Admin</span>
-              {adminItems.map((item) => (
-                <Link key={item.path} to={item.path} className="nav-item">
-                  {item.label}
-                </Link>
-              ))}
+    <>
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed((c) => !c)}
+        mobileOpen={mobileOpen}
+        onToggleMobile={() => setMobileOpen((o) => !o)}
+        workspace={workspace}
+        onWorkspaceChange={saveWorkspace}
+      />
+      <div className={`main-with-sidebar ${sidebarCollapsed ? "main-sidebar-collapsed" : ""}`}>
+        <header className="top-bar">
+          <button
+            type="button"
+            className="top-bar-menu-btn"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Abrir menu"
+            title="Abrir menu"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+          <div className="top-bar-info">
+            <span className="top-bar-api muted">
+              API: <code>{API_BASE}</code>
+              {workspace ? ` · ${workspace}` : ""}
             </span>
-          )}
-          <Input
-            placeholder="Workspace (opcional)"
-            value={workspace}
-            onChange={(v) => saveWorkspace(v)}
-            className="input-workspace"
-          />
-          {getAuthToken() && (
-            <Button variant="secondary" onClick={handleLogout} title="Terminar sessão">
-              Sair
-            </Button>
-          )}
-          <Button variant="secondary" onClick={toggleTheme} title={theme === "dark" ? "Modo claro" : "Modo escuro"}>
-            {theme === "dark" ? "☀️" : "🌙"}
-          </Button>
-        </nav>
-      </header>
-      <main>
-        <Outlet />
-      </main>
-    </div>
+          </div>
+        </header>
+        <main className="container container-main">
+          <Outlet />
+        </main>
+      </div>
+    </>
   );
 }

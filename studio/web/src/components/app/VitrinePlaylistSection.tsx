@@ -26,7 +26,7 @@ export function VitrinePlaylistSection({
 
   return (
     <Card plain className="card-padding">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
+      <div className="playlist-header">
         <span className="muted">
           {isReadOnly ? "Vídeos na playlist (somente leitura)" : "Vídeos na playlist"}
         </span>
@@ -45,50 +45,24 @@ export function VitrinePlaylistSection({
         )}
       </div>
       {vitrine.videos && vitrine.videos.length > 0 ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div className="playlist-list">
           {vitrine.videos.map((vv, i) => (
-            <div
-              key={vv.id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 16,
-                padding: 12,
-                background: "var(--color-bg-elevated, #f9fafb)",
-                borderRadius: 8
-              }}
-            >
+            <div key={vv.id} className="playlist-item">
               {vv.video.thumbnailUrl ? (
                 <img
                   src={vv.video.thumbnailUrl}
                   alt=""
-                  style={{ width: 120, height: 68, objectFit: "cover", borderRadius: 4 }}
+                  className="playlist-item-thumb"
                 />
               ) : (
-                <div
-                  style={{
-                    width: 120,
-                    height: 68,
-                    background: "var(--border)",
-                    borderRadius: 4,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 24,
-                    color: "var(--text-muted)"
-                  }}
-                >
-                  ▶
-                </div>
+                <div className="playlist-item-thumb-placeholder">▶</div>
               )}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 500 }}>{vv.video.title}</div>
-                <div className="muted" style={{ fontSize: 13 }}>
-                  {formatDuration(vv.video.durationSec)}
-                </div>
+              <div className="playlist-item-body">
+                <div className="playlist-item-title">{vv.video.title}</div>
+                <div className="playlist-item-meta">{formatDuration(vv.video.durationSec)}</div>
               </div>
               {!isReadOnly && onMoveVideo && onRemoveVideo && (
-                <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                <div className="playlist-item-actions">
                   <Button
                     variant="secondary"
                     size="sm"

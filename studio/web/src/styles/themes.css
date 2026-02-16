@@ -12,6 +12,7 @@
   color-scheme: dark;
   --bg: #111;
   --bg-card: #1a1a1a;
+  --bg-elevated: #252525;
   --text: #e5e7eb;
   --text-muted: #94a3b8;
   --border: rgba(148, 163, 184, 0.2);
@@ -22,6 +23,7 @@
   color-scheme: light;
   --bg: #f1f5f9;
   --bg-card: #fff;
+  --bg-elevated: #e2e8f0;
   --text: #0f172a;
   --text-muted: #64748b;
   --border: rgba(100, 116, 139, 0.3);
@@ -51,9 +53,49 @@ a:hover {
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-xl);
   padding: var(--space-xl);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.list .card.vitrine-card,
+.list .card.card-padding {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  width: 100%;
+  min-width: 0;
+  display: block;
+}
+
+/* Garantir layout de linha nos cards de vitrine dentro de listas */
+.list .vitrine-card .flex {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  min-width: 0;
+}
+
+.list .vitrine-card .vitrine-card-content {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  overflow: hidden;
+}
+
+.list .vitrine-card .vitrine-card-content a {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list .vitrine-card .vitrine-card-actions {
+  flex: 0 0 auto !important;
+  flex-shrink: 0 !important;
+  display: flex !important;
+  flex-wrap: nowrap;
+  gap: var(--space-sm);
+  align-items: center;
 }
 
 .card-highlight {
@@ -78,6 +120,11 @@ a:hover {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-xl);
+}
+
+.row > .card {
+  min-width: 0;
+  overflow: hidden;
 }
 
 @media (max-width: 900px) {
@@ -122,7 +169,41 @@ a:hover {
 
 .list {
   display: grid;
+  grid-template-columns: 1fr;
   gap: var(--space-md);
+  width: 100%;
+}
+
+.list > * {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Lista com scroll contido (evita barra de rolagem quebrada/dupla) */
+.list.list-scroll {
+  max-height: 380px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+}
+
+.list.list-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.list.list-scroll::-webkit-scrollbar-track {
+  background: rgba(148, 163, 184, 0.08);
+  border-radius: 4px;
+}
+
+.list.list-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 4px;
+}
+
+.list.list-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.45);
 }
 
 .pill {
@@ -155,6 +236,12 @@ a:hover {
   flex-wrap: wrap;
 }
 
+.top .nav-row {
+  min-width: 0;
+  flex: 1 1 auto;
+  justify-content: flex-end;
+}
+
 .h {
   font-size: 20px;
   font-weight: 700;
@@ -162,6 +249,47 @@ a:hover {
 
 .vitrine-card {
   transition: border-color 0.2s;
+  min-width: 0;
+  width: 100%;
+}
+
+.list .vitrine-card.card-padding {
+  padding: var(--space-md) var(--space-lg);
+}
+
+.vitrine-card .flex {
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.vitrine-card .flex > .vitrine-card-content {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.vitrine-card .flex > .vitrine-card-actions {
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.vitrine-card .flex > div:first-child {
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Dropdown/select dentro de field: evita overflow */
+.field select.input {
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .vitrine-card:hover {
@@ -248,11 +376,205 @@ code {
   color: var(--unicv) !important;
 }
 
+/* Botão de alternar tema (ícone SVG) */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: rgba(148, 163, 184, 0.1);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.theme-toggle:hover {
+  background: rgba(148, 163, 184, 0.18);
+  border-color: var(--border);
+}
+
+.theme-toggle:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--unicv-light);
+}
+
+/* ========== Lista de vídeos (playlist) — contraste e bordas ========== */
+.playlist-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.playlist-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.playlist-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  padding: var(--space-md);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  min-height: 0;
+}
+
+.playlist-item-thumb {
+  width: 120px;
+  height: 68px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.playlist-item-thumb-placeholder {
+  width: 120px;
+  height: 68px;
+  background: var(--border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.playlist-item-body {
+  flex: 1;
+  min-width: 0;
+  padding: 2px 0;
+}
+
+.playlist-item-title {
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.playlist-item-meta {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.playlist-item-actions {
+  display: flex;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+/* ========== Abas e layout flexível (detalhe da vitrine) ========== */
+.tabs-row {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--space-xl);
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-size: var(--font-size-md);
+  font-weight: 400;
+  color: var(--text);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.tab-btn:hover {
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.tab-btn.active {
+  font-weight: 600;
+  background: var(--bg-elevated);
+  border-bottom-color: var(--unicv);
+}
+
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-lg);
+  min-width: 0;
+}
+
+.vitrine-header-row {
+  margin-bottom: var(--space-xl);
+}
+
+.vitrine-header-main {
+  min-width: 0;
+  flex: 1 1 200px;
+}
+
+.vitrine-header-title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.vitrine-header-title {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.vitrine-header-slug { margin-top: 4px; }
+
+.vitrine-header-player-link {
+  margin-top: var(--space-md);
+  font-size: var(--font-size-sm);
+}
+
+.vitrine-header-player-link code {
+  word-break: break-all;
+  font-size: 13px;
+}
+
+.action-row-buttons {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .form-row {
   display: flex;
   gap: var(--space-md);
   flex-wrap: wrap;
   align-items: flex-end;
+}
+
+.form-row .btn,
+.form-row button[type="submit"],
+.form-row button[type="button"] {
+  flex-shrink: 0;
+}
+
+.form-row .field.field-flex,
+.form-row .field.field-flex-160 {
+  min-width: 0;
 }
 
 .form-divider {
@@ -331,6 +653,7 @@ code {
 
 .field.field-flex-160 {
   flex: 1 1 160px;
+  min-width: 120px;
   margin: 0;
 }
 .mt-md { margin-top: var(--space-md); }
@@ -360,4 +683,175 @@ code {
 }
 .page-exportacoes a.btn:hover {
   background: #0f766e;
+}
+
+/* ========== PÁGINA INICIAL (Vimeo + Vitrines) — layout profundo ========== */
+.page-home {
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.page-home .row {
+  align-items: start;
+  min-width: 0;
+}
+
+.page-home .row > .card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.page-home .row > .card > * {
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+/* Seção que contém a lista: pode encolher e mostra scroll interno (override do * acima) */
+.page-home .row > .card > .card-scroll-section,
+.page-home .card-scroll-section {
+  flex: 1 1 0;
+  min-height: 200px;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-home .card-scroll-section .list.list-scroll {
+  flex: 1 1 0;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Área rolável das listas (alternativa) */
+.page-home .list-scroll-wrap {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-home .list-scroll-wrap .list.list-scroll {
+  flex: 1 1 0;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Form row em linha fixa (input + botão sem quebrar) */
+.page-home .form-row.form-row-inline {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: var(--space-md);
+  flex-wrap: nowrap;
+}
+
+.page-home .form-row.form-row-inline .field {
+  min-width: 0;
+}
+
+.page-home .form-row.form-row-inline .field .input,
+.page-home .form-row.form-row-inline > .input {
+  min-width: 0;
+}
+
+.page-home .form-row.form-row-inline > * {
+  min-width: 0;
+}
+
+.page-home .form-row.form-row-inline > .btn,
+.page-home .form-row.form-row-inline > button {
+  min-width: auto;
+}
+
+/* Dropdown perfil: largura controlada */
+.page-home .field select.input {
+  width: 100%;
+  max-width: min(360px, 100%);
+  box-sizing: border-box;
+}
+
+/* Cards de vitrine: não quebrar no ícone/botão — conteúdo e ações em blocos estáveis */
+.page-home .vitrine-card {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.page-home .vitrine-card .flex {
+  min-width: 0;
+  flex-wrap: nowrap;
+  gap: var(--space-md);
+  align-items: center;
+}
+
+.page-home .vitrine-card .vitrine-card-content {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.page-home .vitrine-card .vitrine-card-content > div:first-child {
+  overflow: hidden;
+}
+
+.page-home .vitrine-card .vitrine-card-content a {
+  min-width: 0;
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.page-home .vitrine-card .vitrine-card-actions {
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.page-home .vitrine-card .vitrine-card-actions .btn,
+.page-home .vitrine-card .vitrine-card-actions a.btn {
+  white-space: nowrap;
+}
+
+.page-home .vitrine-card a[href] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* Lista de showcases (Vimeo): mesmo tratamento */
+.page-home .card .list .vitrine-card .flex label {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.page-home .card .list .vitrine-card .flex label div {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.page-home .card .list .vitrine-card .flex label div div:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Container da lista com scroll estável */
+.page-home .list.list-scroll {
+  max-height: min(380px, 50vh);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
 }

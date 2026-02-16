@@ -61,7 +61,7 @@ log("=".repeat(60) + "\n", "cyan");
 
 // 1. Verificar portas
 log("📡 PORTAS:", "bold");
-const apiPort = 3001;
+const apiPort = 3002;
 const webPort = 5173;
 
 const apiInUse = checkPort(apiPort);

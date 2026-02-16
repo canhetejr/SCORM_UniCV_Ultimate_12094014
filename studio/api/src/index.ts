@@ -1,7 +1,14 @@
-import "dotenv/config";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import dotenv from "dotenv";
 import fsp from "node:fs/promises";
 import { loadEnv } from "./env.js";
 import { buildServer } from "./server.js";
+
+// Carregar .env do diretório studio/api (mesmo quando npm run dev é executado na raiz)
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const envPath = path.resolve(__dirname, "..", ".env");
+dotenv.config({ path: envPath });
 
 async function main() {
   const env = loadEnv();

@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../db.js";
 import type { ServerDeps } from "./deps.js";
 
@@ -28,9 +29,13 @@ const dashboardRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, op
   });
 
   // Resumo agregado para o dashboard (últimos 30 dias por padrão)
+  // Query: ?days=30&type=player_launch&source=studio
   app.get("/summary", async (req, reply) => {
-    const q = req.query as { days?: string };
+    const q = req.query as { days?: string; type?: string; source?: string };
     const days = Math.min(90, Math.max(1, parseInt(q.days || "30", 10) || 30));
+    const typeFilter = typeof q.type === "string" && q.type.trim() ? q.type.trim() : null;
+    const sourceFilter = typeof q.source === "string" && q.source.trim() ? q.source.trim() : null;
+
     const now = new Date();
     const since = new Date(Date.UTC(
       now.getUTCFullYear(),
@@ -39,31 +44,59 @@ const dashboardRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, op
       0, 0, 0, 0
     ));
 
-    const [total, byType, byDay, recent] = await Promise.all([
-      prisma.dashboardEvent.count({ where: { createdAt: { gte: since } } }),
+    const baseWhere: { createdAt: { gte: Date }; type?: string; source?: string } = {
+      createdAt: { gte: since }
+    };
+    if (typeFilter) baseWhere.type = typeFilter;
+    if (sourceFilter) baseWhere.source = sourceFilter;
+
+    const dateOnlyWhere = { createdAt: { gte: since } };
+    const whereParts = [Prisma.sql`"createdAt" >= ${since}`];
+    if (typeFilter) whereParts.push(Prisma.sql`"type" = ${typeFilter}`);
+    if (sourceFilter) whereParts.push(Prisma.sql`"source" = ${sourceFilter}`);
+    const whereSql = Prisma.join(whereParts, " AND ");
+
+    const [total, byType, bySource, byDay, recent, filterTypes, filterSources] = await Promise.all([
+      prisma.dashboardEvent.count({ where: baseWhere }),
       prisma.dashboardEvent.groupBy({
         by: ["type"],
-        where: { createdAt: { gte: since } },
+        where: baseWhere,
         _count: { id: true }
       }).then((rows) => rows.sort((a, b) => b._count.id - a._count.id)),
-      prisma.$queryRaw<
-        Array<{ date: string; count: bigint }>
-      >`
-        SELECT date_trunc('day', "createdAt" AT TIME ZONE 'UTC')::date::text AS date, count(*)::bigint AS count
-        FROM "DashboardEvent"
-        WHERE "createdAt" >= ${since}
-        GROUP BY date_trunc('day', "createdAt" AT TIME ZONE 'UTC')::date
-        ORDER BY date ASC
-      `,
+      prisma.dashboardEvent.groupBy({
+        by: ["source"],
+        where: baseWhere,
+        _count: { id: true }
+      }).then((rows) => rows.filter((r) => r.source != null).sort((a, b) => b._count.id - a._count.id)),
+      prisma.$queryRaw<Array<{ date: string; count: bigint }>>(
+        Prisma.sql`
+          SELECT date_trunc('day', "createdAt" AT TIME ZONE 'UTC')::date::text AS date, count(*)::bigint AS count
+          FROM "DashboardEvent"
+          WHERE ${whereSql}
+          GROUP BY date_trunc('day', "createdAt" AT TIME ZONE 'UTC')::date
+          ORDER BY date ASC
+        `
+      ),
       prisma.dashboardEvent.findMany({
-        where: { createdAt: { gte: since } },
+        where: baseWhere,
         orderBy: { createdAt: "desc" },
         take: 50,
         select: { id: true, type: true, source: true, payload: true, createdAt: true }
-      })
+      }),
+      prisma.dashboardEvent.groupBy({
+        by: ["type"],
+        where: dateOnlyWhere,
+        _count: { id: true }
+      }).then((rows) => rows.map((r) => r.type).sort()),
+      prisma.dashboardEvent.groupBy({
+        by: ["source"],
+        where: dateOnlyWhere,
+        _count: { id: true }
+      }).then((rows) => rows.filter((r) => r.source != null).map((r) => r.source!).sort())
     ]);
 
     const byTypeMap = byType.map((r) => ({ type: r.type, count: r._count.id }));
+    const bySourceMap = bySource.map((r) => ({ source: r.source!, count: r._count.id }));
     const byDayMap = byDay.map((r) => ({ date: r.date, count: Number(r.count) }));
 
     return {
@@ -71,7 +104,10 @@ const dashboardRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, op
       days,
       total,
       byType: byTypeMap,
+      bySource: bySourceMap,
       byDay: byDayMap,
+      filterTypes,
+      filterSources,
       recent: recent.map((e) => ({
         id: e.id,
         type: e.type,

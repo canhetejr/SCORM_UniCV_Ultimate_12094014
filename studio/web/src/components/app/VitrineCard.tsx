@@ -15,7 +15,7 @@ export function VitrineCard({ vitrine, selected, onSelect, onDuplicate, duplicat
   return (
     <div className={`card vitrine-card card-padding ${selected ? "selected" : ""}`}>
       <div className="flex flex-between gap-md items-center">
-        <div>
+        <div className="vitrine-card-content">
           <div>
             <Link to={`/vitrines/${vitrine.id}`} style={{ fontWeight: 600, textDecoration: "none", color: "inherit" }}>
               {vitrine.title}
@@ -29,7 +29,7 @@ export function VitrineCard({ vitrine, selected, onSelect, onDuplicate, duplicat
             {vitrine.account ? ` · ${vitrine.account.name}` : ""}
           </div>
         </div>
-        <span style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div className="vitrine-card-actions">
           <Link to={`/vitrines/${vitrine.id}`} className="btn secondary" style={{ textDecoration: "none" }}>
             Ver detalhes
           </Link>
@@ -43,7 +43,7 @@ export function VitrineCard({ vitrine, selected, onSelect, onDuplicate, duplicat
               Selecionar
             </Button>
           )}
-        </span>
+        </div>
       </div>
     </div>
   );

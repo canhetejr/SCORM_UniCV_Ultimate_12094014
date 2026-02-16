@@ -6,3 +6,4 @@ export { Field } from "./Field";
 export { Modal } from "./Modal";
 export { Toast } from "./Toast";
 export { ToastContainer } from "./ToastContainer";
+export { ThemeToggle } from "./ThemeToggle";

@@ -34,19 +34,10 @@ export function VitrineHeader({
   exporting
 }: VitrineHeaderProps) {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexWrap: "wrap",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 16,
-        marginBottom: 24
-      }}
-    >
-      <div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
-          <h1 style={{ margin: 0, fontSize: "1.5rem" }}>{vitrine.title}</h1>
+    <div className="action-row vitrine-header-row">
+      <div className="vitrine-header-main">
+        <div className="vitrine-header-title-row">
+          <h1 className="vitrine-header-title">{vitrine.title}</h1>
           <Badge
             variant={
               vitrine.status === "ACTIVE"
@@ -63,15 +54,13 @@ export function VitrineHeader({
                 : "Inativa"}
           </Badge>
         </div>
-        <div className="muted" style={{ marginTop: 4 }}>
-          slug: <code>{vitrine.slug || vitrine.id}</code>
-        </div>
-        <div style={{ marginTop: 12, fontSize: 14 }}>
+        <div className="muted vitrine-header-slug">slug: <code>{vitrine.slug || vitrine.id}</code></div>
+        <div className="vitrine-header-player-link">
           <span className="muted">Link do player: </span>
-          <code style={{ wordBreak: "break-all", fontSize: 13 }}>{playerUrl}</code>
+          <code>{playerUrl}</code>
         </div>
       </div>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+      <div className="action-row-buttons">
         {isPublished ? (
           <Button variant="danger" onClick={onUnpublish} disabled={publishing}>
             {publishing ? "A despublicar…" : "Despublicar"}

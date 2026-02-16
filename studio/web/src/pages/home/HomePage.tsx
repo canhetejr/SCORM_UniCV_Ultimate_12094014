@@ -341,7 +341,7 @@ export function HomePage() {
   }
 
   return (
-    <>
+    <div className="page-home">
       <ToastContainer toasts={toast.toasts} onRemove={toast.remove} />
 
       <div className="top flex flex-wrap gap-md">
@@ -490,7 +490,7 @@ export function HomePage() {
                 Listar showcases do perfil selecionado
               </Button>
 
-              <form onSubmit={importShowcaseByCode} className="form-row mb-lg">
+              <form onSubmit={importShowcaseByCode} className="form-row form-row-inline mb-lg">
                 <Field label="Importar por ID do showcase" className="field-flex field-flex-160">
                   <Input placeholder="ex: 12097615" value={showcaseIdInput} onChange={(v) => setShowcaseIdInput(v)} />
                 </Field>
@@ -502,7 +502,7 @@ export function HomePage() {
           )}
 
           {status.connected && (
-            <div className="mt-md">
+            <div className="mt-md card-scroll-section">
               <div className="form-row mb-md">
                 <Input
                   placeholder="Pesquisar showcases (título, ID)"
@@ -516,7 +516,7 @@ export function HomePage() {
                   </Button>
                 )}
               </div>
-              <div className="list">
+              <div className="list list-scroll">
                 {filteredShowcases.length ? (
                   filteredShowcases.map((s) => (
                     <div key={s.id} className="card vitrine-card card-padding">
@@ -578,7 +578,7 @@ export function HomePage() {
 
           <form onSubmit={loadVitrineByCode} className="mb-lg">
             <Field label="Selecionar vitrine por código (ID)" className="mb-0">
-              <div className="form-row">
+              <div className="form-row form-row-inline">
                 <Input
                   placeholder="ID da vitrine (ex: vimeo_showcase_123456)"
                   value={vitrineIdInput}
@@ -592,7 +592,7 @@ export function HomePage() {
             </Field>
           </form>
 
-          <div className="mt-lg form-divider">
+          <div className="mt-lg form-divider card-scroll-section">
             <div className="section-title">Vitrines disponíveis</div>
             <Input
               placeholder="Pesquisar vitrines (título, ID)"
@@ -600,7 +600,7 @@ export function HomePage() {
               onChange={(v) => setSearchVitrines(v)}
               className="mb-md"
             />
-            <div className="list mb-lg">
+            <div className="list list-scroll mb-lg">
               {filteredVitrines.length > 0 ? filteredVitrines.map((v) => (
                   <VitrineCard
                     key={v.id}
@@ -769,6 +769,6 @@ export function HomePage() {
           </div>
         </Card>
       </div>
-    </>
+    </div>
   );
 }
