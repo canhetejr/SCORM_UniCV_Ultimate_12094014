@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
+import { Prisma } from "@prisma/client";
 import { extractEmbedHash, vimeoGet } from "../services/vimeo.js";
 import { prisma } from "../db.js";
 import type { ServerDeps } from "./deps.js";
@@ -84,9 +85,10 @@ const vitrinesRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opt
     const title = String(body.title || "").trim();
     if (!title) return reply.badRequest("title é obrigatório.");
 
-    const validStatuses = ["ACTIVE", "EDITING", "INACTIVE"];
     const statusStr = typeof body.status === "string" ? body.status.trim().toUpperCase() : "EDITING";
-    const status = validStatuses.includes(statusStr) ? statusStr : "EDITING";
+    const status: Prisma.VitrineStatus = Object.values(Prisma.VitrineStatus).includes(statusStr as Prisma.VitrineStatus)
+      ? (statusStr as Prisma.VitrineStatus)
+      : Prisma.VitrineStatus.EDITING;
 
     let slug: string | null = typeof body.slug === "string" ? body.slug.trim() || null : null;
     if (!slug) {
@@ -136,10 +138,12 @@ const vitrinesRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opt
     const title = typeof body.title === "string" ? body.title.trim() : undefined;
     const slug = typeof body.slug === "string" ? body.slug.trim() || null : undefined;
     const statusStr = typeof body.status === "string" ? body.status.trim().toUpperCase() : undefined;
-    const validStatuses = ["ACTIVE", "EDITING", "INACTIVE"];
-    const status = statusStr && validStatuses.includes(statusStr) ? statusStr : undefined;
+    const status: Prisma.VitrineStatus | undefined =
+      statusStr && Object.values(Prisma.VitrineStatus).includes(statusStr as Prisma.VitrineStatus)
+        ? (statusStr as Prisma.VitrineStatus)
+        : undefined;
 
-    const data: { title?: string; slug?: string | null; status?: string } = {};
+    const data: Prisma.VitrineUpdateInput = {};
     if (title !== undefined) data.title = title;
     if (slug !== undefined) data.slug = slug;
     if (status !== undefined) data.status = status;

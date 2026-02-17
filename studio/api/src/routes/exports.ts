@@ -1,23 +1,33 @@
 import path from "node:path";
 import fs from "node:fs";
-import type { FastifyPluginAsync } from "fastify";
+import type { FastifyPluginAsync, FastifyRequest } from "fastify";
+import { Prisma } from "@prisma/client";
 import { buildIframeSnippet, exportHtmlZip, exportScorm12Zip } from "../services/exporter.js";
 import { prisma } from "../db.js";
 import type { ServerDeps } from "./deps.js";
 
+interface ExportsQuery {
+  status?: string;
+  vitrineId?: string;
+  limit?: string;
+  offset?: string;
+}
+
 const exportsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts) => {
   const { deps } = opts;
 
-  async function listExports(req: { query: Record<string, unknown> }) {
+  async function listExports(req: FastifyRequest<{ Querystring: ExportsQuery }>) {
     const accountId = await deps.getDefaultAccountId();
-    const q = req.query as { status?: string; vitrineId?: string; limit?: string; offset?: string };
-    const statusFilter = typeof q.status === "string" && q.status.trim() ? q.status.trim() : undefined;
+    const q = req.query;
+    const statusRaw = typeof q.status === "string" && q.status.trim() ? q.status.trim().toUpperCase() : undefined;
     const vitrineFilter = typeof q.vitrineId === "string" && q.vitrineId.trim() ? q.vitrineId.trim() : undefined;
     const limit = Math.min(Math.max(1, parseInt(String(q.limit || "50"), 10) || 50), 200);
     const offset = Math.max(0, parseInt(String(q.offset || "0"), 10) || 0);
 
-    const where: { accountId: string; status?: string; vitrineId?: string } = { accountId };
-    if (statusFilter) where.status = statusFilter;
+    const where: Prisma.ExportJobWhereInput = { accountId };
+    if (statusRaw && Object.values(Prisma.ExportStatus).includes(statusRaw as Prisma.ExportStatus)) {
+      where.status = statusRaw as Prisma.ExportStatus;
+    }
     if (vitrineFilter) where.vitrineId = vitrineFilter;
 
     const jobs = await deps.prisma.exportJob.findMany({
@@ -53,8 +63,10 @@ const exportsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts
     return { jobs: list };
   }
 
-  const listHandler = async (req: Parameters<typeof listExports>[0], reply: { send: (v: unknown) => unknown }) =>
-    reply.send(await listExports(req));
+  const listHandler = async (
+    req: FastifyRequest<{ Querystring: ExportsQuery }>,
+    reply: { send: (v: unknown) => unknown }
+  ) => reply.send(await listExports(req));
   app.get("", listHandler);
   app.get("/list", listHandler);
 
