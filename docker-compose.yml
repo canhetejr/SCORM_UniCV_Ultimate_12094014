@@ -25,7 +25,8 @@ services:
   api:
     build:
       context: .
-      dockerfile: studio/api/Dockerfile
+      dockerfile: Dockerfile
+      target: api
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -66,7 +67,8 @@ services:
   web:
     build:
       context: .
-      dockerfile: studio/web/Dockerfile
+      dockerfile: Dockerfile
+      target: web
       args:
         # API_BASE_URL → VITE_API_BASE_URL (URL da API backend)
         VITE_API_BASE_URL: ${API_BASE_URL:-http://localhost:3001}
