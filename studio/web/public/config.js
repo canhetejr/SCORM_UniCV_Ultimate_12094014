@@ -1,13 +1,10 @@
 // Runtime config (pode ser sobrescrito no deploy)
-// Ex.: window.__UNICV_API_BASE = "https://api.seudominio.com";
-// Ex.: window.__UNICV_PUBLIC_BASE_URL = "https://ava.seudominio.com.br";  // links do player
+// Em Coolify: a URL da API vem do build (VITE_API_BASE_URL = API_BASE_URL / SERVICE_URL_API). Não definir aqui.
+// Para override manual (ex.: mesmo servidor, porta diferente):
+//   window.__UNICV_API_BASE = "https://api.seudominio.com";
+//   window.__UNICV_PUBLIC_BASE_URL = "https://ava.seudominio.com.br";
 (function() {
-  if (!window.__UNICV_API_BASE) {
-    var host = window.location.hostname;
-    var apiPort = "3002";
-    window.__UNICV_API_BASE = "http://" + host + ":" + apiPort;
-  }
-  // PUBLIC_BASE_URL: links partilháveis do player. Se não definido, o app usa API_BASE.
-  // window.__UNICV_PUBLIC_BASE_URL = "https://ava.seudominio.com.br";
+  // Não definir __UNICV_API_BASE por defeito: deixa o app usar VITE_API_BASE_URL do build (deploy Coolify).
+  // Só defina aqui se precisar de override explícito em runtime.
 })();
 

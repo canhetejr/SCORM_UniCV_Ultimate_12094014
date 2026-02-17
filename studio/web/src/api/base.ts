@@ -9,7 +9,7 @@ export const API_BASE =
   (typeof window !== "undefined" && window.__UNICV_API_BASE) ||
   (import.meta as any).env?.VITE_API_BASE_URL?.toString?.() ||
   (import.meta as any).env?.VITE_API_BASE?.toString?.() ||
-  "http://localhost:3002";
+  "http://localhost:3001";
 
 /** URL pública do player (links partilháveis). Em produção use PUBLIC_BASE_URL; em dev faz fallback para API_BASE. */
 export const PUBLIC_BASE_URL =
