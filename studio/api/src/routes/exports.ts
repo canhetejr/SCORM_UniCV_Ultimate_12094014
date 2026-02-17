@@ -1,7 +1,7 @@
 import path from "node:path";
 import fs from "node:fs";
 import type { FastifyPluginAsync, FastifyRequest } from "fastify";
-import { Prisma } from "@prisma/client";
+import { Prisma, ExportStatus } from "@prisma/client";
 import { buildIframeSnippet, exportHtmlZip, exportScorm12Zip } from "../services/exporter.js";
 import { prisma } from "../db.js";
 import type { ServerDeps } from "./deps.js";
@@ -25,8 +25,8 @@ const exportsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts
     const offset = Math.max(0, parseInt(String(q.offset || "0"), 10) || 0);
 
     const where: Prisma.ExportJobWhereInput = { accountId };
-    if (statusRaw && Object.values(Prisma.ExportStatus).includes(statusRaw as Prisma.ExportStatus)) {
-      where.status = statusRaw as Prisma.ExportStatus;
+    if (statusRaw && Object.values(ExportStatus).includes(statusRaw as ExportStatus)) {
+      where.status = statusRaw as ExportStatus;
     }
     if (vitrineFilter) where.vitrineId = vitrineFilter;
 
