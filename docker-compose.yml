@@ -12,8 +12,7 @@ services:
       POSTGRES_DB: unicv
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-    ports:
-      - "5432:5432"
+    # Sem ports: acesso só pela rede interna (api usa db:5432). Evita conflito com 5432 no host (Coolify).
     volumes:
       - unicv_pg:/var/lib/postgresql/data
     healthcheck:
