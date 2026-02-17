@@ -142,7 +142,7 @@ export function ExportacoesPage() {
       <h1 style={{ marginTop: 0, marginBottom: 24, fontSize: "1.5rem" }}>Exportações</h1>
 
       {/* Filtros */}
-      <Card plain className="card-padding" style={{ marginBottom: 20 }}>
+      <Card plain className="card-padding mb-lg">
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-end" }}>
           <label className="muted" style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             Status
@@ -211,7 +211,7 @@ export function ExportacoesPage() {
             }}
           >
             <p style={{ margin: 0 }}>{error}</p>
-            <Button variant="secondary" onClick={loadJobs} style={{ marginTop: 12 }}>
+            <Button variant="secondary" onClick={loadJobs} className="mt-md">
               Tentar novamente
             </Button>
           </div>

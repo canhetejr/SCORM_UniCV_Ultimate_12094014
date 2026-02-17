@@ -361,7 +361,7 @@ export function DashboardPage() {
       {/* Gráfico de barras por tipo (alternativo) */}
       {chartByType.length > 0 && (
         <div className="row mt-lg">
-          <Card plain className="card-padding" style={{ flex: 1 }}>
+          <Card plain className="card-padding flex-1">
             <div className="card-section-title">Distribuição por tipo (barras)</div>
             <div style={{ height: 220 }}>
               <ResponsiveContainer width="100%" height="100%">

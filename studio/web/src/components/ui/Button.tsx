@@ -1,7 +1,12 @@
-import React from "react";
+import React, { ComponentPropsWithoutRef } from "react";
 
 type Variant = "primary" | "secondary" | "danger" | "ghost";
 type Size = "sm" | "md";
+
+export type ButtonProps = ComponentPropsWithoutRef<"button"> & {
+  variant?: Variant;
+  size?: Size;
+};
 
 export function Button({
   children,
@@ -12,19 +17,10 @@ export function Button({
   onClick,
   title,
   className = "",
-  style
-}: {
-  children: React.ReactNode;
-  variant?: Variant;
-  size?: Size;
-  type?: "button" | "submit";
-  disabled?: boolean;
-  onClick?: () => void;
-  title?: string;
-  className?: string;
-  style?: React.CSSProperties;
-}) {
-  const variantClass = variant === "primary" ? "btn-primary" 
+  style,
+  ...props
+}: ButtonProps) {
+  const variantClass = variant === "primary" ? "btn-primary"
     : variant === "secondary" ? "btn-secondary"
     : variant === "danger" ? "btn-danger"
     : "btn-ghost";
@@ -36,13 +32,14 @@ export function Button({
     .join(" ");
 
   return (
-    <button 
-      type={type} 
-      className={c} 
-      disabled={disabled} 
-      onClick={onClick} 
-      title={title} 
+    <button
+      type={type}
+      className={c}
+      disabled={disabled}
+      onClick={onClick}
+      title={title}
       style={{ ...sizeStyle, ...style }}
+      {...props}
     >
       {children}
     </button>

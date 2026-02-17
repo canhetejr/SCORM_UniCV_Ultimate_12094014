@@ -1,4 +1,12 @@
-import React from "react";
+import React, { ComponentPropsWithoutRef } from "react";
+
+export type InputProps = Omit<
+  ComponentPropsWithoutRef<"input">,
+  "value" | "onChange"
+> & {
+  value: string;
+  onChange: (v: string) => void;
+};
 
 export function Input({
   value,
@@ -6,15 +14,9 @@ export function Input({
   placeholder,
   type = "text",
   disabled,
-  className = ""
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-  type?: "text" | "password";
-  disabled?: boolean;
-  className?: string;
-}) {
+  className = "",
+  ...props
+}: InputProps) {
   const baseClass = "input";
   const c = [baseClass, className].filter(Boolean).join(" ");
   return (
@@ -25,6 +27,7 @@ export function Input({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       disabled={disabled}
+      {...props}
     />
   );
 }
