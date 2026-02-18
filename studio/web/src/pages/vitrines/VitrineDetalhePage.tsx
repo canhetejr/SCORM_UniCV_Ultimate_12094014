@@ -6,8 +6,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
-  API_BASE,
-  PUBLIC_BASE_URL,
+  getResolvedApiBase,
+  getResolvedPublicBaseUrl,
   apiPost,
   getAuthToken,
   getVitrineDetail,
@@ -155,7 +155,7 @@ export function VitrineDetalhePage() {
         selfContained: true
       });
       await loadExports();
-      const url = `${API_BASE}${res.downloadUrl}`;
+      const url = `${getResolvedApiBase()}${res.downloadUrl}`;
       const token = getAuthToken();
       if (token) {
         const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
@@ -268,7 +268,7 @@ export function VitrineDetalhePage() {
 
   const handleDownload = async (job: ExportJobItem) => {
     if (!job.downloadUrl) return;
-    const url = `${API_BASE}${job.downloadUrl}`;
+    const url = `${getResolvedApiBase()}${job.downloadUrl}`;
     const token = getAuthToken();
     const filename = getExportFilename(job.type, job.title);
     try {
@@ -278,7 +278,7 @@ export function VitrineDetalhePage() {
     }
   };
 
-  const playerUrl = buildPlayerUrl(id, vitrine?.slug, PUBLIC_BASE_URL);
+  const playerUrl = buildPlayerUrl(id, vitrine?.slug, getResolvedPublicBaseUrl());
 
   if (loading && !vitrine) {
     return (

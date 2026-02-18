@@ -10,6 +10,9 @@ const EnvSchema = z.object({
   // Base pública do serviço (usado depois em OAuth/LTI)
   BASE_URL: z.string().url().optional(),
 
+  // Origens CORS adicionais (vírgula; ex: https://web.unicv.com,https://studio.unicv.com)
+  CORS_EXTRA_ORIGINS: z.string().optional(),
+
   // Vimeo OAuth (Authorization Code) — opcional para rodar sem Vimeo
   VIMEO_CLIENT_ID: z.string().optional(),
   VIMEO_CLIENT_SECRET: z.string().optional(),

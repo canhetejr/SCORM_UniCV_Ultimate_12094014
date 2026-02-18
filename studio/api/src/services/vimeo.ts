@@ -39,18 +39,32 @@ export function createOAuthState(): string {
 
 export function getRedirectUri(
   envOrGetConfig:
-    | { BASE_URL?: string; VIMEO_REDIRECT_URI?: string }
+    | { BASE_URL?: string; VIMEO_REDIRECT_URI?: string; NODE_ENV?: string }
     | ((key: string) => string | undefined)
 ): string {
   const get = (k: string): string | undefined =>
     typeof envOrGetConfig === "function"
       ? envOrGetConfig(k)
-      : (envOrGetConfig as any)[k];
+      : (envOrGetConfig as Record<string, string | undefined>)[k];
   const redirectUri = get("VIMEO_REDIRECT_URI");
-  if (redirectUri) return redirectUri;
+  if (redirectUri) return forceHttpsForProduction(redirectUri, get("NODE_ENV"));
   const baseUrl = get("BASE_URL");
   if (!baseUrl) throw new Error("BASE_URL ou VIMEO_REDIRECT_URI é obrigatório para OAuth.");
-  return new URL("/auth/vimeo/callback", baseUrl).toString();
+  return forceHttpsForProduction(new URL("/auth/vimeo/callback", baseUrl).toString(), get("NODE_ENV"));
+}
+
+function forceHttpsForProduction(url: string, nodeEnv?: string): string {
+  if (nodeEnv !== "production") return url;
+  try {
+    const u = new URL(url);
+    if (u.protocol === "http:" && (u.hostname !== "localhost" && u.hostname !== "127.0.0.1")) {
+      u.protocol = "https:";
+      return u.toString();
+    }
+  } catch {
+    /* ignore */
+  }
+  return url;
 }
 
 export function buildAuthorizeUrl(params: {

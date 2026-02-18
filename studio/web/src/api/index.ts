@@ -9,6 +9,10 @@
 export {
   API_BASE,
   PUBLIC_BASE_URL,
+  getResolvedApiBase,
+  getResolvedPublicBaseUrl,
+  getLastFetchError,
+  setLastFetchError,
   getAuthToken,
   setAuthToken,
   clearAuthToken,

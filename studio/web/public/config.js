@@ -1,13 +1,28 @@
-// Runtime config (pode ser sobrescrito no deploy)
-// Ex.: window.__UNICV_API_BASE = "https://api.seudominio.com";
-// Ex.: window.__UNICV_PUBLIC_BASE_URL = "https://ava.seudominio.com.br";  // links do player
+// Runtime config - Coolify injeta SERVICE_URL_API, SERVICE_FQDN_API, SERVICE_URL_WEB, SERVICE_FQDN_WEB
+// Também aceita __UNICV_API_BASE e __UNICV_PUBLIC_BASE_URL via script de entrypoint
 (function() {
-  if (!window.__UNICV_API_BASE) {
+  var api = window.__UNICV_API_BASE;
+  var pub = window.__UNICV_PUBLIC_BASE_URL;
+  if (!api) {
     var host = window.location.hostname;
-    var apiPort = "3002";
-    window.__UNICV_API_BASE = "http://" + host + ":" + apiPort;
+    var protocol = window.location.protocol;
+    var port = window.location.port;
+    if (host === "localhost" || host === "127.0.0.1") {
+      window.__UNICV_API_BASE = "http://localhost:3002";
+    } else if (host.indexOf("sslip.io") !== -1 || host.indexOf("web") !== -1) {
+      var apiHost = host.replace(/^web\./, "api.").replace(/\.web\./, ".api.");
+      var sameOrigin = protocol + "//" + host + (port ? ":" + port : "");
+      window.__UNICV_API_BASE = apiHost !== host
+        ? protocol + "//" + apiHost + (port && port !== "80" && port !== "443" ? ":" + port : "")
+        : sameOrigin;
+      if (protocol === "https:" && window.__UNICV_API_BASE.indexOf("http:") === 0) {
+        window.__UNICV_API_BASE = "https:" + window.__UNICV_API_BASE.slice(5);
+      }
+    } else {
+      window.__UNICV_API_BASE = protocol + "//" + host + (port ? ":" + port : "");
+    }
   }
-  // PUBLIC_BASE_URL: links partilháveis do player. Se não definido, o app usa API_BASE.
-  // window.__UNICV_PUBLIC_BASE_URL = "https://ava.seudominio.com.br";
+  if (!pub) {
+    window.__UNICV_PUBLIC_BASE_URL = window.__UNICV_API_BASE;
+  }
 })();
-

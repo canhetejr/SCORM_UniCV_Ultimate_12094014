@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_BASE, PUBLIC_BASE_URL, apiGet, apiPost, apiPut, getVimeoOAuthStartUrl, postVitrine, postDuplicateVitrine } from "../../api";
+import { getResolvedApiBase, getResolvedPublicBaseUrl, apiGet, apiPost, apiPut, getVimeoOAuthStartUrl, postVitrine, postDuplicateVitrine } from "../../api";
 import type { Vitrine } from "../../types/vitrine";
 import { Button, Input, Field, Card, ToastContainer } from "../../components/ui";
 import { VitrineCard, NewVitrineModal } from "../../components/app";
@@ -320,7 +320,7 @@ export function HomePage() {
       title,
       selfContained: true
     });
-    setExportResult({ kind: "SCORM 1.2", url: `${API_BASE}${res.downloadUrl}` });
+    setExportResult({ kind: "SCORM 1.2", url: `${getResolvedApiBase()}${res.downloadUrl}` });
   }
 
   async function exportHtml() {
@@ -331,7 +331,7 @@ export function HomePage() {
       title,
       selfContained: true
     });
-    setExportResult({ kind: "HTML", url: `${API_BASE}${res.downloadUrl}` });
+    setExportResult({ kind: "HTML", url: `${getResolvedApiBase()}${res.downloadUrl}` });
   }
 
   async function loadIframe() {
@@ -653,7 +653,7 @@ export function HomePage() {
                   className="btn secondary"
                   href={
                     selectedVitrineId
-                      ? `${PUBLIC_BASE_URL}/player/index.html?vitrine_id=${encodeURIComponent(selectedVitrineId)}`
+                      ? `${getResolvedPublicBaseUrl()}/player/index.html?vitrine_id=${encodeURIComponent(selectedVitrineId)}`
                       : "#"
                   }
                   target="_blank"

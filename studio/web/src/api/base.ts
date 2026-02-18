@@ -2,20 +2,92 @@ declare global {
   interface Window {
     __UNICV_API_BASE?: string;
     __UNICV_PUBLIC_BASE_URL?: string;
+    __UNICV_LAST_FETCH_ERROR?: string;
   }
 }
 
-export const API_BASE =
-  (typeof window !== "undefined" && window.__UNICV_API_BASE) ||
-  (import.meta as any).env?.VITE_API_BASE_URL?.toString?.() ||
-  (import.meta as any).env?.VITE_API_BASE?.toString?.() ||
-  "http://localhost:3002";
+function ensureHttpsWhenSecure(url: string): string {
+  if (typeof window === "undefined") return url;
+  if (window.location.protocol !== "https:") return url;
+  try {
+    const u = new URL(url);
+    const isLocal = u.hostname === "localhost" || u.hostname === "127.0.0.1";
+    if (u.protocol === "http:" && !isLocal) {
+      u.protocol = "https:";
+      return u.toString();
+    }
+  } catch {
+    /* ignore */
+  }
+  return url;
+}
 
-/** URL pública do player (links partilháveis). Em produção use PUBLIC_BASE_URL; em dev faz fallback para API_BASE. */
-export const PUBLIC_BASE_URL =
-  (typeof window !== "undefined" && window.__UNICV_PUBLIC_BASE_URL) ||
-  (import.meta as any).env?.VITE_PUBLIC_BASE_URL?.toString?.() ||
-  API_BASE;
+function resolveApiBaseRaw(): string {
+  if (typeof window !== "undefined" && window.__UNICV_API_BASE) {
+    return window.__UNICV_API_BASE;
+  }
+  const vite = (import.meta as any).env?.VITE_API_BASE_URL ?? (import.meta as any).env?.VITE_API_BASE;
+  if (vite && typeof vite === "string") return vite;
+
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    const protocol = window.location.protocol;
+    const port = window.location.port;
+    const viteApi = (import.meta as any).env?.VITE_SERVICE_URL_API;
+    const viteFqdn = (import.meta as any).env?.VITE_SERVICE_FQDN_API;
+    if (viteApi && typeof viteApi === "string") return ensureHttpsWhenSecure(viteApi);
+    if (viteFqdn && typeof viteFqdn === "string") {
+      const base = `${protocol}//${viteFqdn}`;
+      return ensureHttpsWhenSecure(base);
+    }
+    if (host.replace(/^www\./, "").includes("web") || host.includes("sslip.io")) {
+      const apiHost = host.replace(/^web\./, "api.").replace(/\.web\./, ".api.");
+      const apiPort = port === "443" || port === "" ? "" : port === "80" ? "3002" : port;
+      const base = apiHost !== host ? `${protocol}//${apiHost}${apiPort ? ":" + apiPort : ""}` : `${protocol}//${host}:3002`;
+      return ensureHttpsWhenSecure(base);
+    }
+    if (host === "localhost" || host === "127.0.0.1") {
+      return "http://localhost:3002";
+    }
+    const sameOrigin = `${protocol}//${host}${port ? ":" + port : ""}`;
+    return ensureHttpsWhenSecure(sameOrigin);
+  }
+
+  return "http://localhost:3002";
+}
+
+function resolvePublicBaseUrlRaw(): string {
+  if (typeof window !== "undefined" && window.__UNICV_PUBLIC_BASE_URL) {
+    return window.__UNICV_PUBLIC_BASE_URL;
+  }
+  const vite = (import.meta as any).env?.VITE_PUBLIC_BASE_URL;
+  if (vite && typeof vite === "string") return ensureHttpsWhenSecure(vite);
+
+  const api = getResolvedApiBase();
+  return ensureHttpsWhenSecure(api);
+}
+
+export function getResolvedApiBase(): string {
+  return ensureHttpsWhenSecure(resolveApiBaseRaw());
+}
+
+export function getResolvedPublicBaseUrl(): string {
+  return resolvePublicBaseUrlRaw();
+}
+
+/** @deprecated Use getResolvedApiBase() para obter a URL que o fetch usa. */
+export const API_BASE = typeof window !== "undefined" ? getResolvedApiBase() : "http://localhost:3002";
+
+/** @deprecated Use getResolvedPublicBaseUrl(). */
+export const PUBLIC_BASE_URL = typeof window !== "undefined" ? getResolvedPublicBaseUrl() : API_BASE;
+
+export function setLastFetchError(msg: string | undefined): void {
+  if (typeof window !== "undefined") window.__UNICV_LAST_FETCH_ERROR = msg;
+}
+
+export function getLastFetchError(): string | undefined {
+  return typeof window !== "undefined" ? window.__UNICV_LAST_FETCH_ERROR : undefined;
+}
 
 const AUTH_TOKEN_KEY = "unicv_admin_token";
 
@@ -66,10 +138,15 @@ async function handleResponse<T>(res: Response): Promise<T> {
 }
 
 export async function apiGet<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const base = getResolvedApiBase();
+  const res = await fetch(`${base}${path}`, {
     credentials: "include",
     headers: { ...authHeaders() }
+  }).catch((err) => {
+    setLastFetchError(err?.message ?? "Failed to fetch");
+    throw err;
   });
+  setLastFetchError(undefined);
   return handleResponse<T>(res);
 }
 
@@ -78,7 +155,8 @@ export async function apiPost<T>(
   body?: unknown,
   contentType = "application/json"
 ): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const base = getResolvedApiBase();
+  const res = await fetch(`${base}${path}`, {
     method: "POST",
     credentials: "include",
     headers: {
@@ -91,25 +169,39 @@ export async function apiPost<T>(
         : contentType.includes("json")
           ? JSON.stringify(body ?? {})
           : String(body ?? "")
+  }).catch((err) => {
+    setLastFetchError(err?.message ?? "Failed to fetch");
+    throw err;
   });
+  setLastFetchError(undefined);
   return handleResponse<T>(res);
 }
 
 export async function apiPut<T>(path: string, body?: unknown): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const base = getResolvedApiBase();
+  const res = await fetch(`${base}${path}`, {
     method: "PUT",
     credentials: "include",
     headers: { "Content-Type": "application/json", ...authHeaders() },
     body: body === undefined ? undefined : JSON.stringify(body)
+  }).catch((err) => {
+    setLastFetchError(err?.message ?? "Failed to fetch");
+    throw err;
   });
+  setLastFetchError(undefined);
   return handleResponse<T>(res);
 }
 
 export async function apiDelete<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const base = getResolvedApiBase();
+  const res = await fetch(`${base}${path}`, {
     method: "DELETE",
     credentials: "include",
     headers: { ...authHeaders() }
+  }).catch((err) => {
+    setLastFetchError(err?.message ?? "Failed to fetch");
+    throw err;
   });
+  setLastFetchError(undefined);
   return handleResponse<T>(res);
 }

@@ -66,6 +66,9 @@ VIMEO_CLIENT_ID=
 VIMEO_CLIENT_SECRET=
 VIMEO_REDIRECT_URI=
 
+# CORS (se web e API em domínios diferentes, adicione origem do web)
+# CORS_EXTRA_ORIGINS=https://studio.unicv.seusite.com
+
 # Exportações
 EXPORTS_DIR=/data/exports
 
@@ -82,9 +85,17 @@ LRS_ENDPOINT=
 LRS_BASIC_AUTH=
 ```
 
+**Variáveis de URL (obrigatório em produção):**
+| Variável | Descrição | Exemplo |
+|----------|-----------|---------|
+| `API_BASE_URL` / `BASE_URL` | URL **https** da API (usada pelo backend e OAuth) | `https://api.unicv.seusite.com` |
+| `PUBLIC_BASE_URL` | URL **https** pública do player (links partilháveis, iframes) | `https://api.unicv.seusite.com` ou domínio do player |
+
+⚠️ **Nunca use `http://` em produção** – causa "Failed to fetch" por Mixed Content (página https chamando API http).
+
 **IMPORTANTE:** Substitua:
 - `SENHA` pela senha do PostgreSQL (do Passo 1)
-- `api.unicv.seusite.com` pelo seu domínio da API
+- `api.unicv.seusite.com` pelo seu domínio da API (sempre **https**)
 - Gere secrets aleatórios para `SESSION_SECRET` e `ADMIN_JWT_SECRET`
 
 ### 2.3. Configurar Persistent Storage
@@ -128,12 +139,14 @@ LRS_BASIC_AUTH=
 Vá na aba **Environment Variables** e adicione:
 
 ```env
-# URL da API (domínio da API do Passo 2)
+# URL da API (build-time; Coolify também injeta SERVICE_URL_API em runtime)
 VITE_API_BASE_URL=https://api.unicv.seusite.com
 
-# URL pública do player (mesmo domínio da API)
+# URL pública do player (build-time; Coolify injeta SERVICE_URL_WEB em runtime)
 VITE_PUBLIC_BASE_URL=https://api.unicv.seusite.com
 ```
+
+O entrypoint do container gera `config.js` em runtime a partir de `SERVICE_URL_API`, `SERVICE_FQDN_API`, `SERVICE_URL_WEB`, `SERVICE_FQDN_WEB` (Coolify). Em domínios `*.sslip.io`, as URLs são auto-ajustadas para evitar Mixed Content.
 
 ### 3.3. Deploy
 

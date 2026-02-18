@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
-import { API_BASE, getAuthToken } from "../api";
+import { getResolvedApiBase, getResolvedPublicBaseUrl, getLastFetchError } from "../api";
 
 const WORKSPACE_KEY = "unicv_workspace";
 const SIDEBAR_KEY = "unicv_sidebar_collapsed";
@@ -52,9 +52,20 @@ export function AppLayout() {
           </button>
           <div className="top-bar-info">
             <span className="top-bar-api muted">
-              API: <code>{API_BASE}</code>
+              API: <code>{getResolvedApiBase()}</code>
               {workspace ? ` · ${workspace}` : ""}
             </span>
+            {import.meta.env.DEV && (
+              <details className="unicv-diagnostic" style={{ marginLeft: 8, fontSize: 11 }}>
+                <summary>Diagnóstico</summary>
+                <pre style={{ margin: 4, whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
+                  origin: {window.location.origin}
+                  API_BASE: {getResolvedApiBase()}
+                  PUBLIC_BASE: {getResolvedPublicBaseUrl()}
+                  {getLastFetchError() ? `erro: ${getLastFetchError()}` : ""}
+                </pre>
+              </details>
+            )}
           </div>
         </header>
         <main className="container container-main">

@@ -36,9 +36,35 @@ export async function buildServer(): Promise<FastifyInstance> {
   });
 
   await app.register(sensible);
+  const baseUrlStr = getConfig("BASE_URL") ?? env.BASE_URL ?? "";
+  const extraOrigins = (env.CORS_EXTRA_ORIGINS ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+  const corsOrigin = (origin: string | undefined, cb: (err: Error | null, allow: boolean | string) => void) => {
+    if (!origin) return cb(null, true);
+    const allowed = [
+      baseUrlStr ? new URL(baseUrlStr).origin : null,
+      ...extraOrigins,
+      "http://localhost:5173",
+      "http://localhost:3000",
+      "http://127.0.0.1:5173",
+      "http://127.0.0.1:3000"
+    ].filter(Boolean) as string[];
+    if (allowed.includes(origin)) return cb(null, origin);
+    try {
+      const o = new URL(origin);
+      if (o.hostname.endsWith(".sslip.io")) return cb(null, origin);
+    } catch {
+      /* invalid origin */
+    }
+    return cb(null, false);
+  };
   await app.register(cors, {
-    origin: true,
-    credentials: true
+    origin: corsOrigin,
+    credentials: true,
+    allowedHeaders: ["Authorization", "Content-Type"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
   });
   await app.register(cookie, {
     secret: env.COOKIE_SECRET

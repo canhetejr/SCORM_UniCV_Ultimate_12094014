@@ -16,7 +16,7 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  API_BASE,
+  getResolvedApiBase,
   apiGet,
   apiPost,
   getAuthToken,
@@ -108,7 +108,7 @@ export function ExportacoesPage() {
 
   const handleCopyLink = (job: ExportJobItem) => {
     if (!job.downloadUrl) return;
-    const url = `${API_BASE}${job.downloadUrl}`;
+    const url = `${getResolvedApiBase()}${job.downloadUrl}`;
     navigator.clipboard.writeText(url).then(
       () => toast.success("Link copiado para a área de transferência."),
       () => toast.error("Não foi possível copiar o link.")
@@ -117,7 +117,7 @@ export function ExportacoesPage() {
 
   const handleDownload = async (job: ExportJobItem) => {
     if (!job.downloadUrl) return;
-    const url = `${API_BASE}${job.downloadUrl}`;
+    const url = `${getResolvedApiBase()}${job.downloadUrl}`;
     const token = getAuthToken();
     const filename = getExportFilename(job.type, job.title);
     try {

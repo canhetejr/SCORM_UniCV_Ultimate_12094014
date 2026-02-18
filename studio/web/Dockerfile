@@ -22,9 +22,11 @@ FROM nginx:alpine AS runtime
 
 COPY --from=build /app/studio/web/dist/ /usr/share/nginx/html/
 
-# config.js para runtime (pode ser sobrescrito via volume)
+# config.js base (entrypoint sobrescreve com vars Coolify SERVICE_URL_*)
 COPY studio/web/public/config.js /usr/share/nginx/html/config.js
+COPY studio/web/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/entrypoint.sh"]
 
