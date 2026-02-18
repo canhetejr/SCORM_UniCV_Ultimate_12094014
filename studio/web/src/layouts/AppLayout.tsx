@@ -20,9 +20,7 @@ export function AppLayout() {
     localStorage.setItem(SIDEBAR_KEY, String(sidebarCollapsed));
   }, [sidebarCollapsed]);
 
-  // Force re-render when server PUBLIC_BASE_URL is set so getResolvedPublicBaseUrl() is used with the correct value (embeds/SCORM).
   const [, setPublicBaseVersion] = useState(0);
-
   useEffect(() => {
     if (typeof window === "undefined") return;
     const apiBase = getResolvedApiBase();
@@ -31,7 +29,7 @@ export function AppLayout() {
       .then((data: { urls?: { PUBLIC_BASE_URL?: string } } | null) => {
         if (data?.urls?.PUBLIC_BASE_URL) {
           window.__UNICV_PUBLIC_BASE_URL = data.urls.PUBLIC_BASE_URL;
-          setPublicBaseVersion((n) => n + 1); // trigger re-render so children see updated window.__UNICV_PUBLIC_BASE_URL
+          setPublicBaseVersion((n) => n + 1);
         }
       })
       .catch(() => {});

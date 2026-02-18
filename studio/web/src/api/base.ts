@@ -59,30 +59,15 @@ function resolveApiBaseRaw(): string {
 }
 
 function resolvePublicBaseUrlRaw(): string {
+  const fromEnv = (import.meta as any).env?.VITE_PUBLIC_BASE_URL;
+  if (typeof fromEnv === "string" && fromEnv.trim()) {
+    return fromEnv.trim().replace(/\/+$/, "");
+  }
   if (typeof window !== "undefined" && window.__UNICV_PUBLIC_BASE_URL) {
-    return window.__UNICV_PUBLIC_BASE_URL;
+    const w = window.__UNICV_PUBLIC_BASE_URL.trim().replace(/\/+$/, "");
+    if (w) return w;
   }
-  const vite = (import.meta as any).env?.VITE_PUBLIC_BASE_URL;
-  if (vite && typeof vite === "string") return ensureHttpsWhenSecure(vite);
-
-  const api = getResolvedApiBase();
-  const candidate = ensureHttpsWhenSecure(api);
-  if (typeof window !== "undefined") {
-    const isLocalhost = (url: string) => {
-      try {
-        const u = new URL(url);
-        return u.hostname === "localhost" || u.hostname === "127.0.0.1";
-      } catch {
-        return false;
-      }
-    };
-    const pageOrigin = window.location.origin;
-    const pageIsLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-    if (!pageIsLocalhost && isLocalhost(candidate)) {
-      return pageOrigin;
-    }
-  }
-  return candidate;
+  return getResolvedApiBase().replace(/\/+$/, "");
 }
 
 export function getResolvedApiBase(): string {
@@ -97,7 +82,7 @@ export function getResolvedPublicBaseUrl(): string {
 export const API_BASE = typeof window !== "undefined" ? getResolvedApiBase() : "http://localhost:3002";
 
 /** @deprecated Use getResolvedPublicBaseUrl(). */
-export const PUBLIC_BASE_URL = typeof window !== "undefined" ? getResolvedPublicBaseUrl() : API_BASE;
+export const PUBLIC_BASE_URL = getResolvedPublicBaseUrl();
 
 export function setLastFetchError(msg: string | undefined): void {
   if (typeof window !== "undefined") window.__UNICV_LAST_FETCH_ERROR = msg;
