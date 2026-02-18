@@ -523,9 +523,10 @@ export function HomePage() {
                   filteredShowcases.map((s) => (
                     <div key={s.id} className="card vitrine-card card-padding">
                       <div className="flex flex-between gap-md items-center">
-                        <label className="flex items-center gap-md flex-1" style={{ cursor: "pointer" }}>
+                        <label className="flex items-center gap-md flex-1 min-w-0" style={{ cursor: "pointer" }}>
                           <input
                             type="checkbox"
+                            className="shrink-0"
                             checked={selectedShowcaseIds.has(s.id)}
                             onChange={(e) => {
                               setSelectedShowcaseIds((prev) => {
@@ -536,14 +537,16 @@ export function HomePage() {
                               });
                             }}
                           />
-                          <div>
+                          <div className="flex-1 min-w-0">
                             <div><strong>{s.title}</strong></div>
                             <div className="muted" style={{ fontSize: 12 }}>ID: {s.id}</div>
                           </div>
                         </label>
-                        <Button variant="secondary" onClick={() => importShowcase(s.id)}>
-                          Importar
-                        </Button>
+                        <div className="vitrine-card-actions">
+                          <Button variant="secondary" onClick={() => importShowcase(s.id)}>
+                            Importar
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))
