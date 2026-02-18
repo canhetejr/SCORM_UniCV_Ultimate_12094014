@@ -139,17 +139,30 @@ async function handleResponse<T>(res: Response): Promise<T> {
   return JSON.parse(text || "null") as T;
 }
 
+const inFlightGet = new Map<string, Promise<unknown>>();
+
 export async function apiGet<T>(path: string): Promise<T> {
   const base = getResolvedApiBase();
-  const res = await fetch(`${base}${path}`, {
-    credentials: "include",
-    headers: { ...authHeaders() }
-  }).catch((err) => {
-    setLastFetchError(err?.message ?? "Failed to fetch");
-    throw err;
-  });
-  setLastFetchError(undefined);
-  return handleResponse<T>(res);
+  const url = `${base}${path}`;
+  const existing = inFlightGet.get(url);
+  if (existing) return existing as Promise<T>;
+  const promise = (async (): Promise<T> => {
+    try {
+      const res = await fetch(url, {
+        credentials: "include",
+        headers: { ...authHeaders() }
+      }).catch((err) => {
+        setLastFetchError(err?.message ?? "Failed to fetch");
+        throw err;
+      });
+      setLastFetchError(undefined);
+      return handleResponse<T>(res);
+    } finally {
+      inFlightGet.delete(url);
+    }
+  })();
+  inFlightGet.set(url, promise);
+  return promise;
 }
 
 export async function apiPost<T>(

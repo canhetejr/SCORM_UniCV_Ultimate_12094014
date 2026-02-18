@@ -18,7 +18,7 @@ export function ConfigVimeo() {
     apiGet<{ connected: boolean; configured?: boolean; vimeoUserId?: string | null }>("/v1/vimeo/status")
       .then(setVimeoStatus)
       .catch(() => setVimeoStatus({ connected: false }));
-  }, [configStatus?.vimeo?.configured]);
+  }, []);
 
   const configured = configStatus?.vimeo?.configured ?? false;
   const connected = vimeoStatus?.connected ?? false;

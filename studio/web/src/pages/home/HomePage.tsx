@@ -84,7 +84,8 @@ export function HomePage() {
       toast.error(err?.message ?? "Erro ao carregar.");
     });
     loadProfiles().catch(() => {});
-  }, [toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- toast changes every render, causes request loop
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -101,7 +102,8 @@ export function HomePage() {
       window.history.replaceState({}, "", url);
       if (vimeoConnected) refresh().catch(() => {});
     }
-  }, [toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
+  }, []);
 
   const vimeoUserIdForImport = selectedProfileId === "me" ? undefined : selectedProfileId;
 
