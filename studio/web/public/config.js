@@ -12,15 +12,14 @@
       window.__UNICV_API_BASE = "http://localhost:3002";
     } else if (host.indexOf("sslip.io") !== -1 || host.indexOf("web") !== -1) {
       var apiHost = host.replace(/^web\./, "api.").replace(/\.web\./, ".api.");
-      var portSuffix = apiHost !== host
-        ? (isStandardPort ? "" : (port ? ":" + port : ""))
-        : (port ? ":" + port : "");
+      var portSuffix = isStandardPort ? "" : (port ? ":" + port : "");
       window.__UNICV_API_BASE = protocol + "//" + (apiHost !== host ? apiHost : host) + portSuffix;
       if (protocol === "https:" && window.__UNICV_API_BASE.indexOf("http:") === 0) {
         window.__UNICV_API_BASE = "https:" + window.__UNICV_API_BASE.slice(5);
       }
     } else {
-      window.__UNICV_API_BASE = protocol + "//" + host + (port ? ":" + port : "");
+      var portSuffix2 = isStandardPort ? "" : (port ? ":" + port : "");
+      window.__UNICV_API_BASE = protocol + "//" + host + portSuffix2;
     }
   }
   if (!pub) {
