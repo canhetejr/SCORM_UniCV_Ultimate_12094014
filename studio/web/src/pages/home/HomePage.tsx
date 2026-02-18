@@ -24,8 +24,8 @@ export function HomePage() {
   const navigate = useNavigate();
   const toast = useToast();
   const vitrines = useVitrinesStore((state) => state.vitrines);
-  const setVitrines = useVitrinesStore((state) => state.setVitrines);
-  const syncVitrines = useVitrinesStore((state) => state.syncVitrines);
+  const setInitialVitrines = useVitrinesStore((state) => state.setInitialVitrines);
+  const addOnlyNewVitrines = useVitrinesStore((state) => state.addOnlyNewVitrines);
   const [loadingInitial, setLoadingInitial] = useState(false);
   const [syncing, setSyncing] = useState(false);
 
@@ -33,26 +33,30 @@ export function HomePage() {
     setLoadingInitial(true);
     try {
       const data = await fetchAllVitrines();
-      setVitrines(data);
+      setInitialVitrines(data);
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
       setLoadingInitial(false);
     }
-  }, [setVitrines, toast]);
+  }, [setInitialVitrines, toast]);
 
   const handleSync = useCallback(async () => {
     setSyncing(true);
     try {
-      const data = await fetchAllVitrines();
-      syncVitrines(data);
-      toast.success(`Sincronizacao concluida: ${data.length} vitrines atualizadas.`);
+      const all = await fetchAllVitrines();
+      const added = addOnlyNewVitrines(all);
+      if (added > 0) {
+        toast.success(`${added} novas vitrines adicionadas`);
+      } else {
+        toast.info("Nenhuma nova vitrine encontrada");
+      }
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
       setSyncing(false);
     }
-  }, [syncVitrines, toast]);
+  }, [addOnlyNewVitrines, toast]);
 
   useEffect(() => {
     if (vitrines.length === 0) {
@@ -69,11 +73,11 @@ export function HomePage() {
           <div>
             <h2 style={{ margin: 0 }}>Vitrines</h2>
             <p className="muted" style={{ marginTop: 6, marginBottom: 0 }}>
-              Listagem completa sem paginacao. Use Sincronizar para buscar novas e alteradas.
+              Listagem completa sem paginacao. Use Buscar Novas para coletar apenas vitrines ineditas.
             </p>
           </div>
           <Button onClick={handleSync} disabled={syncing}>
-            {syncing ? "Sincronizando..." : "Sincronizar"}
+            {syncing ? "Buscando..." : "Buscar Novas"}
           </Button>
         </div>
 

@@ -7,6 +7,7 @@ import { HomePage } from "../pages/home/HomePage";
 import { ConfigPage } from "../pages/admin/config/ConfigPage";
 import { DashboardPage } from "../pages/dashboard/DashboardPage";
 import { ExportacoesPage } from "../pages/exportacoes/ExportacoesPage";
+import { ToolsPage } from "../pages/tools/ToolsPage";
 import { VitrineDetalhePage } from "../pages/vitrines/VitrineDetalhePage";
 
 export type MenuItem = {
@@ -17,6 +18,7 @@ export type MenuItem = {
 
 export const MENU_ITEMS: MenuItem[] = [
   { path: "/", label: "Início" },
+  { path: "/ferramentas", label: "Ferramentas" },
   { path: "/exportacoes", label: "Exportações" },
   { path: "/dashboard", label: "Dashboard" },
   { path: "/admin/config", label: "Configurações", parentLabel: "Admin" }
@@ -40,6 +42,7 @@ export function AppRoutes() {
         <Route element={<ProtectedRoute />}>
           <Route index element={<HomePage />} />
           <Route path="vitrines/:id" element={<VitrineDetalhePage />} />
+          <Route path="ferramentas" element={<ToolsPage />} />
           <Route path="exportacoes" element={<ExportacoesPage />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="admin/config" element={<ConfigPage />} />

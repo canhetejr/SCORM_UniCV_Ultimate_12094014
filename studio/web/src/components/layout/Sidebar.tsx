@@ -32,6 +32,11 @@ const icons: Record<string, React.ReactNode> = {
       <line x1="12" y1="15" x2="12" y2="3" />
     </svg>
   ),
+  "/ferramentas": (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.2-3.2a6 6 0 0 1-7.8 7.8l-5.9 5.9a2 2 0 1 1-2.8-2.8l5.9-5.9a6 6 0 0 1 7.8-7.8z" />
+    </svg>
+  ),
   "/dashboard": (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <line x1="18" y1="20" x2="18" y2="10" />

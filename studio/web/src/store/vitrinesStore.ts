@@ -1,27 +1,28 @@
 import { create } from "zustand";
 import type { Vitrine } from "../types/vitrine";
 
-type VitrinesState = {
+export interface VitrinesStore {
   vitrines: Vitrine[];
-  setVitrines: (data: Vitrine[]) => void;
-  syncVitrines: (data: Vitrine[]) => void;
-};
-
-function sortByCreatedAtDesc(data: Vitrine[]): Vitrine[] {
-  return [...data].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  setInitialVitrines: (data: Vitrine[]) => void;
+  addOnlyNewVitrines: (data: Vitrine[]) => number;
 }
 
-export const useVitrinesStore = create<VitrinesState>((set) => ({
+export const useVitrinesStore = create<VitrinesStore>((set, get) => ({
   vitrines: [],
-  setVitrines: (data) => set({ vitrines: sortByCreatedAtDesc(data) }),
-  syncVitrines: (data) =>
-    set((state) => {
-      const byId = new Map(state.vitrines.map((item) => [item.id, item]));
-      for (const vitrine of data) {
-        byId.set(vitrine.id, vitrine);
-      }
-      return { vitrines: sortByCreatedAtDesc(Array.from(byId.values())) };
-    })
+  setInitialVitrines: (data) => {
+    if (get().vitrines.length > 0) return;
+    set({ vitrines: data });
+  },
+  addOnlyNewVitrines: (incoming) => {
+    const existingIds = new Set(get().vitrines.map((v) => v.id));
+    const newOnes = incoming.filter((v) => !existingIds.has(v.id));
+
+    if (newOnes.length === 0) return 0;
+
+    set((state) => ({
+      vitrines: [...state.vitrines, ...newOnes]
+    }));
+
+    return newOnes.length;
+  }
 }));
