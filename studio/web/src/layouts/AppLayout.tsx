@@ -20,6 +20,19 @@ export function AppLayout() {
     localStorage.setItem(SIDEBAR_KEY, String(sidebarCollapsed));
   }, [sidebarCollapsed]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const apiBase = getResolvedApiBase();
+    fetch(`${apiBase}/v1/config/status`, { credentials: "include" })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data: { urls?: { PUBLIC_BASE_URL?: string } } | null) => {
+        if (data?.urls?.PUBLIC_BASE_URL) {
+          window.__UNICV_PUBLIC_BASE_URL = data.urls.PUBLIC_BASE_URL;
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const saveWorkspace = (v: string) => {
     setWorkspace(v);
     localStorage.setItem(WORKSPACE_KEY, v);

@@ -3,6 +3,7 @@ import fs from "node:fs";
 import type { FastifyPluginAsync, FastifyRequest } from "fastify";
 import { Prisma, ExportStatus } from "@prisma/client";
 import { buildIframeSnippet, exportHtmlZip, exportScorm12Zip } from "../services/exporter.js";
+import { getPublicPlayerBaseUrl } from "../lib/publicUrl.js";
 import { prisma } from "../db.js";
 import type { ServerDeps } from "./deps.js";
 
@@ -85,8 +86,12 @@ const exportsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts
     const vitrine = await prisma.vitrine.findFirst({ where: { id: vitrineId } });
     if (!vitrine) return reply.notFound("Vitrine não encontrada.");
 
-    const apiBase = envNow.BASE_URL;
-    if (!apiBase) return reply.internalServerError("BASE_URL não configurado no servidor (necessário para exportação).");
+    let publicBase: string;
+    try {
+      publicBase = getPublicPlayerBaseUrl(req, deps.getConfig, deps.env);
+    } catch (e) {
+      return reply.internalServerError((e instanceof Error ? e.message : String(e)));
+    }
 
     const job = await prisma.exportJob.create({
       data: {
@@ -101,7 +106,7 @@ const exportsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts
     try {
       const { zipPath } = await exportScorm12Zip({
         title,
-        apiBase,
+        apiBase: publicBase,
         vitrineId,
         outputDir: envNow.EXPORTS_DIR,
         selfContained
@@ -136,8 +141,12 @@ const exportsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts
     const vitrine = await prisma.vitrine.findFirst({ where: { id: vitrineId } });
     if (!vitrine) return reply.notFound("Vitrine não encontrada.");
 
-    const apiBase = envNow.BASE_URL;
-    if (!apiBase) return reply.internalServerError("BASE_URL não configurado no servidor (necessário para exportação).");
+    let publicBase: string;
+    try {
+      publicBase = getPublicPlayerBaseUrl(req, deps.getConfig, deps.env);
+    } catch (e) {
+      return reply.internalServerError((e instanceof Error ? e.message : String(e)));
+    }
 
     const job = await prisma.exportJob.create({
       data: {
@@ -152,7 +161,7 @@ const exportsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts
     try {
       const { zipPath } = await exportHtmlZip({
         title,
-        apiBase,
+        apiBase: publicBase,
         vitrineId,
         outputDir: envNow.EXPORTS_DIR,
         selfContained
@@ -203,15 +212,18 @@ const exportsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts
   });
 
   app.post("/iframe", async (req, reply) => {
-    const envNow = deps.loadEnv();
     const body = (req.body || {}) as { vitrineId?: string };
     const vitrineId = String(body.vitrineId || "").trim();
     if (!vitrineId) return reply.badRequest("vitrineId é obrigatório.");
     const vitrine = await prisma.vitrine.findFirst({ where: { id: vitrineId } });
     if (!vitrine) return reply.notFound("Vitrine não encontrada.");
-    const apiBase = envNow.BASE_URL;
-    if (!apiBase) return reply.internalServerError("BASE_URL não configurado no servidor.");
-    return { snippet: buildIframeSnippet({ apiBase, vitrineId }) };
+    let publicBase: string;
+    try {
+      publicBase = getPublicPlayerBaseUrl(req, deps.getConfig, deps.env);
+    } catch (e) {
+      return reply.internalServerError((e instanceof Error ? e.message : String(e)));
+    }
+    return { snippet: buildIframeSnippet({ apiBase: publicBase, vitrineId }) };
   });
 };
 

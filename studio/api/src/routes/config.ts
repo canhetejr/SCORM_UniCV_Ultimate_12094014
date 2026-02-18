@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
+import { resolveBaseUrlForStatus, resolvePublicBaseUrlForStatus } from "../lib/publicUrl.js";
 import { buildConfigItems, EDITABLE_KEYS } from "../services/appConfig.js";
 import { prisma } from "../db.js";
 import type { ServerDeps } from "./deps.js";
@@ -21,7 +22,11 @@ const configRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts)
     };
     const lrsEndpoint = getConfig("LRS_ENDPOINT") ?? env.LRS_ENDPOINT;
     const lrs = { configured: Boolean(lrsEndpoint && lrsEndpoint.length > 0) };
-    return { vimeo, lti, lrs };
+    const urls = {
+      PUBLIC_BASE_URL: resolvePublicBaseUrlForStatus(getConfig, env),
+      BASE_URL: resolveBaseUrlForStatus(getConfig, env)
+    };
+    return { vimeo, lti, lrs, urls };
   });
 
   app.get("/env", async () => {

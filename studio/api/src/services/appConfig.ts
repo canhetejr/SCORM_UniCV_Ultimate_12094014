@@ -3,6 +3,7 @@ import type { PrismaClient } from "@prisma/client";
 
 export const EDITABLE_KEYS = [
   "BASE_URL",
+  "PUBLIC_BASE_URL",
   "VIMEO_CLIENT_ID",
   "VIMEO_CLIENT_SECRET",
   "VIMEO_REDIRECT_URI",
@@ -32,6 +33,7 @@ export type ConfigItem = {
 
 const KEY_LABELS: Record<string, string> = {
   BASE_URL: "URL base do serviço",
+  PUBLIC_BASE_URL: "URL pública do player/embed (SCORM, iframe; evita localhost em produção)",
   VIMEO_CLIENT_ID: "Vimeo Client ID",
   VIMEO_CLIENT_SECRET: "Vimeo Client Secret",
   VIMEO_REDIRECT_URI: "Vimeo Redirect URI (opcional)",

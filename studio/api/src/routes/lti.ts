@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
+import { getPublicPlayerBaseUrl } from "../lib/publicUrl.js";
 import {
   buildLtiAuthRedirect,
   createNonce,
@@ -16,8 +17,12 @@ const ltiRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts) =>
   });
 
   app.get("/config", async (req, reply) => {
-    const base = baseUrl();
-    if (!base) return reply.internalServerError("BASE_URL não configurado.");
+    let base: string;
+    try {
+      base = getPublicPlayerBaseUrl(req, deps.getConfig, deps.env);
+    } catch (e) {
+      return reply.internalServerError((e instanceof Error ? e.message : String(e)));
+    }
     return {
       tool: {
         initiate_login_url: `${base}/lti/login`,
@@ -39,7 +44,12 @@ const ltiRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts) =>
     const platform = getLtiPlatform();
     if (iss && iss !== platform.issuer) return reply.unauthorized("Issuer não reconhecido.");
     if (!loginHint) return reply.badRequest("login_hint obrigatório.");
-    if (!baseUrl()) return reply.internalServerError("BASE_URL não configurado.");
+    let base: string;
+    try {
+      base = getPublicPlayerBaseUrl(req, deps.getConfig, deps.env);
+    } catch (e) {
+      return reply.internalServerError((e instanceof Error ? e.message : String(e)));
+    }
 
     const state = createState();
     const nonce = createNonce();
@@ -61,7 +71,7 @@ const ltiRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts) =>
       maxAge: 10 * 60
     });
 
-    const redirectUri = new URL("/lti/launch", baseUrl()!).toString();
+    const redirectUri = new URL("/lti/launch", base).toString();
     const url = buildLtiAuthRedirect({
       platform,
       redirectUri,

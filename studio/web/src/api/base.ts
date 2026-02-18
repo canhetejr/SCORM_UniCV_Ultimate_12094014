@@ -66,7 +66,23 @@ function resolvePublicBaseUrlRaw(): string {
   if (vite && typeof vite === "string") return ensureHttpsWhenSecure(vite);
 
   const api = getResolvedApiBase();
-  return ensureHttpsWhenSecure(api);
+  const candidate = ensureHttpsWhenSecure(api);
+  if (typeof window !== "undefined") {
+    const isLocalhost = (url: string) => {
+      try {
+        const u = new URL(url);
+        return u.hostname === "localhost" || u.hostname === "127.0.0.1";
+      } catch {
+        return false;
+      }
+    };
+    const pageOrigin = window.location.origin;
+    const pageIsLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+    if (!pageIsLocalhost && isLocalhost(candidate)) {
+      return pageOrigin;
+    }
+  }
+  return candidate;
 }
 
 export function getResolvedApiBase(): string {
