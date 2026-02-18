@@ -5,13 +5,15 @@ export function Card({
   highlight,
   selected,
   plain,
-  className = ""
+  className = "",
+  style
 }: {
   children: React.ReactNode;
   highlight?: boolean;
   selected?: boolean;
   plain?: boolean;
   className?: string;
+  style?: React.CSSProperties;
 }) {
   const c = [
     "card",
@@ -22,5 +24,5 @@ export function Card({
   ]
     .filter(Boolean)
     .join(" ");
-  return <div className={c}>{children}</div>;
+  return <div className={c} style={style}>{children}</div>;
 }

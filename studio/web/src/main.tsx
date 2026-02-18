@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "./styles/themes.css";
 import "./styles/sidebar.css";
+import "./styles/responsive.css";
 import { App } from "./App";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

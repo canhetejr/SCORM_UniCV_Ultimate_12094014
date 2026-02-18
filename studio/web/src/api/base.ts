@@ -42,8 +42,11 @@ function resolveApiBaseRaw(): string {
     }
     if (host.replace(/^www\./, "").includes("web") || host.includes("sslip.io")) {
       const apiHost = host.replace(/^web\./, "api.").replace(/\.web\./, ".api.");
-      const apiPort = port === "443" || port === "" ? "" : port === "80" ? "3002" : port;
-      const base = apiHost !== host ? `${protocol}//${apiHost}${apiPort ? ":" + apiPort : ""}` : `${protocol}//${host}:3002`;
+      const isStandardPort = port === "80" || port === "443" || port === "";
+      const apiPortSuffix = apiHost !== host
+        ? (isStandardPort ? "" : `:${port}`)
+        : (port ? `:${port}` : "");
+      const base = `${protocol}//${apiHost !== host ? apiHost : host}${apiPortSuffix}`;
       return ensureHttpsWhenSecure(base);
     }
     if (host === "localhost" || host === "127.0.0.1") {

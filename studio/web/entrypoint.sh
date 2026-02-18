@@ -6,10 +6,16 @@ API="${SERVICE_URL_API:-${VITE_API_BASE_URL}}"
 PUB="${SERVICE_URL_WEB:-${VITE_PUBLIC_BASE_URL}}"
 [ -z "$API" ] && [ -n "$SERVICE_FQDN_API" ] && API="https://${SERVICE_FQDN_API}"
 [ -z "$PUB" ] && [ -n "$SERVICE_FQDN_WEB" ] && PUB="https://${SERVICE_FQDN_WEB}"
+
+# Escapa string para uso seguro em literais JavaScript: \ -> \\, " -> \"
+escape_js() {
+  printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+}
+
 : > "$CONFIG"
 printf '(function(){' >> "$CONFIG"
-[ -n "$API" ] && printf 'window.__UNICV_API_BASE="%s";' "$API" >> "$CONFIG"
-[ -n "$PUB" ] && printf 'window.__UNICV_PUBLIC_BASE_URL="%s";' "$PUB" >> "$CONFIG"
+[ -n "$API" ] && printf 'window.__UNICV_API_BASE="%s";' "$(escape_js "$API")" >> "$CONFIG"
+[ -n "$PUB" ] && printf 'window.__UNICV_PUBLIC_BASE_URL="%s";' "$(escape_js "$PUB")" >> "$CONFIG"
 cat >> "$CONFIG" << 'INNER'
 var host=window.location.hostname,proto=window.location.protocol,port=window.location.port;
 if(!window.__UNICV_API_BASE){

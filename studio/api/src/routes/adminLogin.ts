@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
-import { z } from "zod";
+import { z, type ZodIssue } from "zod";
 import { signAdminToken } from "../services/adminAuth.js";
 import type { ServerDeps } from "./deps.js";
 
@@ -25,7 +25,7 @@ const adminLoginRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, o
     if (!parsed.success) {
       return reply.status(400).send({
         error: "validation_error",
-        message: parsed.error.errors.map((e) => e.message).join("; ")
+        message: parsed.error.issues.map((issue: ZodIssue) => issue.message).join("; ")
       });
     }
 
