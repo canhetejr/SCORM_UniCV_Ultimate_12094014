@@ -12,6 +12,16 @@ interface VitrineCardProps {
 }
 
 export function VitrineCard({ vitrine, selected, onSelect, onDuplicate, duplicating }: VitrineCardProps) {
+  const statusLabel =
+    vitrine.status === "ACTIVE"
+      ? "Ativa"
+      : vitrine.status === "INACTIVE"
+        ? "Inativa"
+        : vitrine.status === "EDITING"
+          ? "Em edição"
+          : "Não definido";
+  const dateText = new Date(vitrine.createdAt).toLocaleDateString("pt-BR");
+
   return (
     <div className={`card vitrine-card card-padding ${selected ? "selected" : ""}`}>
       <div className="flex flex-between gap-md items-center">
@@ -28,10 +38,13 @@ export function VitrineCard({ vitrine, selected, onSelect, onDuplicate, duplicat
             )}
             {vitrine.account ? ` · ${vitrine.account.name}` : ""}
           </div>
+          <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
+            Status: {statusLabel} · Data: {dateText}
+          </div>
         </div>
         <div className="vitrine-card-actions">
           <Link to={`/vitrines/${vitrine.id}`} className="btn secondary" style={{ textDecoration: "none" }}>
-            Ver detalhes
+            Editar
           </Link>
           {onDuplicate && (
             <Button variant="secondary" onClick={onDuplicate} disabled={duplicating}>

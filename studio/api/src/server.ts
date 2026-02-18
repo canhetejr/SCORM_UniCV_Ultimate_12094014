@@ -135,6 +135,22 @@ export async function buildServer(): Promise<FastifyInstance> {
   await app.register(dashboardRoutes, { prefix: "/v1/dashboard", ...routeOpts });
   await app.register(publishedRoutes, { prefix: "/p", ...routeOpts });
 
+  // Alias administrativo sem paginação para listagem completa de vitrines.
+  app.get("/admin/vitrines", async () => {
+    const vitrines = await prisma.vitrine.findMany({
+      include: {
+        account: { select: { id: true, name: true } },
+        _count: { select: { videos: true } }
+      },
+      orderBy: { createdAt: "desc" }
+    });
+    const normalized = vitrines.map((v) => {
+      const { _count, ...rest } = v;
+      return { ...rest, videoCount: _count.videos };
+    });
+    return { vitrines: normalized };
+  });
+
   // Rotas públicas (sem token). Tudo o resto exige JWT admin (incluindo /v1/exports/*: status, download, POST export).
   function isPublicPath(path: string, method: string): boolean {
     if (path === "/health") return true;

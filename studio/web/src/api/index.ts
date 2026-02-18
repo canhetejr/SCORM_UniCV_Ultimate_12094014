@@ -28,6 +28,7 @@ export { loginAdmin } from "./auth";
 
 // Vitrines
 export {
+  fetchAllVitrines,
   getVitrineDetail,
   putVitrine,
   postVitrine,

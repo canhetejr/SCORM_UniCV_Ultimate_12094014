@@ -4,7 +4,9 @@ export type Vitrine = {
   description: string | null;
   vimeoShowcaseId: string | null;
   vimeoSource: "MANUAL" | "VIMEO_SHOWCASE";
+  status?: "ACTIVE" | "EDITING" | "INACTIVE";
   createdAt: string;
+  updatedAt?: string;
   account?: { id: string; name: string };
   videoCount?: number;
 };

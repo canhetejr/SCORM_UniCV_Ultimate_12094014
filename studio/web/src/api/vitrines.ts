@@ -1,4 +1,5 @@
 import { apiGet, apiPut, apiPost, apiDelete } from "./base";
+import type { Vitrine } from "../types/vitrine";
 
 export type VitrineDetail = {
   id: string;
@@ -20,6 +21,15 @@ export type VitrineDetail = {
     };
   }>;
 };
+
+export async function fetchAllVitrines(): Promise<Vitrine[]> {
+  try {
+    const data = await apiGet<{ vitrines: Vitrine[] }>("/admin/vitrines");
+    return data.vitrines ?? [];
+  } catch (error) {
+    throw error;
+  }
+}
 
 export async function getVitrineDetail(id: string): Promise<VitrineDetail> {
   return apiGet<VitrineDetail>(`/v1/vitrines/${encodeURIComponent(id)}`);
