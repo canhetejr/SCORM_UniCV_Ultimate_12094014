@@ -1,3 +1,5 @@
+# Build do web em monorepo. Requer contexto na raiz do repo.
+# Use: docker build -f studio/web/Dockerfile .  (contexto = raiz)
 FROM node:20-alpine AS build
 
 ARG VITE_API_BASE_URL=
@@ -6,16 +8,10 @@ ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 ENV VITE_PUBLIC_BASE_URL=$VITE_PUBLIC_BASE_URL
 
 WORKDIR /app
-COPY studio/web/package.json studio/web/package.json
-COPY studio/web/tsconfig.json studio/web/tsconfig.json
-COPY studio/web/vite.config.ts studio/web/vite.config.ts
-COPY studio/web/index.html studio/web/index.html
-COPY studio/web/public studio/web/public
-COPY studio/web/src studio/web/src
-
-WORKDIR /app/studio/web
-RUN npm install
-RUN npm run build
+COPY package.json package-lock.json ./
+COPY studio/ studio/
+RUN npm ci --include=dev
+RUN npm --workspace studio/web run build
 
 
 FROM nginx:alpine AS runtime
