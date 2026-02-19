@@ -79,7 +79,7 @@ export async function syncProfileFull(
       const chunk = albums.slice(i, i + CONCURRENCY);
       await Promise.all(
         chunk.map((album) => {
-          const albumId = extractAlbumIdFromUri(album.uri) ?? album.uri.replace(/\D/g, "") || "0";
+          const albumId = (extractAlbumIdFromUri(album.uri) ?? album.uri.replace(/\D/g, "")) || "0";
           return processShowcase(profileId, accessToken, album, albumId, add);
         })
       );
@@ -160,7 +160,7 @@ async function processShowcase(
     let position = 0;
     let linksUpsertedInShowcase = 0;
     for (const v of videos) {
-      const videoId = extractVideoIdFromUri(v.uri) ?? v.uri.replace(/\D/g, "") || "";
+      const videoId = (extractVideoIdFromUri(v.uri) ?? v.uri.replace(/\D/g, "")) || "";
       if (!videoId) continue;
       seenVideoIds.add(videoId);
       const link = v.link ?? (videoId ? `https://vimeo.com/${videoId}` : null);
