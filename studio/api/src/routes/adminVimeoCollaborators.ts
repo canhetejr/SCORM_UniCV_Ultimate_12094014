@@ -73,8 +73,8 @@ async function syncStudioVitrinePlaylistFromCache(
       },
       update: {
         title,
-        thumbnailUrl: thumb,
-        durationSec
+        thumbnailUrl: thumb ?? undefined,
+        durationSec: durationSec ?? undefined
       },
       create: {
         accountId,
@@ -505,11 +505,12 @@ const adminVimeoCollaboratorsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = 
       return reply.status(400).send(err("invalid_input", "id é obrigatório."));
     }
     const body = (req.body || {}) as { showcaseIds?: string[] };
-    const showcaseIds = Array.isArray(body.showcaseIds) ? body.showcaseIds.map((s) => String(s).trim()).filter(Boolean) : [];
+    const rawIds = Array.isArray(body.showcaseIds) ? body.showcaseIds.map((s) => String(s).trim()).filter(Boolean) : [];
+    const showcaseIds = rawIds.slice(0, 200);
     if (!showcaseIds.length) {
       return reply
         .status(400)
-        .send({ ok: false, error: { code: "invalid_request", message: "showcaseIds é obrigatório." } });
+        .send(err("invalid_input", "showcaseIds é obrigatório (array, máx. 200)."));
     }
 
     const collaborator = await prisma.vimeoCollaborator.findUnique({ where: { id: collabId } });
@@ -565,30 +566,36 @@ const adminVimeoCollaboratorsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = 
 
     const items = showcases.map((s) => {
       const showcaseVideos = byShowcase.get(s.id) ?? [];
+      const showcaseData = {
+        id: s.id,
+        collaboratorId: s.collaboratorId,
+        vimeoShowcaseId: s.vimeoShowcaseId,
+        name: s.name,
+        description: s.description,
+        totalVideos: s.totalVideos,
+        modifiedTime: s.modifiedTime,
+        pictures: s.pictures
+      };
+      const videosData = showcaseVideos.map((sv) => ({
+        id: sv.video.id,
+        vimeoVideoId: sv.video.vimeoVideoId,
+        name: sv.video.name,
+        description: sv.video.description,
+        duration: sv.video.duration,
+        link: sv.video.link,
+        pictures: sv.video.pictures,
+        position: sv.position,
+        addedTime: sv.addedTime,
+        removedAt: sv.removedAt
+      }));
+      const json = { showcase: showcaseData, videos: videosData };
       return {
         showcaseId: s.id,
-        showcase: {
-          id: s.id,
-          collaboratorId: s.collaboratorId,
-          vimeoShowcaseId: s.vimeoShowcaseId,
-          name: s.name,
-          description: s.description,
-          totalVideos: s.totalVideos,
-          modifiedTime: s.modifiedTime,
-          pictures: s.pictures
-        },
-        videos: showcaseVideos.map((sv) => ({
-          id: sv.video.id,
-          vimeoVideoId: sv.video.vimeoVideoId,
-          name: sv.video.name,
-          description: sv.video.description,
-          duration: sv.video.duration,
-          link: sv.video.link,
-          pictures: sv.video.pictures,
-          position: sv.position,
-          addedTime: sv.addedTime,
-          removedAt: sv.removedAt
-        }))
+        vimeoShowcaseId: s.vimeoShowcaseId,
+        name: s.name ?? null,
+        showcase: showcaseData,
+        videos: videosData,
+        json
       };
     });
 

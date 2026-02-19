@@ -13,7 +13,7 @@ import {
   getVitrineDetail,
   putVitrine,
   getExportsList,
-  syncVitrineFromVimeo,
+  applyVitrineVimeoCache,
   getVimeoStatus,
   getVimeoOAuthStartUrl,
   postPlaylistVideo,
@@ -130,16 +130,14 @@ export function VitrineDetalhePage() {
   };
 
   const handleSyncVimeo = async () => {
-    if (!vitrine?.vimeoShowcaseId) {
-      alert("Esta vitrine não foi importada do Vimeo. Sincronização indisponível.");
-      return;
-    }
+    if (!id || !vitrine?.vimeoShowcaseId) return;
     setSyncing(true);
     try {
-      await syncVitrineFromVimeo(vitrine.vimeoShowcaseId);
+      const { applied } = await applyVitrineVimeoCache(id);
+      toast.success(applied > 0 ? `${applied} vídeo(s) aplicados à playlist.` : "Nenhum vídeo no cache. Execute o sync do colaborador em Configurações.");
       await loadVitrine();
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Erro ao sincronizar.");
+      toast.error(e instanceof Error ? e.message : "Erro ao atualizar do cache.");
     } finally {
       setSyncing(false);
     }

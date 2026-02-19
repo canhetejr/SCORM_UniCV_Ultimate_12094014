@@ -51,12 +51,12 @@ export async function exportScorm12Zip(input: ScormExportInput): Promise<{ zipPa
   await fsp.mkdir(input.outputDir, { recursive: true });
   const templates = await loadRepoTemplates();
 
-  const apiBase = input.apiBase.replace(/\/+$/, "");
+  let apiBase = input.apiBase.replace(/\/+$/, "");
+  if (/^http:\/\//i.test(apiBase)) apiBase = apiBase.replace(/^http:\/\//i, "https://");
   const config = {
-    // Para compatibilidade: ainda existe SHOWCASE_ID, mas usamos VITRINE_ID no modo VPS
     SHOWCASE_ID: "",
     VITRINE_ID: input.vitrineId,
-    N8N_BASE: `${apiBase}/v1/playlist`,
+    N8N_BASE: `${apiBase}/n8n/webhook/scorm`,
     N8N_API_TOKEN: "",
     XAPI_URL: `${apiBase}/v1/xapi/statements`
   };
@@ -108,11 +108,12 @@ export async function exportHtmlZip(input: ScormExportInput): Promise<{ zipPath:
   await fsp.mkdir(input.outputDir, { recursive: true });
   const templates = await loadRepoTemplates();
 
-  const apiBase = input.apiBase.replace(/\/+$/, "");
+  let apiBase = input.apiBase.replace(/\/+$/, "");
+  if (/^http:\/\//i.test(apiBase)) apiBase = apiBase.replace(/^http:\/\//i, "https://");
   const config = {
     SHOWCASE_ID: "",
     VITRINE_ID: input.vitrineId,
-    N8N_BASE: `${apiBase}/v1/playlist`,
+    N8N_BASE: `${apiBase}/n8n/webhook/scorm`,
     N8N_API_TOKEN: "",
     XAPI_URL: `${apiBase}/v1/xapi/statements`
   };

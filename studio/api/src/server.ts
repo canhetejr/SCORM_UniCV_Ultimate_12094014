@@ -26,6 +26,8 @@ import exportsRoutes from "./routes/exports.js";
 import xapiRoutes from "./routes/xapi.js";
 import dashboardRoutes from "./routes/dashboard.js";
 import publishedRoutes from "./routes/published.js";
+import n8nWebhookRoutes from "./routes/n8nWebhook.js";
+import adminVitrinesVimeoCacheRoutes from "./routes/adminVitrinesVimeoCache.js";
 
 export async function buildServer(): Promise<FastifyInstance> {
   const env = loadEnv();
@@ -140,6 +142,8 @@ export async function buildServer(): Promise<FastifyInstance> {
   await app.register(xapiRoutes, { prefix: "/v1/xapi", ...routeOpts });
   await app.register(dashboardRoutes, { prefix: "/v1/dashboard", ...routeOpts });
   await app.register(publishedRoutes, { prefix: "/p", ...routeOpts });
+  await app.register(n8nWebhookRoutes, { prefix: "/n8n/webhook" });
+  await app.register(adminVitrinesVimeoCacheRoutes, { prefix: "/admin/vitrines", ...routeOpts });
 
   // Alias administrativo sem paginação para listagem completa de vitrines.
   app.get("/admin/vitrines", async () => {
@@ -162,6 +166,7 @@ export async function buildServer(): Promise<FastifyInstance> {
     if (path === "/health") return true;
     if (path.startsWith("/lti")) return true;
     if (path.startsWith("/player")) return true;
+    if (path.startsWith("/n8n/webhook")) return true;
     if (path === "/v1/playlist") return true;
     if (path === "/v1/config/status") return true;
     if (path.startsWith("/v1/xapi")) return true;

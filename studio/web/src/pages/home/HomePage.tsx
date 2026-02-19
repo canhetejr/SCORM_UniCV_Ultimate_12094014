@@ -83,12 +83,14 @@ function getBestThumb(pictures: VimeoCollaboratorShowcaseItem["pictures"]): stri
   return sorted[0]?.link ?? null;
 }
 
+/** Melhor thumb: maior size com width <= 300px, senão o maior disponível. */
 function getVideoThumb(pictures: VimeoCollaboratorVideoItem["pictures"]): string | null {
   if (!pictures?.sizes?.length) return null;
   const withLink = pictures.sizes.filter((s) => s?.link);
   if (!withLink.length) return null;
-  const sorted = [...withLink].sort((a, b) => (b.width ?? 0) - (a.width ?? 0));
-  return sorted[0]?.link ?? null;
+  const under300 = withLink.filter((s) => (s.width ?? 0) <= 300).sort((a, b) => (b.width ?? 0) - (a.width ?? 0));
+  const best = under300[0] ?? withLink.sort((a, b) => (b.width ?? 0) - (a.width ?? 0))[0];
+  return best?.link ?? null;
 }
 
 function formatDuration(sec: number | null | undefined): string {
@@ -427,7 +429,7 @@ export function HomePage() {
                 }
                 style={{ fontSize: 12 }}
               >
-                Vimeo: {vimeoPing?.ok ? "Conectado" : "Desconectado"}
+                {vimeoPing?.ok ? "Conectado" : "Desconectado"}
               </span>
             </div>
             <div className="flex gap-md items-center flex-wrap">

@@ -38,6 +38,8 @@ export {
   deletePlaylistVideo,
   movePlaylistVideo,
   syncVitrineFromVimeo,
+  getVitrineVimeoCacheVideos,
+  applyVitrineVimeoCache,
   type VitrineDetail
 } from "./vitrines";
 

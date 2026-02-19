@@ -176,8 +176,7 @@ export function ConfigVimeo() {
           Colaboradores Vimeo
         </div>
         <p className="muted" style={{ marginBottom: 12 }}>
-          Gerencie os colaboradores e o cache permanente de vitrines. A sincronização chama o Vimeo
-          apenas no endpoint de sync; as listagens usam somente o banco.
+          Gerencie os colaboradores e a sincronização de vitrines. O sync chama o Vimeo apenas aqui; as listagens usam o banco.
         </p>
         <div className="flex gap-md items-center flex-wrap" style={{ marginBottom: 12 }}>
           <label className="flex items-center gap-sm">

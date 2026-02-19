@@ -28,12 +28,12 @@ export function VitrinePlaylistSection({
     <Card plain className="card-padding">
       <div className="playlist-header">
         <span className="muted">
-          {isReadOnly ? "Vídeos na playlist (somente leitura)" : "Vídeos na playlist"}
+          {isReadOnly ? "Playlist (Vimeo)" : "Vídeos na playlist"}
         </span>
         {isReadOnly ? (
           onSync && (
             <Button variant="secondary" size="sm" onClick={onSync} disabled={syncing}>
-              {syncing ? "A atualizar…" : "Atualizar do Vimeo"}
+              {syncing ? "A atualizar…" : "Atualizar do cache"}
             </Button>
           )
         ) : (
