@@ -1,4 +1,7 @@
 export { VitrineCard } from "./VitrineCard";
+export { VitrinesAdvancedSearch } from "./VitrinesAdvancedSearch";
+export { defaultFilters, parseFiltersFromSearchParams, filtersToSearchParams } from "./VitrinesAdvancedSearch";
+export type { VitrinesFilters } from "./VitrinesAdvancedSearch";
 export { NewVitrineModal } from "./NewVitrineModal";
 export { VitrineHeader } from "./VitrineHeader";
 export { VitrinePlaylistSection } from "./VitrinePlaylistSection";

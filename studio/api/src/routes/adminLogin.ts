@@ -37,6 +37,10 @@ const adminLoginRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, o
     const token = await signAdminToken(env);
     return reply.send({ token });
   });
+
+  app.get("/me", async () => {
+    return { id: "admin", role: "admin" };
+  });
 };
 
 export default adminLoginRoutes;

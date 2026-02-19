@@ -112,30 +112,51 @@ function authHeaders(): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-export type ApiError = { message: string; code?: string; details?: string };
+export type ApiError = { message: string; code?: string; details?: string; status?: number };
 
 function isVimeoErrorCode(c?: string): boolean {
-  return c === "vimeo_disconnected" || c === "vimeo_rate_limit" || c === "vimeo_unavailable" || c === "vimeo_error";
+  return (
+    c === "vimeo_disconnected" ||
+    c === "vimeo_rate_limit" ||
+    c === "vimeo_unavailable" ||
+    c === "vimeo_error" ||
+    c === "vimeo_auth_failed" ||
+    c === "vimeo_not_found" ||
+    c === "vimeo_rate_limited" ||
+    c === "vimeo_invalid_input" ||
+    c === "vimeo_unknown"
+  );
 }
 
 async function handleResponse<T>(res: Response): Promise<T> {
   const text = await res.text();
   if (!res.ok) {
     try {
-      const j = JSON.parse(text) as { message?: string; code?: string; details?: string };
-      if (res.status === 401 && !isVimeoErrorCode(j?.code)) clearAuthToken();
-      if (j && typeof j.message === "string") {
-        const err = new Error(j.message) as Error & ApiError;
-        err.code = j.code;
-        err.details = j.details;
+      const j = JSON.parse(text) as { message?: string; code?: string; details?: string; ok?: boolean; error?: { code?: string; message?: string } };
+      if (res.status === 401 && !isVimeoErrorCode(j?.code ?? j?.error?.code)) clearAuthToken();
+      const errBody = j?.ok === false && j?.error ? j.error : j;
+      const message = typeof errBody?.message === "string" ? errBody.message : (typeof j?.message === "string" ? j.message : undefined);
+      const code = errBody?.code ?? j?.code;
+      if (message != null) {
+        const err = new Error(message) as Error & ApiError;
+        err.code = code;
+        err.details = j?.details;
+        err.status = res.status;
         throw err;
       }
     } catch (e: unknown) {
-      if (e instanceof Error && "code" in e) throw e;
+      if (e instanceof Error && "code" in e) {
+        (e as Error & ApiError).status = res.status;
+        throw e;
+      }
       if (res.status === 401) clearAuthToken();
-      throw new Error(text || res.statusText);
+      const fallback = new Error(text || res.statusText) as Error & ApiError;
+      fallback.status = res.status;
+      throw fallback;
     }
-    throw new Error(text || res.statusText);
+    const fallback2 = new Error(text || res.statusText) as Error & ApiError;
+    fallback2.status = res.status;
+    throw fallback2;
   }
   return JSON.parse(text || "null") as T;
 }

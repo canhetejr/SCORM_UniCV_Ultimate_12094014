@@ -15,6 +15,8 @@ import ltiRoutes from "./routes/lti.js";
 import authVimeoRoutes from "./routes/auth-vimeo.js";
 import playerRoutes from "./routes/player.js";
 import adminLoginRoutes from "./routes/adminLogin.js";
+import collabRoutes from "./routes/collab.js";
+import adminVimeoRoutes from "./routes/adminVimeo.js";
 import vimeoRoutes from "./routes/vimeo.js";
 import configRoutes from "./routes/config.js";
 import playlistRoutes from "./routes/playlist.js";
@@ -126,6 +128,8 @@ export async function buildServer(): Promise<FastifyInstance> {
   await app.register(authVimeoRoutes, { prefix: "/auth", ...routeOpts });
   await app.register(playerRoutes, { prefix: "/player", ...routeOpts });
   await app.register(adminLoginRoutes, { prefix: "/v1/admin", ...routeOpts });
+  await app.register(collabRoutes, { prefix: "/collab", ...routeOpts });
+  await app.register(adminVimeoRoutes, { prefix: "/admin/vimeo", ...routeOpts });
   await app.register(vimeoRoutes, { prefix: "/v1/vimeo", ...routeOpts });
   await app.register(configRoutes, { prefix: "/v1/config", ...routeOpts });
   await app.register(playlistRoutes, { prefix: "/v1", ...routeOpts });

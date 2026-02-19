@@ -24,11 +24,12 @@ export {
 } from "./base";
 
 // Auth
-export { loginAdmin } from "./auth";
+export { getMe, loginAdmin, type MeResponse } from "./auth";
 
 // Vitrines
 export {
   fetchAllVitrines,
+  fetchCollabVitrines,
   getVitrineDetail,
   putVitrine,
   postVitrine,

@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 
 const VIMEO_ACCEPT = "application/vnd.vimeo.*+json;version=3.4";
+const VIMEO_REQUEST_TIMEOUT_MS = 12000;
 
 export type VimeoApiError = {
   status: number;
@@ -11,15 +12,31 @@ export type VimeoApiError = {
 
 function mapVimeoStatus(status: number): { code: string; message: string } {
   if (status === 401 || status === 403) {
-    return { code: "vimeo_disconnected", message: "Vimeo desconectado. Refazer conexão." };
+    return { code: "vimeo_auth_failed", message: "Vimeo desconectado. Refazer conexão." };
+  }
+  if (status === 404) {
+    return { code: "vimeo_not_found", message: "Recurso não encontrado no Vimeo." };
   }
   if (status === 429) {
-    return { code: "vimeo_rate_limit", message: "Limite do Vimeo atingido. Tente novamente em alguns minutos." };
+    return { code: "vimeo_rate_limited", message: "Limite do Vimeo atingido. Tente novamente em alguns minutos." };
+  }
+  if (status >= 400 && status < 500) {
+    return { code: "vimeo_invalid_input", message: "Pedido inválido para o Vimeo." };
   }
   if (status >= 500) {
-    return { code: "vimeo_unavailable", message: "Vimeo instável no momento. Tente novamente." };
+    return { code: "vimeo_unknown", message: "Vimeo instável no momento. Tente novamente." };
   }
-  return { code: "vimeo_error", message: `Erro Vimeo (HTTP ${status}).` };
+  return { code: "vimeo_unknown", message: `Erro Vimeo (HTTP ${status}).` };
+}
+
+function fetchWithTimeout(url: URL, init: RequestInit & { timeoutMs?: number }): Promise<Response> {
+  const timeoutMs = init.timeoutMs ?? VIMEO_REQUEST_TIMEOUT_MS;
+  const controller = new AbortController();
+  const to = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, {
+    ...init,
+    signal: controller.signal
+  }).finally(() => clearTimeout(to));
 }
 
 export function isVimeoApiError(e: unknown): e is VimeoApiError {
@@ -119,7 +136,7 @@ export async function vimeoGet<T>(input: { accessToken: string; path: string; qu
     for (const [k, v] of Object.entries(input.query)) url.searchParams.set(k, v);
   }
 
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: "GET",
     headers: {
       Accept: VIMEO_ACCEPT,
@@ -134,6 +151,44 @@ export async function vimeoGet<T>(input: { accessToken: string; path: string; qu
     throw err;
   }
   return (await res.json()) as T;
+}
+
+export async function vimeoPut<T>(input: { accessToken: string; path: string; body?: unknown }): Promise<T> {
+  const url = new URL(input.path.startsWith("http") ? input.path : `https://api.vimeo.com${input.path}`);
+  const res = await fetchWithTimeout(url, {
+    method: "PUT",
+    headers: {
+      Accept: VIMEO_ACCEPT,
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${input.accessToken}`
+    },
+    body: input.body != null ? JSON.stringify(input.body) : undefined
+  });
+  if (!res.ok) {
+    const details = await res.text().catch(() => "");
+    const { code, message } = mapVimeoStatus(res.status);
+    const err: VimeoApiError = { status: res.status, code, message, details: details || undefined };
+    throw err;
+  }
+  if (res.status === 204 || res.headers.get("content-length") === "0") return undefined as T;
+  return (await res.json()) as T;
+}
+
+export async function vimeoDelete(input: { accessToken: string; path: string }): Promise<void> {
+  const url = new URL(input.path.startsWith("http") ? input.path : `https://api.vimeo.com${input.path}`);
+  const res = await fetchWithTimeout(url, {
+    method: "DELETE",
+    headers: {
+      Accept: VIMEO_ACCEPT,
+      Authorization: `Bearer ${input.accessToken}`
+    }
+  });
+  if (!res.ok && res.status !== 204) {
+    const details = await res.text().catch(() => "");
+    const { code, message } = mapVimeoStatus(res.status);
+    const err: VimeoApiError = { status: res.status, code, message, details: details || undefined };
+    throw err;
+  }
 }
 
 export function parseVimeoUserIdFromUri(uri?: string | null): string | null {

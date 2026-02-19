@@ -31,6 +31,11 @@ export async function fetchAllVitrines(): Promise<Vitrine[]> {
   }
 }
 
+export async function fetchCollabVitrines(): Promise<Vitrine[]> {
+  const data = await apiGet<{ vitrines: Vitrine[] }>("/collab/vitrines");
+  return data.vitrines ?? [];
+}
+
 export async function getVitrineDetail(id: string): Promise<VitrineDetail> {
   return apiGet<VitrineDetail>(`/v1/vitrines/${encodeURIComponent(id)}`);
 }
