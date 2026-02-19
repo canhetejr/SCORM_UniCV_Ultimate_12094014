@@ -23,7 +23,7 @@ export function VitrinePlaylistSection({
   playlistBusy
 }: VitrinePlaylistSectionProps) {
   const isReadOnly = !!vitrine.vimeoShowcaseId;
-  const canReorder = Boolean(onMoveVideo);
+  const canReorder = !isReadOnly && Boolean(onMoveVideo);
 
   return (
     <Card plain className="card-padding">

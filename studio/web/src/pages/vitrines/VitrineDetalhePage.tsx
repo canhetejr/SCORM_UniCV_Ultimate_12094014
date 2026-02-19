@@ -382,7 +382,7 @@ export function VitrineDetalhePage() {
           onSync={vitrine.vimeoShowcaseId ? handleSyncVimeo : undefined}
           syncing={syncing}
           onAddVideo={vitrine.vimeoShowcaseId ? undefined : () => setShowAddVideo(true)}
-          onMoveVideo={handleMoveVideo}
+          onMoveVideo={vitrine.vimeoShowcaseId ? undefined : handleMoveVideo}
           onRemoveVideo={vitrine.vimeoShowcaseId ? undefined : handleRemoveVideo}
           playlistBusy={playlistBusy}
         />
