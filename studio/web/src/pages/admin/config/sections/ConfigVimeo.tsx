@@ -34,13 +34,13 @@ export function ConfigVimeo() {
     listCollaborators()
       .then((res) => {
         setCollaborators(res.collaborators ?? []);
-        if (res.collaborators?.length && !selectedCollabId) {
-          setSelectedCollabId(res.collaborators[0].id);
-        }
+        setSelectedCollabId((prev) =>
+          res.collaborators?.length && !prev ? res.collaborators[0].id : prev
+        );
       })
       .catch((e) => toast.error(e?.message ?? "Erro ao carregar colaboradores."))
       .finally(() => setLoadingCollaborators(false));
-  }, [toast, selectedCollabId]);
+  }, [toast]);
 
   const handleAddCollaborator = React.useCallback(async () => {
     const uid = vimeoUserIdInput.trim();
