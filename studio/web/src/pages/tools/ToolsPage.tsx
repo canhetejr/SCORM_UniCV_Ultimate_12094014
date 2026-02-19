@@ -1,4 +1,5 @@
 import React, { useCallback, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   getVimeoPing,
   getVimeoShowcases,
@@ -42,7 +43,19 @@ export function ToolsPage() {
         </p>
 
         <section style={{ marginBottom: 20 }}>
-          <h3 style={{ marginTop: 0, marginBottom: 12 }}>Vimeo</h3>
+          <h3 style={{ marginTop: 0, marginBottom: 12 }}>Vimeo Clone</h3>
+          <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+            <Link to="/ferramentas/vimeo-clone" style={{ textDecoration: "none" }}>
+              <ToolCard
+                title="Vimeo Clone (multi-perfil)"
+                description="Clone de vitrines e vídeos por perfil Vimeo. Adicione perfis, colete dados e importe para o Studio."
+              />
+            </Link>
+          </div>
+        </section>
+
+        <section style={{ marginBottom: 20 }}>
+          <h3 style={{ marginTop: 0, marginBottom: 12 }}>Vimeo (conta única)</h3>
           <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
             <ToolCard title="Testar conexão Vimeo" description="Verifica se a conta Vimeo está conectada." onClick={open("ping")} />
             <ToolCard title="Listar vitrines (Showcases)" description="Lista showcases do Vimeo." onClick={open("showcases")} />

@@ -209,3 +209,88 @@ model DashboardEvent {
   @@index([createdAt])
 }
 
+// ——— Vimeo Clone (multi-perfil, clone local de showcases/vídeos) ———
+model VimeoProfile {
+  id               String    @id @default(cuid())
+  label            String?
+  vimeoUserId      String    @unique
+  vimeoUri         String?
+  name             String?
+  accessTokenEnc   String    // token criptografado (AES-256-GCM)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  lastSyncAt       DateTime?
+  lastSyncStatus   String?   // "ok" | "error"
+  lastSyncMessage  String?
+  showcases        VimeoShowcase[]
+  videos           VimeoVideo[]
+
+  @@index([vimeoUserId])
+}
+
+model VimeoShowcase {
+  id           String   @id @default(cuid())
+  profileId    String
+  profile      VimeoProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  vimeoId      String   // album/showcase id (extraído de uri)
+  uri          String?
+  name         String?
+  description  String?
+  privacy      String?
+  createdTime  DateTime?
+  modifiedTime DateTime?
+  totalVideos  Int?
+  pictures     Json?    // pictures.sizes etc
+  raw          Json?    // opcional: payload bruto (cuidado com tamanho)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  videos       VimeoShowcaseVideo[]
+
+  @@unique([profileId, vimeoId])
+  @@index([profileId])
+}
+
+model VimeoVideo {
+  id           String   @id @default(cuid())
+  profileId    String
+  profile      VimeoProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  vimeoId      String   // video id extraído da uri
+  uri          String?
+  name         String?
+  description  String?
+  duration     Int?
+  link         String?
+  embedHtml    String?
+  privacy      String?
+  createdTime  DateTime?
+  modifiedTime DateTime?
+  pictures     Json?
+  raw          Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  showcases    VimeoShowcaseVideo[]
+
+  @@unique([profileId, vimeoId])
+  @@index([profileId])
+}
+
+model VimeoShowcaseVideo {
+  showcaseId  String
+  showcase    VimeoShowcase @relation(fields: [showcaseId], references: [id], onDelete: Cascade)
+
+  videoId     String
+  video       VimeoVideo @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  position    Int?
+  addedTime   DateTime?
+  removedAt   DateTime?  // marcar remoção sem perder histórico
+
+  @@id([showcaseId, videoId])
+  @@index([showcaseId])
+  @@index([videoId])
+}
+
