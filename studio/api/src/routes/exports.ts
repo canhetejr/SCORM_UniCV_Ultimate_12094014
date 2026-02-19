@@ -1,11 +1,25 @@
 import path from "node:path";
 import fs from "node:fs";
+import crypto from "node:crypto";
 import type { FastifyPluginAsync, FastifyRequest } from "fastify";
 import { Prisma, ExportStatus } from "@prisma/client";
 import { buildIframeSnippet, exportHtmlZip, exportScorm12Zip } from "../services/exporter.js";
 import { getPublicPlayerBaseUrl } from "../lib/publicUrl.js";
 import { prisma } from "../db.js";
 import type { ServerDeps } from "./deps.js";
+
+function buildPlaylistUrl(
+  publicBase: string,
+  vitrineId: string,
+  hmacSecret: string | undefined
+): string {
+  const base = publicBase.replace(/\/+$/, "");
+  const url = `${base}/public/vitrines/${encodeURIComponent(vitrineId)}/playlist`;
+  if (!hmacSecret) return url;
+  const ts = String(Date.now());
+  const sig = crypto.createHmac("sha256", hmacSecret).update(`${vitrineId}:${ts}`).digest("hex");
+  return `${url}?ts=${ts}&sig=${sig}`;
+}
 
 interface ExportsQuery {
   status?: string;
@@ -103,13 +117,17 @@ const exportsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts
       }
     });
 
+    const hmacSecret = deps.env.PLAYLIST_HMAC_SECRET ?? deps.getConfig("PLAYLIST_HMAC_SECRET");
+    const playlistUrl = buildPlaylistUrl(publicBase, vitrineId, hmacSecret);
+
     try {
       const { zipPath } = await exportScorm12Zip({
         title,
         apiBase: publicBase,
         vitrineId,
         outputDir: envNow.EXPORTS_DIR,
-        selfContained
+        selfContained,
+        playlistUrl
       });
       await prisma.exportJob.update({
         where: { id: job.id },
@@ -158,13 +176,17 @@ const exportsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts
       }
     });
 
+    const hmacSecretHtml = deps.env.PLAYLIST_HMAC_SECRET ?? deps.getConfig("PLAYLIST_HMAC_SECRET");
+    const playlistUrlHtml = buildPlaylistUrl(publicBase, vitrineId, hmacSecretHtml);
+
     try {
       const { zipPath } = await exportHtmlZip({
         title,
         apiBase: publicBase,
         vitrineId,
         outputDir: envNow.EXPORTS_DIR,
-        selfContained
+        selfContained,
+        playlistUrl: playlistUrlHtml
       });
       await prisma.exportJob.update({
         where: { id: job.id },

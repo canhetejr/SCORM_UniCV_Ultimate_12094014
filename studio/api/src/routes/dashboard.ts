@@ -99,22 +99,28 @@ const dashboardRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, op
     const bySourceMap = bySource.map((r) => ({ source: r.source!, count: r._count.id }));
     const byDayMap = byDay.map((r) => ({ date: r.date, count: Number(r.count) }));
 
+    const totals = { total, exports: byTypeMap.find((x) => x.type === "export" || x.type === "export_scorm")?.count ?? 0, syncs: byTypeMap.find((x) => x.type === "vimeo_sync" || x.type === "sync")?.count ?? 0, imports: byTypeMap.find((x) => x.type === "import" || x.type === "import_json")?.count ?? 0 };
+
     return {
-      since: since.toISOString(),
-      days,
-      total,
-      byType: byTypeMap,
-      bySource: bySourceMap,
-      byDay: byDayMap,
-      filterTypes,
-      filterSources,
-      recent: recent.map((e) => ({
-        id: e.id,
-        type: e.type,
-        source: e.source,
-        payload: e.payload,
-        createdAt: e.createdAt.toISOString()
-      }))
+      ok: true as const,
+      data: {
+        since: since.toISOString(),
+        days,
+        total,
+        totals,
+        byType: byTypeMap,
+        bySource: bySourceMap,
+        byDay: byDayMap,
+        filterTypes,
+        filterSources,
+        recent: recent.map((e) => ({
+          id: e.id,
+          type: e.type,
+          source: e.source,
+          payload: e.payload,
+          createdAt: e.createdAt.toISOString()
+        }))
+      }
     };
   });
 };

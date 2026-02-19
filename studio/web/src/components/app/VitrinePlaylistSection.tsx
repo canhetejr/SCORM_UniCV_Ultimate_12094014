@@ -23,6 +23,7 @@ export function VitrinePlaylistSection({
   playlistBusy
 }: VitrinePlaylistSectionProps) {
   const isReadOnly = !!vitrine.vimeoShowcaseId;
+  const canReorder = Boolean(onMoveVideo);
 
   return (
     <Card plain className="card-padding">
@@ -61,7 +62,7 @@ export function VitrinePlaylistSection({
                 <div className="playlist-item-title">{vv.video.title}</div>
                 <div className="playlist-item-meta">{formatDuration(vv.video.durationSec)}</div>
               </div>
-              {!isReadOnly && onMoveVideo && onRemoveVideo && (
+              {canReorder && onMoveVideo && (
                 <div className="playlist-item-actions">
                   <Button
                     variant="secondary"
@@ -81,15 +82,17 @@ export function VitrinePlaylistSection({
                   >
                     ↓
                   </Button>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => onRemoveVideo(vv.video.id)}
-                    disabled={playlistBusy}
-                    title="Remover"
-                  >
-                    Remover
-                  </Button>
+                  {onRemoveVideo && (
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => onRemoveVideo(vv.video.id)}
+                      disabled={playlistBusy}
+                      title="Remover"
+                    >
+                      Remover
+                    </Button>
+                  )}
                 </div>
               )}
             </div>

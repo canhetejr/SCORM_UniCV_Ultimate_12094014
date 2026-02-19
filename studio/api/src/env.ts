@@ -45,7 +45,10 @@ const EnvSchema = z.object({
   // Admin (proteção das rotas de gestão)
   ADMIN_USER: z.string().optional(),
   ADMIN_PASSWORD: z.string().optional(),
-  ADMIN_JWT_SECRET: z.string().min(16).optional() // se vazio, usa COOKIE_SECRET
+  ADMIN_JWT_SECRET: z.string().min(16).optional(), // se vazio, usa COOKIE_SECRET
+
+  // Assinatura HMAC opcional para GET /public/vitrines/:id/playlist (SCORM offline)
+  PLAYLIST_HMAC_SECRET: z.string().optional()
 });
 
 export type Env = z.infer<typeof EnvSchema>;

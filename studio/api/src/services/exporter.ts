@@ -11,6 +11,8 @@ export type ScormExportInput = {
   vitrineId: string;
   outputDir: string;
   selfContained: boolean;
+  /** URL direta da playlist (evita N8N/CORS no Moodle). Preferir sobre N8N_BASE. */
+  playlistUrl?: string;
 };
 
 type Templates = {
@@ -53,13 +55,14 @@ export async function exportScorm12Zip(input: ScormExportInput): Promise<{ zipPa
 
   let apiBase = input.apiBase.replace(/\/+$/, "");
   if (/^http:\/\//i.test(apiBase)) apiBase = apiBase.replace(/^http:\/\//i, "https://");
-  const config = {
+  const config: Record<string, unknown> = {
     SHOWCASE_ID: "",
     VITRINE_ID: input.vitrineId,
     N8N_BASE: `${apiBase}/n8n/webhook/scorm`,
     N8N_API_TOKEN: "",
     XAPI_URL: `${apiBase}/v1/xapi/statements`
   };
+  if (input.playlistUrl) config.PLAYLIST_URL = input.playlistUrl;
 
   const indexHtml = buildIndexHtml(templates.indexHtml, config);
   const manifestXml = buildManifest(templates.manifestXml, input.title);
@@ -110,13 +113,14 @@ export async function exportHtmlZip(input: ScormExportInput): Promise<{ zipPath:
 
   let apiBase = input.apiBase.replace(/\/+$/, "");
   if (/^http:\/\//i.test(apiBase)) apiBase = apiBase.replace(/^http:\/\//i, "https://");
-  const config = {
+  const config: Record<string, unknown> = {
     SHOWCASE_ID: "",
     VITRINE_ID: input.vitrineId,
     N8N_BASE: `${apiBase}/n8n/webhook/scorm`,
     N8N_API_TOKEN: "",
     XAPI_URL: `${apiBase}/v1/xapi/statements`
   };
+  if (input.playlistUrl) config.PLAYLIST_URL = input.playlistUrl;
 
   const indexHtml = buildIndexHtml(templates.indexHtml, config);
 

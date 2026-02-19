@@ -382,7 +382,7 @@ export function VitrineDetalhePage() {
           onSync={vitrine.vimeoShowcaseId ? handleSyncVimeo : undefined}
           syncing={syncing}
           onAddVideo={vitrine.vimeoShowcaseId ? undefined : () => setShowAddVideo(true)}
-          onMoveVideo={vitrine.vimeoShowcaseId ? undefined : handleMoveVideo}
+          onMoveVideo={handleMoveVideo}
           onRemoveVideo={vitrine.vimeoShowcaseId ? undefined : handleRemoveVideo}
           playlistBusy={playlistBusy}
         />
@@ -440,11 +440,16 @@ export function VitrineDetalhePage() {
 
       {tab === "exportacoes" && (
         <VitrineExportsSection
+          playerUrl={playerUrl}
           jobs={jobs}
           loading={loadingJobs}
           onExport={handleExportScorm}
           exporting={exporting}
           onDownload={handleDownload}
+          onCopy={(success) => {
+            if (success) toast.success("Copiado.");
+            else toast.error("Não foi possível copiar.");
+          }}
         />
       )}
 

@@ -286,6 +286,95 @@ a:hover {
   overflow: hidden;
 }
 
+/* Modal Vídeos (Home) — tema escuro consistente + transição */
+.videos-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  animation: videos-modal-fade-in 0.2s ease-out;
+}
+.videos-modal-card {
+  max-width: 720px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  animation: videos-modal-scale-in 0.2s ease-out;
+}
+@keyframes videos-modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes videos-modal-scale-in {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+.videos-modal-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.videos-modal-title {
+  margin: 0;
+  font-size: 18px;
+  color: var(--text);
+  font-weight: 600;
+}
+.videos-modal-body {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+  background: var(--bg);
+}
+.videos-modal-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.videos-modal-item {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 8px;
+  background: var(--bg-elevated);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.videos-modal-item-thumb {
+  width: 120px;
+  height: 68px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.videos-modal-item-thumb-placeholder {
+  width: 120px;
+  height: 68px;
+  background: var(--bg-card);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.videos-modal-item-body { flex: 1; min-width: 0; }
+.videos-modal-item-title { font-weight: 600; color: var(--text); }
+.videos-modal-item-meta { font-size: 12px; }
+
 /* Dropdown/select dentro de field: evita overflow */
 .field select.input {
   max-width: 100%;

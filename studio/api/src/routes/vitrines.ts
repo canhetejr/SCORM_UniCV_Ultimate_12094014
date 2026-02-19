@@ -331,6 +331,32 @@ const vitrinesRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opt
     return { ok: true };
   });
 
+  app.put("/vitrines/:id/playlist/reorder", async (req, reply) => {
+    const vitrineId = String((req.params as { id?: string }).id || "").trim();
+    const body = (req.body || {}) as { orderedIds?: string[] };
+    const orderedIds = Array.isArray(body.orderedIds) ? body.orderedIds : [];
+    if (orderedIds.length === 0) return reply.badRequest("orderedIds deve ser um array não vazio de videoId.");
+
+    const vitrine = await prisma.vitrine.findFirst({ where: { id: vitrineId } });
+    if (!vitrine) return reply.notFound("Vitrine não encontrada.");
+
+    const links = await prisma.vitrineVideo.findMany({
+      where: { vitrineId }
+    });
+    const byVideoId = new Map(links.map((l) => [l.videoId, l]));
+    const updates: { id: string; position: number }[] = [];
+    for (let position = 0; position < orderedIds.length; position++) {
+      const videoId = String(orderedIds[position]).trim();
+      if (byVideoId.has(videoId)) updates.push({ id: byVideoId.get(videoId)!.id, position });
+    }
+    if (updates.length === 0) return reply.badRequest("Nenhum videoId corresponde à playlist atual.");
+
+    await prisma.$transaction(
+      updates.map((u) => prisma.vitrineVideo.update({ where: { id: u.id }, data: { position: u.position } }))
+    );
+    return { ok: true };
+  });
+
   app.post("/vitrines/:id/import/csv", async (req, reply) => {
     const accountId = await deps.getDefaultAccountId();
     const vitrineId = String((req.params as { id?: string }).id || "").trim();

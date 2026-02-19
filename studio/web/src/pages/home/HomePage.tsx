@@ -17,8 +17,6 @@ import { Button, Card, ToastContainer } from "../../components/ui";
 import { useToast } from "../../hooks/useToast";
 import { useVitrinesStore } from "../../store/vitrinesStore";
 import type { Vitrine } from "../../types/vitrine";
-import { getVimeoPing } from "../../api/adminVimeo";
-import { getResolvedApiBase } from "../../api";
 
 const PER_PAGE_OPTIONS = [12, 16];
 const DEFAULT_PER_PAGE = 12;
@@ -106,8 +104,6 @@ export function HomePage() {
   const toast = useToast();
   const vitrines = useVitrinesStore((s) => s.admin.vitrines);
   const setInitial = useVitrinesStore((s) => s.setInitial);
-  const [vimeoPing, setVimeoPing] = useState<{ ok: boolean; message: string; at?: string } | null>(null);
-
   // URL state: collaboratorId, q, page, perPage
   const collaboratorIdFromUrl = searchParams.get("collaboratorId") ?? "";
   const qFromUrl = searchParams.get("q") ?? "";
@@ -190,13 +186,6 @@ export function HomePage() {
       .catch((err) => toast.error(getErrorMessage(err)))
       .finally(() => setLoadingCollaborators(false));
   }, [toast]);
-
-  // Vimeo status badge (ping)
-  useEffect(() => {
-    getVimeoPing()
-      .then((r) => setVimeoPing({ ...r, at: new Date().toISOString() }))
-      .catch(() => setVimeoPing({ ok: false, message: "Erro ao verificar.", at: new Date().toISOString() }));
-  }, []);
 
   // Resolve colaborador padrão quando lista é carregada
   useEffect(() => {
@@ -335,7 +324,6 @@ export function HomePage() {
 
   const totalPages = Math.max(1, Math.ceil(showcasesTotal / effectivePerPage));
   const hasVideoCount = vitrines.some((v) => typeof v.videoCount === "number");
-  const selectedCollab = collaborators.find((c) => c.id === selectedCollabId);
   const videosTotalPages = Math.max(1, Math.ceil(videosTotal / videosPerPage));
 
   const openVideosModal = useCallback((showcaseId: string, showcaseName: string) => {
@@ -408,11 +396,9 @@ export function HomePage() {
       <ToastContainer toasts={toast.toasts} onRemove={toast.remove} />
 
       {!selectedCollabId && !loadingCollaborators && (
-        <Card plain style={{ marginBottom: 16 }}>
-          <p className="muted" style={{ margin: 0, fontSize: 13 }}>
-            Selecione um colaborador em <strong>Configurações &gt; Vimeo</strong> para ver as vitrines.
-          </p>
-        </Card>
+        <p className="muted" style={{ marginBottom: 12, fontSize: 13 }}>
+          Para listar vitrines do Vimeo, selecione um colaborador em <strong>Configurações → Vimeo</strong>.
+        </p>
       )}
 
       {selectedCollabId && (
@@ -420,17 +406,6 @@ export function HomePage() {
           <div className="flex gap-md items-center justify-between flex-wrap" style={{ marginBottom: 12 }}>
             <div className="flex gap-md items-center flex-wrap">
               <h1 className="h" style={{ margin: 0, fontSize: 18 }}>Vitrines</h1>
-              <span
-                className={`pill ${vimeoPing?.ok ? "connected" : "disconnected"}`}
-                title={
-                  `${getResolvedApiBase()}\n` +
-                  `Última verificação: ${vimeoPing?.at ? new Date(vimeoPing.at).toLocaleString("pt-BR") : "—"}\n` +
-                  (vimeoPing?.message ?? "")
-                }
-                style={{ fontSize: 12 }}
-              >
-                {vimeoPing?.ok ? "Conectado" : "Desconectado"}
-              </span>
             </div>
             <div className="flex gap-md items-center flex-wrap">
               {!selectionMode && (
@@ -648,37 +623,15 @@ export function HomePage() {
 
       {videosModal && (
         <div
+          className="videos-modal-overlay"
           role="dialog"
           aria-modal="true"
           aria-labelledby="videos-modal-title"
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 1000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(0,0,0,0.5)"
-          }}
           onClick={(e) => e.target === e.currentTarget && setVideosModal(null)}
         >
-          <div
-            className="card"
-            style={{
-              maxWidth: 720,
-              width: "100%",
-              maxHeight: "90vh",
-              overflow: "hidden",
-              display: "flex",
-              flexDirection: "column",
-              background: "var(--color-bg-elevated, var(--color-bg, #1e1e1e))",
-              color: "var(--color-text, #e0e0e0)",
-              border: "1px solid var(--color-border, #333)"
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ padding: 16, borderBottom: "1px solid var(--color-border, #333)" }}>
-              <h2 id="videos-modal-title" style={{ margin: 0, fontSize: 18, color: "inherit" }}>
+          <div className="videos-modal-card card" onClick={(e) => e.stopPropagation()}>
+            <div className="videos-modal-header">
+              <h2 id="videos-modal-title" className="videos-modal-title">
                 Vídeos: {videosModal.showcaseName}
               </h2>
               <div className="flex gap-md items-center flex-wrap" style={{ marginTop: 12 }}>
@@ -732,54 +685,25 @@ export function HomePage() {
                 </Button>
               </div>
             </div>
-            <div style={{ flex: 1, overflow: "auto", padding: 16, background: "var(--color-bg, #1a1a1a)" }}>
+            <div className="videos-modal-body">
               {loadingVideos && videos.length === 0 ? (
                 <div className="muted">A carregar vídeos…</div>
               ) : videos.length === 0 ? (
                 <p className="muted">Nenhum vídeo nesta vitrine.</p>
               ) : (
-                <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 12 }}>
+                <ul className="videos-modal-list">
                   {videos.map((v) => {
                     const thumb = getVideoThumb(v.pictures);
                     return (
-                      <li
-                        key={v.id}
-                        style={{
-                          display: "flex",
-                          gap: 12,
-                          alignItems: "center",
-                          padding: 8,
-                          background: "var(--color-bg-subtle, #2a2a2a)",
-                          borderRadius: 8,
-                          border: "1px solid var(--color-border, #333)"
-                        }}
-                      >
+                      <li key={v.id} className="videos-modal-item">
                         {thumb ? (
-                          <img
-                            src={thumb}
-                            alt=""
-                            style={{ width: 120, height: 68, objectFit: "cover", borderRadius: 4 }}
-                          />
+                          <img src={thumb} alt="" className="videos-modal-item-thumb" />
                         ) : (
-                          <div
-                            style={{
-                              width: 120,
-                              height: 68,
-                              background: "var(--color-bg-muted, #252525)",
-                              borderRadius: 4,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: 11,
-                              color: "var(--color-muted, #999)"
-                            }}
-                          >
-                            Sem thumb
-                          </div>
+                          <div className="videos-modal-item-thumb-placeholder">Sem thumb</div>
                         )}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 600, color: "inherit" }}>{v.name ?? v.vimeoVideoId}</div>
-                          <div className="muted" style={{ fontSize: 12 }}>
+                        <div className="videos-modal-item-body">
+                          <div className="videos-modal-item-title">{v.name ?? v.vimeoVideoId}</div>
+                          <div className="muted videos-modal-item-meta">
                             {formatDuration(v.duration)}
                             {v.link && (
                               <>

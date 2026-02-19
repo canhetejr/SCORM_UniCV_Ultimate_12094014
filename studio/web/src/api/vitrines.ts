@@ -88,6 +88,17 @@ export async function movePlaylistVideo(
   );
 }
 
+/** PUT /v1/vitrines/:id/playlist/reorder — persiste ordem por lista de videoId */
+export async function reorderPlaylist(
+  vitrineId: string,
+  orderedIds: string[]
+): Promise<{ ok: boolean }> {
+  return apiPut<{ ok: boolean }>(
+    `/v1/vitrines/${encodeURIComponent(vitrineId)}/playlist/reorder`,
+    { orderedIds }
+  );
+}
+
 export async function syncVitrineFromVimeo(showcaseId: string, vimeoUserId?: string): Promise<{ ok: boolean }> {
   return apiPost<{ ok: boolean }>(`/v1/vimeo/showcases/${encodeURIComponent(showcaseId)}/import`, {
     ...(vimeoUserId && { vimeoUserId })

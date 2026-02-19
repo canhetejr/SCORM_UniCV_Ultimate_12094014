@@ -2,9 +2,30 @@ import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { getResolvedApiBase, getLastFetchError } from "../api";
+import { useApiStatus } from "../hooks/useApiStatus";
 
 const WORKSPACE_KEY = "unicv_workspace";
 const SIDEBAR_KEY = "unicv_sidebar_collapsed";
+
+function ConnectionStatusBadge() {
+  const { status, loading } = useApiStatus();
+  const connected = status?.connected ?? false;
+  const state = loading ? "checking" : connected ? "connected" : "offline";
+  const label = loading ? "Verificando…" : connected ? "Conectado" : "Offline";
+  const title = status
+    ? `${label}. ${status.lastPingAt ? `Última verificação: ${new Date(status.lastPingAt).toLocaleString("pt-BR")}` : ""}`
+    : label;
+  return (
+    <span
+      className={`connection-badge connection-badge-${state}`}
+      title={title}
+      aria-label={label}
+    >
+      <span className="connection-badge-dot" />
+      <span className="connection-badge-label">{label}</span>
+    </span>
+  );
+}
 
 export function AppLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -66,6 +87,7 @@ export function AppLayout() {
             </svg>
           </button>
           <div className="top-bar-info">
+            <ConnectionStatusBadge />
             {workspace && (
               <span className="top-bar-api muted">
                 Workspace: {workspace}

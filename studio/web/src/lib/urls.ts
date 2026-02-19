@@ -40,3 +40,18 @@ export function buildPlayerUrl(
 export function buildDownloadUrl(downloadPath: string, apiBaseUrl: string): string {
   return `${apiBaseUrl}${downloadPath}`;
 }
+
+/** Snippet iframe para incorporar o player (width/height opcionais) */
+export function buildIframeEmbedSnippet(
+  playerUrl: string,
+  width: number = 1280,
+  height: number = 720,
+  responsive: boolean = false
+): string {
+  const style = responsive ? "width:100%;height:0;padding-bottom:56.25%;position:relative;" : "";
+  const sizeAttrs = responsive ? "" : ` width="${width}" height="${height}"`;
+  const wrapper = responsive
+    ? `<div style="position:relative;max-width:100%;">\n  <div style="${style}">\n    <iframe src="${playerUrl}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0" allow="fullscreen; autoplay" allowfullscreen></iframe>\n  </div>\n</div>`
+    : `<iframe src="${playerUrl}"${sizeAttrs} style="border:0" allow="fullscreen; autoplay" allowfullscreen></iframe>`;
+  return wrapper;
+}

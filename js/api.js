@@ -71,14 +71,15 @@
   }
 
   function fetchPlaylist() {
+    var url = (CONFIG.PLAYLIST_URL && CONFIG.PLAYLIST_URL.length > 0)
+      ? CONFIG.PLAYLIST_URL
+      : CONFIG.N8N_URL;
     var headers = {};
-    
-    // Adicionar Authorization header se o token estiver configurado
-    if (CONFIG.N8N_API_TOKEN) {
+    if (!CONFIG.PLAYLIST_URL && CONFIG.N8N_API_TOKEN) {
       headers["Authorization"] = "Bearer " + CONFIG.N8N_API_TOKEN;
     }
 
-    return fetch(CONFIG.N8N_URL, {
+    return fetch(url, {
       method: "GET",
       headers: headers
     })
@@ -87,7 +88,7 @@
         return res.json();
       })
       .then(function (data) {
-        var raw = data && data.videos;
+        var raw = (data && data.data && data.data.videos) || (data && data.videos);
         if (!Array.isArray(raw)) throw new Error("Resposta inválida: lista de vídeos não encontrada.");
         var videos = [];
         for (var i = 0; i < raw.length; i++) {
