@@ -56,6 +56,18 @@ export {
   type VimeoStatusResponse
 } from "./vimeo";
 
+// Vimeo Collaborators (admin cache + link to editor)
+export {
+  createCollaborator,
+  listCollaborators,
+  deleteCollaborator,
+  syncCollaborator,
+  getCollaboratorShowcases,
+  linkShowcaseToStudio,
+  type VimeoCollaboratorItem,
+  type VimeoCollaboratorShowcaseItem
+} from "./vimeoCollaborators";
+
 // Config
 export {
   getConfigStatus,

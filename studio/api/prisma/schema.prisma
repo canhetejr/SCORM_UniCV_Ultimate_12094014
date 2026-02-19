@@ -193,6 +193,39 @@ model AppConfig {
   updatedAt DateTime @updatedAt
 }
 
+// Colaborador Vimeo (userId fixo) + cache de vitrines (showcases) no banco
+model VimeoCollaborator {
+  id           String    @id @default(cuid())
+  vimeoUserId  String    @unique
+  label        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  lastSyncAt   DateTime?
+  lastSyncMsg  String?
+
+  showcases VimeoCollaboratorShowcase[]
+}
+
+model VimeoCollaboratorShowcase {
+  id              String   @id @default(cuid())
+  collaboratorId String
+  collaborator    VimeoCollaborator @relation(fields: [collaboratorId], references: [id], onDelete: Cascade)
+
+  vimeoShowcaseId String
+  name            String?
+  description     String?
+  totalVideos     Int?
+  modifiedTime    DateTime?
+  pictures        Json?
+  raw             Json?
+  lastFetchedAt   DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([collaboratorId, vimeoShowcaseId])
+  @@index([collaboratorId])
+}
+
 // Eventos coletados para o dashboard (métricas, ações, acessos)
 model DashboardEvent {
   id        String   @id @default(cuid())

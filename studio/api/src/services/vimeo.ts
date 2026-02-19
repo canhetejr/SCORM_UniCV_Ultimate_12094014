@@ -8,6 +8,8 @@ export type VimeoApiError = {
   code: string;
   message: string;
   details?: string;
+  /** When status === 429, seconds to wait before retry (from Retry-After header). */
+  retryAfter?: number;
 };
 
 function mapVimeoStatus(status: number): { code: string; message: string } {
@@ -130,24 +132,38 @@ export async function exchangeCodeForToken(input: {
   return (await res.json()) as VimeoTokenResponse;
 }
 
-export async function vimeoGet<T>(input: { accessToken: string; path: string; query?: Record<string, string> }): Promise<T> {
+export async function vimeoGet<T>(input: {
+  accessToken: string;
+  path: string;
+  query?: Record<string, string>;
+  /** Request timeout in ms (default 12000). Use 15000 for sync operations. */
+  timeoutMs?: number;
+}): Promise<T> {
   const url = new URL(input.path.startsWith("http") ? input.path : `https://api.vimeo.com${input.path}`);
   if (input.query) {
     for (const [k, v] of Object.entries(input.query)) url.searchParams.set(k, v);
   }
 
-  const res = await fetchWithTimeout(url, {
-    method: "GET",
-    headers: {
-      Accept: VIMEO_ACCEPT,
-      Authorization: `Bearer ${input.accessToken}`
+  const res = await fetchWithTimeout(
+    url,
+    {
+      method: "GET",
+      headers: {
+        Accept: VIMEO_ACCEPT,
+        Authorization: `Bearer ${input.accessToken}`
+      },
+      timeoutMs: input.timeoutMs ?? VIMEO_REQUEST_TIMEOUT_MS
     }
-  });
+  );
 
   if (!res.ok) {
     const details = await res.text().catch(() => "");
     const { code, message } = mapVimeoStatus(res.status);
     const err: VimeoApiError = { status: res.status, code, message, details: details || undefined };
+    if (res.status === 429) {
+      const raw = res.headers.get("Retry-After");
+      err.retryAfter = typeof raw === "string" ? parseInt(raw, 10) || 60 : 60;
+    }
     throw err;
   }
   return (await res.json()) as T;
