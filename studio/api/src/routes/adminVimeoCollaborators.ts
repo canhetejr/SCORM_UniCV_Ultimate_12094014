@@ -65,21 +65,23 @@ async function syncStudioVitrinePlaylistFromCache(
     const title = (cv.name ?? `Vídeo ${cv.vimeoVideoId}`).trim().slice(0, 500) || `Vídeo ${cv.vimeoVideoId}`;
     const thumbnailUrl = thumbFromPictures(cv.pictures);
 
+    const thumb = thumbnailUrl ?? null;
+    const durationSec = cv.duration ?? null;
     const video = await prisma.video.upsert({
       where: {
         accountId_vimeoVideoId: { accountId, vimeoVideoId: cv.vimeoVideoId }
       },
       update: {
         title,
-        thumbnailUrl: thumbnailUrl ?? undefined,
-        durationSec: cv.duration ?? undefined
+        thumbnailUrl: thumb,
+        durationSec
       },
       create: {
         accountId,
         vimeoVideoId: cv.vimeoVideoId,
         title,
-        thumbnailUrl,
-        durationSec: cv.duration ?? null
+        thumbnailUrl: thumb,
+        durationSec
       }
     });
 
