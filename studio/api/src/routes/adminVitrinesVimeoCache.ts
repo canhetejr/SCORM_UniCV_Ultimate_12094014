@@ -21,7 +21,7 @@ function thumbFromPictures(pictures: unknown): string | null {
   const sizes = p.sizes;
   if (!Array.isArray(sizes) || sizes.length === 0) return null;
   const withLink = sizes.filter((s: { link?: string }) => s?.link);
-  const sorted = [...withLink].sort((a, b) => (a.width ?? 0) - (b.width ?? 0));
+  const sorted = [...withLink].sort((a, b) => (b.width ?? 0) - (a.width ?? 0));
   return sorted[0]?.link ?? null;
 }
 
