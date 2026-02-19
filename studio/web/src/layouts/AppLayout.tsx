@@ -66,10 +66,11 @@ export function AppLayout() {
             </svg>
           </button>
           <div className="top-bar-info">
-            <span className="top-bar-api muted">
-              API: <code>{getResolvedApiBase()}</code>
-              {workspace ? ` · ${workspace}` : ""}
-            </span>
+            {workspace && (
+              <span className="top-bar-api muted">
+                Workspace: {workspace}
+              </span>
+            )}
             {import.meta.env.DEV && (
               <details className="unicv-diagnostic" style={{ marginLeft: 8, fontSize: 11 }}>
                 <summary>Diagnóstico</summary>

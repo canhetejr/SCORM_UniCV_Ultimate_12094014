@@ -144,6 +144,50 @@ export async function getShowcaseVideos(
   return unwrap(r);
 }
 
+/** POST /admin/vimeo-collaborators/:id/showcases/export — exportação em lote (cache) */
+export type VimeoCollaboratorExportItem = {
+  showcaseId: string;
+  showcase: {
+    id: string;
+    collaboratorId: string;
+    vimeoShowcaseId: string;
+    name: string | null;
+    description: string | null;
+    totalVideos: number | null;
+    modifiedTime: string | null;
+    pictures: { sizes?: Array<{ width?: number; link?: string }> } | null;
+  };
+  videos: Array<{
+    id: string;
+    vimeoVideoId: string;
+    name: string | null;
+    description: string | null;
+    duration: number | null;
+    link: string | null;
+    pictures: { sizes?: Array<{ width?: number; link?: string }> } | null;
+    position: number;
+    addedTime: string | null;
+    removedAt: string | null;
+  }>;
+};
+
+export type VimeoCollaboratorExportResponse = {
+  collaboratorId: string;
+  exportedAt: string;
+  items: VimeoCollaboratorExportItem[];
+};
+
+export async function exportCollaboratorShowcases(
+  collabId: string,
+  showcaseIds: string[]
+): Promise<VimeoCollaboratorExportResponse> {
+  const r = await apiPost<ApiSuccess<VimeoCollaboratorExportResponse>>(
+    `${PREFIX}/${encodeURIComponent(collabId)}/showcases/export`,
+    { showcaseIds }
+  );
+  return unwrap(r);
+}
+
 /** POST /admin/vimeo-collaborators/:id/showcases/:vimeoShowcaseId/link — linka ao editor (cria Vitrine se necessário), retorna vitrineId */
 export async function linkShowcaseToStudio(
   collabId: string,

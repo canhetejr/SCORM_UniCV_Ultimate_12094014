@@ -1,12 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
-  createCollaborator,
   listCollaborators,
-  syncCollaborator,
   getCollaboratorShowcases,
   getShowcaseVideos,
   linkShowcaseToStudio,
+  exportCollaboratorShowcases,
   type VimeoCollaboratorItem,
   type VimeoCollaboratorShowcaseItem,
   type VimeoCollaboratorVideoItem
@@ -18,13 +17,15 @@ import { Button, Card, ToastContainer } from "../../components/ui";
 import { useToast } from "../../hooks/useToast";
 import { useVitrinesStore } from "../../store/vitrinesStore";
 import type { Vitrine } from "../../types/vitrine";
+import { useApiStatus } from "../../hooks/useApiStatus";
 
 const PER_PAGE_OPTIONS = [12, 16];
 const DEFAULT_PER_PAGE = 12;
 const VIDEOS_PER_PAGE_OPTIONS = [12, 24];
 const DEFAULT_VIDEOS_PER_PAGE = 24;
 const SEARCH_DEBOUNCE_MS = 300;
-const COLLAB_STORAGE_KEY = "unicv_vimeo_collaborator_id";
+const LEGACY_COLLAB_STORAGE_KEY = "unicv_vimeo_collaborator_id";
+const DEFAULT_COLLAB_STORAGE_KEY = "studio.defaultCollaboratorId";
 
 function getErrorMessage(error: unknown): string {
   const e = error as { message?: string };
@@ -102,6 +103,7 @@ export function HomePage() {
   const toast = useToast();
   const vitrines = useVitrinesStore((s) => s.admin.vitrines);
   const setInitial = useVitrinesStore((s) => s.setInitial);
+  const { status: apiStatus } = useApiStatus();
 
   // URL state: collaboratorId, q, page, perPage
   const collaboratorIdFromUrl = searchParams.get("collaboratorId") ?? "";
@@ -111,16 +113,8 @@ export function HomePage() {
     ? parseInt(searchParams.get("perPage") ?? "", 10)
     : DEFAULT_PER_PAGE;
 
-  const [vimeoUserIdInput, setVimeoUserIdInput] = useState("");
   const [collaborators, setCollaborators] = useState<VimeoCollaboratorItem[]>([]);
-  const [selectedCollabId, setSelectedCollabId] = useState(() => {
-    if (collaboratorIdFromUrl) return collaboratorIdFromUrl;
-    try {
-      return localStorage.getItem(COLLAB_STORAGE_KEY) ?? "";
-    } catch {
-      return "";
-    }
-  });
+  const [selectedCollabId, setSelectedCollabId] = useState<string>("");
   const [searchQ, setSearchQ] = useState(() => qFromUrl);
   const [page, setPage] = useState(() => pageFromUrl);
   const [perPage, setPerPage] = useState(() => perPageFromUrl);
@@ -132,6 +126,10 @@ export function HomePage() {
   const [loadingShowcases, setLoadingShowcases] = useState(false);
   const [loadingLink, setLoadingLink] = useState<string | null>(null);
   const [loadingVitrines, setLoadingVitrines] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedShowcaseIds, setSelectedShowcaseIds] = useState<Set<string>>(new Set());
 
   // Modal Vídeos
   const [videosModal, setVideosModal] = useState<{ showcaseId: string; showcaseName: string } | null>(null);
@@ -192,11 +190,42 @@ export function HomePage() {
       .finally(() => setLoadingCollaborators(false));
   }, [toast]);
 
+  // Resolve colaborador padrão quando lista é carregada
+  useEffect(() => {
+    if (!collaborators.length) {
+      setSelectedCollabId("");
+      return;
+    }
+    setSelectedCollabId((current) => {
+      if (current) return current;
+      let stored: string | null = null;
+      try {
+        stored =
+          localStorage.getItem(DEFAULT_COLLAB_STORAGE_KEY) ??
+          localStorage.getItem(LEGACY_COLLAB_STORAGE_KEY) ??
+          null;
+      } catch {
+        stored = null;
+      }
+      const fromQuery = collaboratorIdFromUrl || "";
+      const exists = (id: string | null) => !!id && collaborators.some((c) => c.id === id);
+      const chosen =
+        (exists(stored) && stored) ||
+        (exists(fromQuery) && fromQuery) ||
+        collaborators[0]?.id ||
+        "";
+      if (chosen) {
+        updateUrl({ collaboratorId: chosen, page: 1 });
+      }
+      return chosen;
+    });
+  }, [collaborators, collaboratorIdFromUrl, updateUrl]);
+
   // Persist selected collaborator to localStorage (preference only)
   useEffect(() => {
     if (!selectedCollabId) return;
     try {
-      localStorage.setItem(COLLAB_STORAGE_KEY, selectedCollabId);
+      localStorage.setItem(DEFAULT_COLLAB_STORAGE_KEY, selectedCollabId);
     } catch {
       /* ignore */
     }
@@ -276,63 +305,6 @@ export function HomePage() {
       .finally(() => setLoadingVitrines(false));
   }, [vitrines.length, setInitial, toast]);
 
-  const handleAddCollaborator = useCallback(async () => {
-    const uid = vimeoUserIdInput.trim();
-    if (!uid) {
-      toast.warning("Informe o Vimeo User ID.");
-      return;
-    }
-    setLoadingAdd(true);
-    try {
-      const res = await createCollaborator(uid);
-      setCollaborators((prev) => {
-        const list = prev.filter((c) => c.id !== res.collaborator.id);
-        return [res.collaborator, ...list];
-      });
-      setSelectedCollabId(res.collaborator.id);
-      updateUrl({ collaboratorId: res.collaborator.id, page: 1 });
-      setVimeoUserIdInput("");
-      toast.success("Colaborador adicionado. Sincronizando vitrines e vídeos…");
-      const syncRes = await syncCollaborator(res.collaborator.id);
-      toast.success(
-        `${syncRes.showcasesUpserted} vitrine(s), ${syncRes.videosUpserted} vídeo(s) em cache.`
-      );
-      listCollaborators().then((r) => setCollaborators(r.collaborators ?? []));
-      getCollaboratorShowcases(res.collaborator.id, { page: 1, perPage: effectivePerPage, q: effectiveQ || undefined })
-        .then((r) => {
-          setShowcases(r.items ?? []);
-          setShowcasesTotal(r.total ?? 0);
-        })
-        .catch(() => {});
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-    } finally {
-      setLoadingAdd(false);
-    }
-  }, [vimeoUserIdInput, toast, updateUrl, effectivePerPage, effectiveQ]);
-
-  const handleSync = useCallback(async () => {
-    if (!selectedCollabId) return;
-    setLoadingSync(true);
-    try {
-      const res = await syncCollaborator(selectedCollabId);
-      toast.success(
-        `${res.showcasesUpserted} vitrine(s), ${res.videosUpserted} vídeo(s) atualizados.`
-      );
-      listCollaborators().then((r) => setCollaborators(r.collaborators ?? []));
-      getCollaboratorShowcases(selectedCollabId, { page: effectivePage, perPage: effectivePerPage, q: effectiveQ || undefined })
-        .then((r) => {
-          setShowcases(r.items ?? []);
-          setShowcasesTotal(r.total ?? 0);
-        })
-        .catch(() => {});
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-    } finally {
-      setLoadingSync(false);
-    }
-  }, [selectedCollabId, effectivePage, effectivePerPage, effectiveQ, toast]);
-
   const handleSearchSubmit = useCallback(() => {
     updateUrl({ q: searchQ.trim(), page: 1 });
   }, [searchQ, updateUrl]);
@@ -374,78 +346,152 @@ export function HomePage() {
     );
   }, [toast]);
 
+  const toggleSelectionMode = useCallback(() => {
+    setSelectionMode((prev) => {
+      const next = !prev;
+      if (!next) {
+        setSelectedShowcaseIds(new Set());
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleShowcaseSelected = useCallback(
+    (id: string) => {
+      setSelectedShowcaseIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+      });
+    },
+    []
+  );
+
+  const handleExportSelected = useCallback(async () => {
+    if (!selectedCollabId || selectedShowcaseIds.size === 0) return;
+    setExporting(true);
+    try {
+      const showcaseIds = Array.from(selectedShowcaseIds);
+      const res = await exportCollaboratorShowcases(selectedCollabId, showcaseIds);
+      const timestamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 13).replace("T", "_");
+      const filename = `collab_${res.collaboratorId}_export_${timestamp}.json`;
+      const blob = new Blob([JSON.stringify(res, null, 2)], {
+        type: "application/json"
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast.success("Exportação concluída.");
+      setSelectionMode(false);
+      setSelectedShowcaseIds(new Set());
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setExporting(false);
+    }
+  }, [selectedCollabId, selectedShowcaseIds, toast]);
+
   return (
     <div className="page-home">
       <ToastContainer toasts={toast.toasts} onRemove={toast.remove} />
 
       <Card plain>
-        <h2 style={{ margin: 0 }}>Colaboradores Vimeo</h2>
-        <p className="muted" style={{ marginTop: 6, marginBottom: 12 }}>
-          Adicione um Vimeo User ID para salvar o colaborador e usar a lista permanente de vitrines (cache no banco).
-        </p>
-        <div className="flex gap-md items-center flex-wrap" style={{ marginBottom: 16 }}>
-          <label className="flex items-center gap-sm">
-            <span className="muted">Vimeo User ID:</span>
-            <input
-              type="text"
-              className="input"
-              value={vimeoUserIdInput}
-              onChange={(e) => setVimeoUserIdInput(e.target.value)}
-              placeholder="ex: 82076795 ou user82076795"
-              style={{ minWidth: 200 }}
-              onKeyDown={(e) => e.key === "Enter" && handleAddCollaborator()}
-            />
-          </label>
-          <Button onClick={handleAddCollaborator} disabled={loadingAdd}>
-            {loadingAdd ? "A adicionar…" : "Adicionar"}
-          </Button>
-          <label className="flex items-center gap-sm">
-            <span className="muted">Colaborador:</span>
-            <select
-              className="input"
-              value={selectedCollabId}
-              onChange={(e) => {
-                const id = e.target.value;
-                setSelectedCollabId(id);
-                updateUrl({ collaboratorId: id || undefined, page: 1 });
-              }}
-              style={{ minWidth: 200 }}
-              disabled={loadingCollaborators}
-            >
-              <option value="">— Selecionar —</option>
-              {collaborators.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.label || c.vimeoUserId} ({c.showcaseCount} vitrines, {c.videoCount} vídeos)
-                </option>
-              ))}
-            </select>
-          </label>
-          <Button
-            variant="secondary"
-            onClick={handleSync}
-            disabled={!selectedCollabId || loadingSync}
-          >
-            {loadingSync ? "A sincronizar…" : "Atualizar (sync tudo)"}
-          </Button>
+        <div className="flex gap-md items-center justify-between flex-wrap" style={{ marginBottom: 12 }}>
+          <div className="flex gap-md items-center flex-wrap">
+            <label className="flex items-center gap-sm">
+              <span className="muted">Colaborador:</span>
+              <select
+                className="input"
+                value={selectedCollabId}
+                onChange={(e) => {
+                  const id = e.target.value;
+                  setSelectedCollabId(id);
+                  updateUrl({ collaboratorId: id || undefined, page: 1 });
+                }}
+                style={{ minWidth: 200 }}
+                disabled={loadingCollaborators || collaborators.length === 0}
+              >
+                <option value="">— Selecionar —</option>
+                {collaborators.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.label || c.vimeoUserId} ({c.showcaseCount} vitrines, {c.videoCount} vídeos)
+                  </option>
+                ))}
+              </select>
+            </label>
+            {selectedCollab && (
+              <span className="muted" style={{ fontSize: 13 }}>
+                {selectedCollab.lastSyncAt
+                  ? `Último sync: ${new Date(selectedCollab.lastSyncAt).toLocaleString("pt-BR")}`
+                  : "Nunca sincronizado"}
+              </span>
+            )}
+          </div>
+          <div className="flex gap-md items-center flex-wrap">
+            {!selectionMode && (
+              <Button
+                variant="secondary"
+                onClick={toggleSelectionMode}
+                disabled={!selectedCollabId || loadingShowcases}
+              >
+                Selecionar
+              </Button>
+            )}
+            {selectionMode && (
+              <>
+                <span className="muted" style={{ fontSize: 13 }}>
+                  {selectedShowcaseIds.size} selecionada(s)
+                </span>
+                <Button
+                  onClick={handleExportSelected}
+                  disabled={selectedShowcaseIds.size === 0 || exporting}
+                >
+                  {exporting ? "Exportando…" : "Exportar selecionadas"}
+                </Button>
+                <Button variant="secondary" onClick={toggleSelectionMode}>
+                  Cancelar seleção
+                </Button>
+              </>
+            )}
+            {apiStatus && (
+              <span
+                className={`pill ${apiStatus.connected ? "connected" : "disconnected"}`}
+                title={
+                  `URL: ${apiStatus.url}\n` +
+                  `Último ping: ${
+                    apiStatus.lastPingAt
+                      ? new Date(apiStatus.lastPingAt).toLocaleString("pt-BR")
+                      : "—"
+                  }\n` +
+                  `Latência: ${
+                    apiStatus.latencyMs != null ? `${Math.round(apiStatus.latencyMs)} ms` : "—"
+                  }`
+                }
+              >
+                <strong>API:</strong>
+                <span>{apiStatus.connected ? "Conectado" : "Offline"}</span>
+              </span>
+            )}
+          </div>
         </div>
-        {selectedCollab && (
+
+        {!selectedCollabId && !loadingCollaborators && (
           <p className="muted" style={{ marginTop: 8, marginBottom: 0, fontSize: 13 }}>
-            Última atualização:{" "}
-            {selectedCollab.lastSyncAt
-              ? new Date(selectedCollab.lastSyncAt).toLocaleString("pt-BR")
-              : "—"}{" "}
-            / {selectedCollab.showcaseCount} vitrines / {selectedCollab.videoCount} vídeos
+            Nenhum colaborador selecionado. Vá em <strong>Configurações</strong> para adicionar um
+            colaborador Vimeo.
           </p>
         )}
       </Card>
 
       {selectedCollabId && (
-        <Card plain style={{ marginTop: 24 }}>
-          <h2 style={{ margin: 0 }}>Vitrines (cache)</h2>
-          <p className="muted" style={{ marginTop: 6, marginBottom: 12 }}>
-            Busca e paginação a partir do banco. Clique em Editar para abrir no editor do Studio.
-          </p>
-          <div className="flex gap-md items-center flex-wrap" style={{ marginBottom: 16 }}>
+        <Card plain style={{ marginTop: 16 }}>
+          <div className="flex gap-md items-center flex-wrap" style={{ marginBottom: 12 }}>
             <input
               type="search"
               className="input"
@@ -520,7 +566,7 @@ export function HomePage() {
             </div>
           ) : showcases.length === 0 ? (
             <p className="muted py-md">
-              Nenhuma vitrine em cache. Clique em &quot;Atualizar vitrines&quot; para sincronizar do Vimeo.
+              Nenhuma vitrine encontrada.
             </p>
           ) : (
             <div
@@ -537,19 +583,42 @@ export function HomePage() {
                 return (
                   <div
                     key={s.id}
-                    className="card"
-                    style={{ padding: 0, overflow: "hidden", cursor: "pointer" }}
+                    className={`card showcase-card${selectionMode ? " showcase-card-select-mode" : ""}`}
+                    style={{ padding: 0, overflow: "hidden", cursor: selectionMode ? "default" : "pointer" }}
                     role="button"
                     tabIndex={0}
                     onClick={(event) => {
+                      if (selectionMode) {
+                        toggleShowcaseSelected(s.id);
+                        return;
+                      }
                       if (isInteractiveTarget(event.target)) return;
                       handleEditarShowcase(s.vimeoShowcaseId);
                     }}
                     onKeyDown={(e) => {
                       if (e.target !== e.currentTarget) return;
+                      if (selectionMode) {
+                        if (e.key === " " || e.key === "Enter") {
+                          e.preventDefault();
+                          toggleShowcaseSelected(s.id);
+                        }
+                        return;
+                      }
                       if (e.key === "Enter") handleEditarShowcase(s.vimeoShowcaseId);
                     }}
                   >
+                    {selectionMode && (
+                      <div style={{ position: "absolute", top: 8, right: 8, zIndex: 2 }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedShowcaseIds.has(s.id)}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            toggleShowcaseSelected(s.id);
+                          }}
+                        />
+                      </div>
+                    )}
                     {thumb ? (
                       <img src={thumb} alt="" style={{ width: "100%", height: 140, objectFit: "cover" }} />
                     ) : (

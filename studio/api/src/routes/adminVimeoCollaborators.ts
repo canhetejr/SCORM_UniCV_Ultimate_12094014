@@ -427,6 +427,113 @@ const adminVimeoCollaboratorsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = 
     );
   });
 
+  /** E3) POST /admin/vimeo-collaborators/:id/showcases/export — exporta vitrines + vídeos do cache (batch) */
+  app.post<{
+    Params: { id: string };
+    Body: { showcaseIds?: string[] };
+  }>("/:id/showcases/export", async (req, reply) => {
+    const collabId = String((req.params as { id?: string }).id ?? "").trim();
+    if (!collabId) {
+      return reply.status(400).send(err("invalid_input", "id é obrigatório."));
+    }
+    const body = (req.body || {}) as { showcaseIds?: string[] };
+    const showcaseIds = Array.isArray(body.showcaseIds) ? body.showcaseIds.map((s) => String(s).trim()).filter(Boolean) : [];
+    if (!showcaseIds.length) {
+      return reply
+        .status(400)
+        .send({ ok: false, error: { code: "invalid_request", message: "showcaseIds é obrigatório." } });
+    }
+
+    const collaborator = await prisma.vimeoCollaborator.findUnique({ where: { id: collabId } });
+    if (!collaborator) {
+      return reply.status(404).send(err("not_found", "Colaborador não encontrado."));
+    }
+
+    const showcases = await prisma.vimeoCollaboratorShowcase.findMany({
+      where: {
+        id: { in: showcaseIds },
+        collaboratorId: collabId
+      },
+      orderBy: [{ modifiedTime: "desc" }, { createdAt: "desc" }]
+    });
+
+    if (!showcases.length) {
+      return reply
+        .status(404)
+        .send(err("not_found", "Nenhuma vitrine encontrada para os IDs informados."));
+    }
+
+    const showcaseIdsSet = new Set(showcases.map((s) => s.id));
+
+    const links = await prisma.vimeoCollaboratorShowcaseVideo.findMany({
+      where: {
+        showcaseId: { in: Array.from(showcaseIdsSet) },
+        removedAt: null
+      },
+      orderBy: { position: "asc" },
+      include: {
+        video: {
+          select: {
+            id: true,
+            vimeoVideoId: true,
+            name: true,
+            description: true,
+            duration: true,
+            link: true,
+            pictures: true,
+            createdTime: true,
+            modifiedTime: true
+          }
+        }
+      }
+    });
+
+    const byShowcase = new Map<string, typeof links>();
+    for (const link of links) {
+      const arr = byShowcase.get(link.showcaseId) ?? [];
+      arr.push(link);
+      byShowcase.set(link.showcaseId, arr);
+    }
+
+    const items = showcases.map((s) => {
+      const showcaseVideos = byShowcase.get(s.id) ?? [];
+      return {
+        showcaseId: s.id,
+        showcase: {
+          id: s.id,
+          collaboratorId: s.collaboratorId,
+          vimeoShowcaseId: s.vimeoShowcaseId,
+          name: s.name,
+          description: s.description,
+          totalVideos: s.totalVideos,
+          modifiedTime: s.modifiedTime,
+          pictures: s.pictures
+        },
+        videos: showcaseVideos.map((sv) => ({
+          id: sv.video.id,
+          vimeoVideoId: sv.video.vimeoVideoId,
+          name: sv.video.name,
+          description: sv.video.description,
+          duration: sv.video.duration,
+          link: sv.video.link,
+          pictures: sv.video.pictures,
+          position: sv.position,
+          addedTime: sv.addedTime,
+          removedAt: sv.removedAt
+        }))
+      };
+    });
+
+    const exportedAt = new Date().toISOString();
+    return reply.send(
+      ok({
+        collaboratorId: collabId,
+        exportedAt,
+        items
+      })
+    );
+  });
+
   /** E2) GET /admin/vimeo-collaborators/:id/showcases/:showcaseId/videos?page&perPage&q= — vídeos da vitrine (cache) */
   app.get<{
     Params: { id: string; showcaseId: string };

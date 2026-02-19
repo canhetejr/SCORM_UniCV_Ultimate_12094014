@@ -102,12 +102,6 @@ export function Sidebar({
       >
         <div className="sidebar-inner">
           <div className="sidebar-header">
-            {!collapsed && (
-              <Link to="/" className="sidebar-brand" onClick={closeMobile}>
-                <span className="sidebar-brand-icon">U</span>
-                <span className="sidebar-brand-text">UniCV Studio</span>
-              </Link>
-            )}
             <button
               type="button"
               className="sidebar-toggle"
