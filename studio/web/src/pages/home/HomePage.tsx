@@ -5,9 +5,11 @@ import {
   listCollaborators,
   syncCollaborator,
   getCollaboratorShowcases,
+  getShowcaseVideos,
   linkShowcaseToStudio,
   type VimeoCollaboratorItem,
-  type VimeoCollaboratorShowcaseItem
+  type VimeoCollaboratorShowcaseItem,
+  type VimeoCollaboratorVideoItem
 } from "../../api/vimeoCollaborators";
 import { fetchAllVitrines } from "../../api";
 import { VitrineCard, VitrinesAdvancedSearch, defaultFilters, parseFiltersFromSearchParams, filtersToSearchParams } from "../../components/app";
@@ -19,6 +21,10 @@ import type { Vitrine } from "../../types/vitrine";
 
 const PER_PAGE_OPTIONS = [12, 16];
 const DEFAULT_PER_PAGE = 12;
+const VIDEOS_PER_PAGE_OPTIONS = [12, 24];
+const DEFAULT_VIDEOS_PER_PAGE = 24;
+const SEARCH_DEBOUNCE_MS = 300;
+const COLLAB_STORAGE_KEY = "unicv_vimeo_collaborator_id";
 
 function getErrorMessage(error: unknown): string {
   const e = error as { message?: string };
@@ -75,6 +81,21 @@ function getBestThumb(pictures: VimeoCollaboratorShowcaseItem["pictures"]): stri
   return sorted[0]?.link ?? null;
 }
 
+function getVideoThumb(pictures: VimeoCollaboratorVideoItem["pictures"]): string | null {
+  if (!pictures?.sizes?.length) return null;
+  const withLink = pictures.sizes.filter((s) => s?.link);
+  if (!withLink.length) return null;
+  const sorted = [...withLink].sort((a, b) => (b.width ?? 0) - (a.width ?? 0));
+  return sorted[0]?.link ?? null;
+}
+
+function formatDuration(sec: number | null | undefined): string {
+  if (sec == null || Number.isNaN(sec)) return "—";
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
 export function HomePage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -92,7 +113,14 @@ export function HomePage() {
 
   const [vimeoUserIdInput, setVimeoUserIdInput] = useState("");
   const [collaborators, setCollaborators] = useState<VimeoCollaboratorItem[]>([]);
-  const [selectedCollabId, setSelectedCollabId] = useState(collaboratorIdFromUrl || "");
+  const [selectedCollabId, setSelectedCollabId] = useState(() => {
+    if (collaboratorIdFromUrl) return collaboratorIdFromUrl;
+    try {
+      return localStorage.getItem(COLLAB_STORAGE_KEY) ?? "";
+    } catch {
+      return "";
+    }
+  });
   const [searchQ, setSearchQ] = useState(() => qFromUrl);
   const [page, setPage] = useState(() => pageFromUrl);
   const [perPage, setPerPage] = useState(() => perPageFromUrl);
@@ -104,6 +132,16 @@ export function HomePage() {
   const [loadingShowcases, setLoadingShowcases] = useState(false);
   const [loadingLink, setLoadingLink] = useState<string | null>(null);
   const [loadingVitrines, setLoadingVitrines] = useState(false);
+
+  // Modal Vídeos
+  const [videosModal, setVideosModal] = useState<{ showcaseId: string; showcaseName: string } | null>(null);
+  const [videosQ, setVideosQ] = useState("");
+  const [videosQDebounced, setVideosQDebounced] = useState("");
+  const [videosPage, setVideosPage] = useState(1);
+  const [videosPerPage, setVideosPerPage] = useState(DEFAULT_VIDEOS_PER_PAGE);
+  const [videos, setVideos] = useState<VimeoCollaboratorVideoItem[]>([]);
+  const [videosTotal, setVideosTotal] = useState(0);
+  const [loadingVideos, setLoadingVideos] = useState(false);
 
   const filters = useMemo(
     () => parseFiltersFromSearchParams(searchParams),
@@ -154,15 +192,52 @@ export function HomePage() {
       .finally(() => setLoadingCollaborators(false));
   }, [toast]);
 
-  // Restore selected collaborator from URL when list is ready
+  // Persist selected collaborator to localStorage (preference only)
   useEffect(() => {
-    if (collaboratorIdFromUrl && collaborators.length > 0 && !selectedCollabId) {
-      setSelectedCollabId(collaboratorIdFromUrl);
+    if (!selectedCollabId) return;
+    try {
+      localStorage.setItem(COLLAB_STORAGE_KEY, selectedCollabId);
+    } catch {
+      /* ignore */
     }
-  }, [collaboratorIdFromUrl, collaborators.length, selectedCollabId]);
+  }, [selectedCollabId]);
+
+  // Debounce busca vitrines (300ms) → atualiza URL e refetch
+  useEffect(() => {
+    const t = setTimeout(() => updateUrl({ q: searchQ.trim(), page: 1 }), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [searchQ]);
+
+  // Debounce busca vídeos no modal (300ms)
+  useEffect(() => {
+    if (!videosModal) return;
+    const t = setTimeout(() => setVideosQDebounced(videosQ.trim()), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [videosModal, videosQ]);
+
+  // Carregar vídeos do modal (cache) quando abre ou page/perPage/q mudam
+  useEffect(() => {
+    if (!videosModal || !selectedCollabId) return;
+    setLoadingVideos(true);
+    getShowcaseVideos(selectedCollabId, videosModal.showcaseId, {
+      page: videosPage,
+      perPage: videosPerPage,
+      q: videosQDebounced.trim() || undefined
+    })
+      .then((r) => {
+        setVideos(r.items ?? []);
+        setVideosTotal(r.total ?? 0);
+      })
+      .catch((err) => {
+        toast.error(getErrorMessage(err));
+        setVideos([]);
+        setVideosTotal(0);
+      })
+      .finally(() => setLoadingVideos(false));
+  }, [videosModal, selectedCollabId, videosPage, videosPerPage, videosQDebounced, toast]);
 
   // Load showcases when selected collaborator or q/page/perPage change
-  const effectiveQ = searchParams.get("q") ?? searchQ;
+  const effectiveQ = searchParams.get("q") ?? "";
   const effectivePage = parseInt(searchParams.get("page") ?? String(page), 10) || 1;
   const effectivePerPage = PER_PAGE_OPTIONS.includes(parseInt(searchParams.get("perPage") ?? "", 10))
     ? parseInt(searchParams.get("perPage") ?? "", 10)
@@ -217,10 +292,12 @@ export function HomePage() {
       setSelectedCollabId(res.collaborator.id);
       updateUrl({ collaboratorId: res.collaborator.id, page: 1 });
       setVimeoUserIdInput("");
-      toast.success("Colaborador adicionado. Sincronizando vitrines…");
+      toast.success("Colaborador adicionado. Sincronizando vitrines e vídeos…");
       const syncRes = await syncCollaborator(res.collaborator.id);
-      toast.success(`${syncRes.upserted} vitrine(s) em cache.`);
-      setShowcasesTotal(syncRes.totalFetched);
+      toast.success(
+        `${syncRes.showcasesUpserted} vitrine(s), ${syncRes.videosUpserted} vídeo(s) em cache.`
+      );
+      listCollaborators().then((r) => setCollaborators(r.collaborators ?? []));
       getCollaboratorShowcases(res.collaborator.id, { page: 1, perPage: effectivePerPage, q: effectiveQ || undefined })
         .then((r) => {
           setShowcases(r.items ?? []);
@@ -239,7 +316,10 @@ export function HomePage() {
     setLoadingSync(true);
     try {
       const res = await syncCollaborator(selectedCollabId);
-      toast.success(`${res.upserted} vitrine(s) atualizadas.`);
+      toast.success(
+        `${res.showcasesUpserted} vitrine(s), ${res.videosUpserted} vídeo(s) atualizados.`
+      );
+      listCollaborators().then((r) => setCollaborators(r.collaborators ?? []));
       getCollaboratorShowcases(selectedCollabId, { page: effectivePage, perPage: effectivePerPage, q: effectiveQ || undefined })
         .then((r) => {
           setShowcases(r.items ?? []);
@@ -275,6 +355,24 @@ export function HomePage() {
 
   const totalPages = Math.max(1, Math.ceil(showcasesTotal / effectivePerPage));
   const hasVideoCount = vitrines.some((v) => typeof v.videoCount === "number");
+  const selectedCollab = collaborators.find((c) => c.id === selectedCollabId);
+  const videosTotalPages = Math.max(1, Math.ceil(videosTotal / videosPerPage));
+
+  const openVideosModal = useCallback((showcaseId: string, showcaseName: string) => {
+    setVideosModal({ showcaseId, showcaseName });
+    setVideosQ("");
+    setVideosQDebounced("");
+    setVideosPage(1);
+    setVideosPerPage(DEFAULT_VIDEOS_PER_PAGE);
+  }, []);
+
+  const copyVideoLink = useCallback((link: string | null) => {
+    if (!link) return;
+    navigator.clipboard.writeText(link).then(
+      () => toast.success("Link copiado."),
+      () => toast.error("Não foi possível copiar.")
+    );
+  }, [toast]);
 
   return (
     <div className="page-home">
@@ -311,13 +409,13 @@ export function HomePage() {
                 setSelectedCollabId(id);
                 updateUrl({ collaboratorId: id || undefined, page: 1 });
               }}
-              style={{ minWidth: 180 }}
+              style={{ minWidth: 200 }}
               disabled={loadingCollaborators}
             >
               <option value="">— Selecionar —</option>
               {collaborators.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.label || c.vimeoUserId} ({c.showcaseCount})
+                  {c.label || c.vimeoUserId} ({c.showcaseCount} vitrines, {c.videoCount} vídeos)
                 </option>
               ))}
             </select>
@@ -327,9 +425,18 @@ export function HomePage() {
             onClick={handleSync}
             disabled={!selectedCollabId || loadingSync}
           >
-            {loadingSync ? "A sincronizar…" : "Atualizar vitrines"}
+            {loadingSync ? "A sincronizar…" : "Atualizar (sync tudo)"}
           </Button>
         </div>
+        {selectedCollab && (
+          <p className="muted" style={{ marginTop: 8, marginBottom: 0, fontSize: 13 }}>
+            Última atualização:{" "}
+            {selectedCollab.lastSyncAt
+              ? new Date(selectedCollab.lastSyncAt).toLocaleString("pt-BR")
+              : "—"}{" "}
+            / {selectedCollab.showcaseCount} vitrines / {selectedCollab.videoCount} vídeos
+          </p>
+        )}
       </Card>
 
       {selectedCollabId && (
@@ -470,17 +577,28 @@ export function HomePage() {
                           {new Date(s.modifiedTime).toLocaleDateString("pt-BR")}
                         </div>
                       )}
-                      <Button
-                        className="mt-sm"
-                        disabled={isLinking}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleEditarShowcase(s.vimeoShowcaseId);
-                        }}
-                      >
-                        {isLinking ? "A abrir…" : "Editar"}
-                      </Button>
+                      <div className="flex gap-sm mt-sm" style={{ flexWrap: "wrap" }}>
+                        <Button
+                          variant="secondary"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            openVideosModal(s.id, s.name ?? s.vimeoShowcaseId);
+                          }}
+                        >
+                          Vídeos
+                        </Button>
+                        <Button
+                          disabled={isLinking}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleEditarShowcase(s.vimeoShowcaseId);
+                          }}
+                        >
+                          {isLinking ? "A abrir…" : "Editar"}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -488,6 +606,162 @@ export function HomePage() {
             </div>
           )}
         </Card>
+      )}
+
+      {videosModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="videos-modal-title"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)"
+          }}
+          onClick={(e) => e.target === e.currentTarget && setVideosModal(null)}
+        >
+          <div
+            className="card"
+            style={{
+              maxWidth: 720,
+              width: "100%",
+              maxHeight: "90vh",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column"
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ padding: 16, borderBottom: "1px solid var(--color-border, #ddd)" }}>
+              <h2 id="videos-modal-title" style={{ margin: 0, fontSize: 18 }}>
+                Vídeos: {videosModal.showcaseName}
+              </h2>
+              <div className="flex gap-md items-center flex-wrap" style={{ marginTop: 12 }}>
+                <input
+                  type="search"
+                  className="input"
+                  placeholder="Buscar vídeo…"
+                  value={videosQ}
+                  onChange={(e) => setVideosQ(e.target.value)}
+                  style={{ minWidth: 200 }}
+                />
+                <label className="flex items-center gap-sm muted">
+                  <span>Por página:</span>
+                  <select
+                    className="input"
+                    value={videosPerPage}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value, 10);
+                      setVideosPerPage(VIDEOS_PER_PAGE_OPTIONS.includes(v) ? v : DEFAULT_VIDEOS_PER_PAGE);
+                      setVideosPage(1);
+                    }}
+                  >
+                    {VIDEOS_PER_PAGE_OPTIONS.map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <span className="muted">
+                  Página {videosPage} de {videosTotalPages} ({videosTotal} total)
+                </span>
+                <div className="flex gap-sm">
+                  <Button
+                    variant="secondary"
+                    disabled={videosPage <= 1}
+                    onClick={() => setVideosPage((p) => Math.max(1, p - 1))}
+                  >
+                    Anterior
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    disabled={videosPage >= videosTotalPages}
+                    onClick={() => setVideosPage((p) => p + 1)}
+                  >
+                    Próximo
+                  </Button>
+                </div>
+                <Button variant="secondary" onClick={() => setVideosModal(null)}>
+                  Fechar
+                </Button>
+              </div>
+            </div>
+            <div style={{ flex: 1, overflow: "auto", padding: 16 }}>
+              {loadingVideos && videos.length === 0 ? (
+                <div className="muted">A carregar vídeos…</div>
+              ) : videos.length === 0 ? (
+                <p className="muted">Nenhum vídeo nesta vitrine.</p>
+              ) : (
+                <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 12 }}>
+                  {videos.map((v) => {
+                    const thumb = getVideoThumb(v.pictures);
+                    return (
+                      <li
+                        key={v.id}
+                        style={{
+                          display: "flex",
+                          gap: 12,
+                          alignItems: "center",
+                          padding: 8,
+                          background: "var(--color-bg-subtle, #f5f5f5)",
+                          borderRadius: 8
+                        }}
+                      >
+                        {thumb ? (
+                          <img
+                            src={thumb}
+                            alt=""
+                            style={{ width: 120, height: 68, objectFit: "cover", borderRadius: 4 }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              width: 120,
+                              height: 68,
+                              background: "var(--color-bg, #eee)",
+                              borderRadius: 4,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: 11,
+                              color: "var(--color-muted, #666)"
+                            }}
+                          >
+                            Sem thumb
+                          </div>
+                        )}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 600 }}>{v.name ?? v.vimeoVideoId}</div>
+                          <div className="muted" style={{ fontSize: 12 }}>
+                            {formatDuration(v.duration)}
+                            {v.link && (
+                              <>
+                                {" · "}
+                                <button
+                                  type="button"
+                                  className="button-link"
+                                  onClick={() => copyVideoLink(v.link)}
+                                  style={{ fontSize: 12 }}
+                                >
+                                  Copiar link
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       <Card plain style={{ marginTop: 24 }}>

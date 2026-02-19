@@ -92,12 +92,12 @@ const adminVimeoCollaboratorsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = 
           updatedAt: true,
           lastSyncAt: true,
           lastSyncMsg: true,
-          _count: { select: { showcases: true } }
+          _count: { select: { showcases: true, videos: true } }
         }
       });
       const data = collaborators.map((c) => {
         const { _count, ...rest } = c;
-        return { ...rest, showcaseCount: _count.showcases };
+        return { ...rest, showcaseCount: _count.showcases, videoCount: _count.videos };
       });
       return reply.send(ok({ collaborators: data }));
     } catch (e) {
@@ -120,7 +120,7 @@ const adminVimeoCollaboratorsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = 
     }
   });
 
-  /** D) POST /admin/vimeo-collaborators/:id/sync — sync FULL vitrines do Vimeo para o cache */
+  /** D) POST /admin/vimeo-collaborators/:id/sync — sync FULL vitrines + vídeos do Vimeo para o cache */
   app.post<{ Params: { id: string } }>("/:id/sync", async (req, reply) => {
     const id = String((req.params as { id?: string }).id ?? "").trim();
     if (!id) return reply.status(400).send(err("invalid_input", "id é obrigatório."));
@@ -132,6 +132,7 @@ const adminVimeoCollaboratorsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = 
     if (!conn) {
       return reply.status(401).send(err("vimeo_auth_failed", "Conecte o Vimeo primeiro."));
     }
+
     type AlbumItem = {
       uri: string;
       name?: string | null;
@@ -141,51 +142,85 @@ const adminVimeoCollaboratorsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = 
       pictures?: { sizes?: Array<{ width?: number; link?: string }> } | null;
       metadata?: { connections?: { videos?: { total?: number } } };
     };
-    type Res = { data: AlbumItem[]; paging?: { next?: string | null } };
-    const all: AlbumItem[] = [];
-    let page = 1;
-    const perPage = 100;
+    type AlbumRes = { data: AlbumItem[]; paging?: { next?: string | null } };
+
+    type VideoItem = {
+      uri?: string | null;
+      name?: string | null;
+      description?: string | null;
+      duration?: number | null;
+      link?: string | null;
+      embed?: { html?: string | null } | null;
+      privacy?: { view?: string } | null;
+      created_time?: string | null;
+      modified_time?: string | null;
+      pictures?: { sizes?: Array<{ width?: number; link?: string }> } | null;
+    };
+    type VideoRes = { data: VideoItem[]; paging?: { next?: string | null } };
+
+    const vimeoGetWithRetry = async <T>(path: string, query: Record<string, string>): Promise<T> => {
+      let lastErr: unknown = null;
+      for (let attempt = 0; attempt < 5; attempt++) {
+        try {
+          return await vimeoGet<T>({
+            accessToken: conn.accessToken,
+            path,
+            query: { per_page: "100", ...query },
+            timeoutMs: VIMEO_SYNC_TIMEOUT_MS
+          });
+        } catch (e: unknown) {
+          lastErr = e;
+          if (isVimeoApiError(e) && (e as VimeoApiError).status === 429 && (e as VimeoApiError).retryAfter) {
+            const sec = Math.min((e as VimeoApiError).retryAfter!, 120);
+            reply.log.info({ retryAfter: sec }, "Vimeo 429, waiting before retry");
+            await new Promise((r) => setTimeout(r, sec * 1000));
+            continue;
+          }
+          throw e;
+        }
+      }
+      throw lastErr;
+    };
+
+    // 1) Buscar TODAS as vitrines (paginação)
+    const allAlbums: AlbumItem[] = [];
+    let albumPage = 1;
     const maxPages = 500;
     let lastError: unknown = null;
-    let totalFetched = 0;
 
-    while (page <= maxPages) {
+    while (albumPage <= maxPages) {
       try {
-        const data = await vimeoGet<Res>({
-          accessToken: conn.accessToken,
-          path: `/users/${collaborator.vimeoUserId}/albums`,
-          query: { per_page: String(perPage), page: String(page), sort: "date", direction: "desc" },
-          timeoutMs: VIMEO_SYNC_TIMEOUT_MS
-        });
-        if (data.data?.length) {
-          all.push(...data.data);
-          totalFetched += data.data.length;
-        }
-        if (!data.data?.length || data.data.length < perPage || !data.paging?.next) break;
-        page++;
+        const data = await vimeoGetWithRetry<AlbumRes>(
+          `/users/${collaborator.vimeoUserId}/albums`,
+          { page: String(albumPage), sort: "date", direction: "desc" }
+        );
+        if (data.data?.length) allAlbums.push(...data.data);
+        if (!data.data?.length || data.data.length < 100 || !data.paging?.next) break;
+        albumPage++;
       } catch (e: unknown) {
         lastError = e;
-        if (isVimeoApiError(e) && (e as VimeoApiError).status === 429 && (e as VimeoApiError).retryAfter) {
-          const sec = (e as VimeoApiError).retryAfter!;
-          reply.log.info({ retryAfter: sec }, "Vimeo 429, waiting before retry");
-          await new Promise((r) => setTimeout(r, Math.min(sec, 120) * 1000));
-          continue;
-        }
         break;
       }
     }
 
-    if (lastError && all.length === 0) {
+    if (lastError && allAlbums.length === 0) {
       return sendApiError(lastError, reply, "vimeo_unknown");
     }
 
-    let upserted = 0;
     const now = new Date();
-    for (const a of all) {
+    let showcasesUpserted = 0;
+    let videosFetched = 0;
+    let videosUpserted = 0;
+    let linksUpserted = 0;
+    let linksRemovedMarked = 0;
+
+    // 2) Upsert cada vitrine e depois buscar vídeos (máx. 2 vitrines em paralelo)
+    const processShowcase = async (a: AlbumItem): Promise<void> => {
       const vimeoShowcaseId = (a.uri.match(/\/albums\/(\d+)/) || [])[1] || a.uri;
       const modifiedTime = a.modified_time ? new Date(a.modified_time) : null;
       const totalVideos = a.metadata?.connections?.videos?.total ?? null;
-      await prisma.vimeoCollaboratorShowcase.upsert({
+
+      const showcase = await prisma.vimeoCollaboratorShowcase.upsert({
         where: {
           collaboratorId_vimeoShowcaseId: { collaboratorId: id, vimeoShowcaseId }
         },
@@ -211,22 +246,137 @@ const adminVimeoCollaboratorsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = 
           lastFetchedAt: now
         }
       });
-      upserted++;
+      showcasesUpserted++;
+
+      const allVideos: VideoItem[] = [];
+      let videoPage = 1;
+      while (true) {
+        try {
+          const vdata = await vimeoGetWithRetry<VideoRes>(
+            `/albums/${vimeoShowcaseId}/videos`,
+            { page: String(videoPage) }
+          );
+          if (vdata.data?.length) {
+            allVideos.push(...vdata.data);
+            videosFetched += vdata.data.length;
+          }
+          if (!vdata.data?.length || vdata.data.length < 100 || !vdata.paging?.next) break;
+          videoPage++;
+        } catch (e: unknown) {
+          reply.log.warn({ vimeoShowcaseId, err: e }, "Erro ao listar vídeos do album");
+          break;
+        }
+      }
+
+      const currentVideoIds: string[] = [];
+      let position = 0;
+      for (const v of allVideos) {
+        const vimeoVideoId = (v.uri?.match(/\/videos\/(\d+)/) || [])[1] || (v.uri ?? "").replace(/\D/g, "") || "";
+        if (!vimeoVideoId) continue;
+        currentVideoIds.push(vimeoVideoId);
+
+        const createdTime = v.created_time ? new Date(v.created_time) : null;
+        const modifiedTimeV = v.modified_time ? new Date(v.modified_time) : null;
+        const embedHtml = v.embed?.html ?? null;
+        const privacyView = v.privacy?.view ?? null;
+
+        const videoRecord = await prisma.vimeoCollaboratorVideo.upsert({
+          where: {
+            collaboratorId_vimeoVideoId: { collaboratorId: id, vimeoVideoId }
+          },
+          update: {
+            uri: v.uri ?? undefined,
+            name: v.name ?? undefined,
+            description: v.description ?? undefined,
+            duration: v.duration ?? undefined,
+            link: v.link ?? undefined,
+            embedHtml: embedHtml ?? undefined,
+            privacy: privacyView ?? undefined,
+            createdTime,
+            modifiedTime: modifiedTimeV,
+            pictures: v.pictures ?? undefined,
+            raw: v as unknown as object,
+            lastFetchedAt: now,
+            updatedAt: now
+          },
+          create: {
+            collaboratorId: id,
+            vimeoVideoId,
+            uri: v.uri ?? undefined,
+            name: v.name ?? undefined,
+            description: v.description ?? undefined,
+            duration: v.duration ?? undefined,
+            link: v.link ?? undefined,
+            embedHtml: embedHtml ?? undefined,
+            privacy: privacyView ?? undefined,
+            createdTime,
+            modifiedTime: modifiedTimeV,
+            pictures: v.pictures ?? undefined,
+            raw: v as unknown as object,
+            lastFetchedAt: now
+          }
+        });
+        videosUpserted++;
+
+        await prisma.vimeoCollaboratorShowcaseVideo.upsert({
+          where: {
+            showcaseId_videoId: { showcaseId: showcase.id, videoId: videoRecord.id }
+          },
+          update: {
+            position,
+            addedTime: createdTime ?? now,
+            removedAt: null
+          },
+          create: {
+            showcaseId: showcase.id,
+            videoId: videoRecord.id,
+            position,
+            addedTime: createdTime ?? now
+          }
+        });
+        linksUpserted++;
+        position++;
+      }
+
+      // Marcar removedAt nos vínculos que não vieram na lista atual
+      const existingLinks = await prisma.vimeoCollaboratorShowcaseVideo.findMany({
+        where: { showcaseId: showcase.id, removedAt: null },
+        select: { videoId: true, video: { select: { vimeoVideoId: true } } }
+      });
+      const currentSet = new Set(currentVideoIds);
+      for (const link of existingLinks) {
+        if (!currentSet.has(link.video.vimeoVideoId)) {
+          await prisma.vimeoCollaboratorShowcaseVideo.updateMany({
+            where: { showcaseId: showcase.id, videoId: link.videoId },
+            data: { removedAt: now }
+          });
+          linksRemovedMarked++;
+        }
+      }
+    };
+
+    const CONCURRENCY = 2;
+    for (let i = 0; i < allAlbums.length; i += CONCURRENCY) {
+      const chunk = allAlbums.slice(i, i + CONCURRENCY);
+      await Promise.all(chunk.map(processShowcase));
     }
 
     await prisma.vimeoCollaborator.update({
       where: { id },
       data: {
         lastSyncAt: now,
-        lastSyncMsg: lastError ? "Sync parcial (erro ao listar todas as páginas)." : null
+        lastSyncMsg: lastError ? "Sync parcial (erro ao listar todas as páginas de vitrines)." : null
       }
     });
 
     return reply.send(
       ok({
-        totalFetched: all.length,
-        upserted,
-        message: lastError && all.length === 0 ? undefined : "Sincronização concluída."
+        showcasesFetched: allAlbums.length,
+        showcasesUpserted,
+        videosFetched,
+        videosUpserted,
+        linksUpserted,
+        linksRemovedMarked
       })
     );
   });
@@ -247,13 +397,12 @@ const adminVimeoCollaboratorsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = 
       return reply.status(404).send(err("not_found", "Colaborador não encontrado."));
     }
 
-    const where: { collaboratorId: string; OR?: Array<{ name?: { contains: string; mode: "insensitive" }; description?: { contains: string; mode: "insensitive" }; vimeoShowcaseId?: { contains: string; mode: "insensitive" } }> } = {
+    const where: { collaboratorId: string; OR?: Array<{ name?: { contains: string; mode: "insensitive" }; vimeoShowcaseId?: { contains: string; mode: "insensitive" } }> } = {
       collaboratorId: id
     };
     if (q) {
       where.OR = [
         { name: { contains: q, mode: "insensitive" } },
-        { description: { contains: q, mode: "insensitive" } },
         { vimeoShowcaseId: { contains: q, mode: "insensitive" } }
       ];
     }
@@ -267,6 +416,88 @@ const adminVimeoCollaboratorsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = 
       }),
       prisma.vimeoCollaboratorShowcase.count({ where })
     ]);
+
+    return reply.send(
+      ok({
+        items,
+        page,
+        perPage,
+        total
+      })
+    );
+  });
+
+  /** E2) GET /admin/vimeo-collaborators/:id/showcases/:showcaseId/videos?page&perPage&q= — vídeos da vitrine (cache) */
+  app.get<{
+    Params: { id: string; showcaseId: string };
+    Querystring: { page?: string; perPage?: string; q?: string };
+  }>("/:id/showcases/:showcaseId/videos", async (req, reply) => {
+    const collabId = String((req.params as { id?: string }).id ?? "").trim();
+    const showcaseId = String((req.params as { showcaseId?: string }).showcaseId ?? "").trim();
+    if (!collabId || !showcaseId) {
+      return reply.status(400).send(err("invalid_input", "id e showcaseId são obrigatórios."));
+    }
+    const page = Math.max(1, parseInt(String((req.query as { page?: string }).page ?? "1"), 10) || 1);
+    const perPage = Math.min(100, Math.max(1, parseInt(String((req.query as { perPage?: string }).perPage ?? "24"), 10) || 24));
+    const q = String((req.query as { q?: string }).q ?? "").trim().toLowerCase();
+
+    const collaborator = await prisma.vimeoCollaborator.findUnique({ where: { id: collabId } });
+    if (!collaborator) {
+      return reply.status(404).send(err("not_found", "Colaborador não encontrado."));
+    }
+    const showcase = await prisma.vimeoCollaboratorShowcase.findFirst({
+      where: { id: showcaseId, collaboratorId: collabId }
+    });
+    if (!showcase) {
+      return reply.status(404).send(err("not_found", "Vitrine não encontrada."));
+    }
+
+    const whereJoin = {
+      showcaseId,
+      removedAt: null as Date | null,
+      video: q
+        ? {
+            OR: [
+              { name: { contains: q, mode: "insensitive" as const } },
+              { vimeoVideoId: { contains: q, mode: "insensitive" as const } }
+            ]
+          }
+        : undefined
+    };
+    const [links, total] = await Promise.all([
+      prisma.vimeoCollaboratorShowcaseVideo.findMany({
+        where: whereJoin,
+        include: {
+          video: {
+            select: {
+              id: true,
+              vimeoVideoId: true,
+              name: true,
+              duration: true,
+              link: true,
+              embedHtml: true,
+              pictures: true
+            }
+          }
+        },
+        orderBy: { position: "asc" },
+        skip: (page - 1) * perPage,
+        take: perPage
+      }),
+      prisma.vimeoCollaboratorShowcaseVideo.count({
+        where: whereJoin
+      })
+    ]);
+
+    const items = links.map((l) => ({
+      id: l.video.id,
+      vimeoVideoId: l.video.vimeoVideoId,
+      name: l.video.name,
+      duration: l.video.duration,
+      link: l.video.link,
+      embedHtml: l.video.embedHtml ?? undefined,
+      pictures: l.video.pictures
+    }));
 
     return reply.send(
       ok({

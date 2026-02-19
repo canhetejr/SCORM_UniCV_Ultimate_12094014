@@ -193,7 +193,7 @@ model AppConfig {
   updatedAt DateTime @updatedAt
 }
 
-// Colaborador Vimeo (userId fixo) + cache de vitrines (showcases) no banco
+// Colaborador Vimeo (userId fixo) + cache de vitrines (showcases) e vídeos no banco
 model VimeoCollaborator {
   id           String    @id @default(cuid())
   vimeoUserId  String    @unique
@@ -204,11 +204,12 @@ model VimeoCollaborator {
   lastSyncMsg  String?
 
   showcases VimeoCollaboratorShowcase[]
+  videos     VimeoCollaboratorVideo[]
 }
 
 model VimeoCollaboratorShowcase {
   id              String   @id @default(cuid())
-  collaboratorId String
+  collaboratorId  String
   collaborator    VimeoCollaborator @relation(fields: [collaboratorId], references: [id], onDelete: Cascade)
 
   vimeoShowcaseId String
@@ -222,8 +223,51 @@ model VimeoCollaboratorShowcase {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
+  showcaseVideos  VimeoCollaboratorShowcaseVideo[]
+
   @@unique([collaboratorId, vimeoShowcaseId])
   @@index([collaboratorId])
+}
+
+model VimeoCollaboratorVideo {
+  id             String   @id @default(cuid())
+  collaboratorId String
+  collaborator   VimeoCollaborator @relation(fields: [collaboratorId], references: [id], onDelete: Cascade)
+
+  vimeoVideoId   String
+  uri            String?
+  name           String?
+  description    String?
+  duration       Int?
+  link           String?
+  embedHtml      String?
+  privacy        String?
+  createdTime    DateTime?
+  modifiedTime   DateTime?
+  pictures       Json?
+  raw            Json?
+  lastFetchedAt  DateTime  @default(now())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  showcaseVideos VimeoCollaboratorShowcaseVideo[]
+
+  @@unique([collaboratorId, vimeoVideoId])
+  @@index([collaboratorId])
+}
+
+model VimeoCollaboratorShowcaseVideo {
+  showcaseId  String
+  showcase    VimeoCollaboratorShowcase @relation(fields: [showcaseId], references: [id], onDelete: Cascade)
+
+  videoId     String
+  video       VimeoCollaboratorVideo   @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  position    Int?
+  addedTime   DateTime?
+  removedAt   DateTime?
+
+  @@id([showcaseId, videoId])
 }
 
 // Eventos coletados para o dashboard (métricas, ações, acessos)

@@ -22,6 +22,7 @@ export type VimeoCollaboratorItem = {
   lastSyncAt: string | null;
   lastSyncMsg: string | null;
   showcaseCount: number;
+  videoCount: number;
 };
 
 export type VimeoCollaboratorShowcaseItem = {
@@ -65,15 +66,23 @@ export async function deleteCollaborator(id: string): Promise<void> {
   unwrap(r);
 }
 
-/** POST /admin/vimeo-collaborators/:id/sync — sincroniza vitrines do Vimeo para o cache */
+/** POST /admin/vimeo-collaborators/:id/sync — sincroniza vitrines + vídeos do Vimeo para o cache */
 export async function syncCollaborator(id: string): Promise<{
-  totalFetched: number;
-  upserted: number;
-  message?: string;
+  showcasesFetched: number;
+  showcasesUpserted: number;
+  videosFetched: number;
+  videosUpserted: number;
+  linksUpserted: number;
+  linksRemovedMarked: number;
 }> {
-  const r = await apiPost<ApiSuccess<{ totalFetched: number; upserted: number; message?: string }>>(
-    `${PREFIX}/${encodeURIComponent(id)}/sync`
-  );
+  const r = await apiPost<ApiSuccess<{
+    showcasesFetched: number;
+    showcasesUpserted: number;
+    videosFetched: number;
+    videosUpserted: number;
+    linksUpserted: number;
+    linksRemovedMarked: number;
+  }>>(`${PREFIX}/${encodeURIComponent(id)}/sync`);
   return unwrap(r);
 }
 
@@ -96,6 +105,42 @@ export async function getCollaboratorShowcases(
   const r = await apiGet<ApiSuccess<{ items: VimeoCollaboratorShowcaseItem[]; page: number; perPage: number; total: number }>>(
     path
   );
+  return unwrap(r);
+}
+
+/** GET /admin/vimeo-collaborators/:id/showcases/:showcaseId/videos — listagem paginada de vídeos da vitrine (cache) */
+export type VimeoCollaboratorVideoItem = {
+  id: string;
+  vimeoVideoId: string;
+  name: string | null;
+  duration: number | null;
+  link: string | null;
+  embedHtml?: string;
+  pictures: { sizes?: Array<{ width?: number; link?: string }> } | null;
+};
+
+export async function getShowcaseVideos(
+  collabId: string,
+  showcaseId: string,
+  opts: { page?: number; perPage?: number; q?: string }
+): Promise<{
+  items: VimeoCollaboratorVideoItem[];
+  page: number;
+  perPage: number;
+  total: number;
+}> {
+  const params = new URLSearchParams();
+  if (opts.page != null) params.set("page", String(opts.page));
+  if (opts.perPage != null) params.set("perPage", String(opts.perPage));
+  if (opts.q != null && opts.q.trim()) params.set("q", opts.q.trim());
+  const qs = params.toString();
+  const path = `${PREFIX}/${encodeURIComponent(collabId)}/showcases/${encodeURIComponent(showcaseId)}/videos${qs ? `?${qs}` : ""}`;
+  const r = await apiGet<ApiSuccess<{
+    items: VimeoCollaboratorVideoItem[];
+    page: number;
+    perPage: number;
+    total: number;
+  }>>(path);
   return unwrap(r);
 }
 
