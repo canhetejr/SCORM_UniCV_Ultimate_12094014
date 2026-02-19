@@ -45,10 +45,7 @@ const EnvSchema = z.object({
   // Admin (proteção das rotas de gestão)
   ADMIN_USER: z.string().optional(),
   ADMIN_PASSWORD: z.string().optional(),
-  ADMIN_JWT_SECRET: z.string().min(16).optional(), // se vazio, usa COOKIE_SECRET
-
-  // Vimeo Clone: chave para criptografar tokens no banco (32 bytes em base64)
-  VIMEO_TOKEN_ENCRYPTION_KEY: z.string().optional()
+  ADMIN_JWT_SECRET: z.string().min(16).optional() // se vazio, usa COOKIE_SECRET
 });
 
 export type Env = z.infer<typeof EnvSchema>;

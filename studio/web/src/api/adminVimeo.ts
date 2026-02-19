@@ -8,6 +8,25 @@ export type VimeoPingResponse = { ok: boolean; message: string };
 
 export type VimeoShowcaseItem = { id: string; name: string; description?: string; createdAt?: string | null };
 
+/** Vitrines de um usuário Vimeo (GET /admin/vimeo/users/:userId/showcases) */
+export type VimeoUserShowcaseItem = {
+  id: string;
+  name: string | null;
+  uri: string | null;
+  totalVideos: number | null;
+  pictures: { sizes?: Array<{ width?: number; link?: string }> } | null;
+  modifiedTime: string | null;
+};
+
+export async function getVimeoUserShowcases(userId: string): Promise<{ showcases: VimeoUserShowcaseItem[] }> {
+  const normalized = String(userId).trim().replace(/^\/users\//i, "").replace(/\D/g, "") || String(userId).trim();
+  if (!normalized) return { showcases: [] };
+  const r = await apiGet<ApiSuccess<{ showcases: VimeoUserShowcaseItem[] }>>(
+    `${PREFIX}/users/${encodeURIComponent(normalized)}/showcases`
+  );
+  return r?.ok && r.data != null ? r.data : { showcases: [] };
+}
+
 export type VimeoVideoItem = { id: string; title: string };
 
 export async function getVimeoPing(): Promise<VimeoPingResponse> {

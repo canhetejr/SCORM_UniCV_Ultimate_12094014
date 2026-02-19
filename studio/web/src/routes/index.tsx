@@ -8,7 +8,6 @@ import { ConfigPage } from "../pages/admin/config/ConfigPage";
 import { DashboardPage } from "../pages/dashboard/DashboardPage";
 import { ExportacoesPage } from "../pages/exportacoes/ExportacoesPage";
 import { ToolsPage } from "../pages/tools/ToolsPage";
-import { VimeoClonePage } from "../pages/tools/VimeoClonePage";
 import { VitrineDetalhePage } from "../pages/vitrines/VitrineDetalhePage";
 
 export type MenuItem = {
@@ -44,7 +43,6 @@ export function AppRoutes() {
           <Route index element={<HomePage />} />
           <Route path="vitrines/:id" element={<VitrineDetalhePage />} />
           <Route path="ferramentas" element={<ToolsPage />} />
-          <Route path="ferramentas/vimeo-clone" element={<VimeoClonePage />} />
           <Route path="exportacoes" element={<ExportacoesPage />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="admin/config" element={<ConfigPage />} />

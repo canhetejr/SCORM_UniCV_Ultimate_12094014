@@ -97,6 +97,59 @@ const adminVimeoRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, o
     }
   });
 
+  /** GET /admin/vimeo/users/:userId/showcases — lista vitrines/albums de um usuário Vimeo (paginação interna). */
+  app.get("/users/:userId/showcases", async (req, reply) => {
+    const conn = await deps.getPrimaryVimeoConnection();
+    if (!conn) {
+      return reply.status(401).send(err("vimeo_auth_failed", "Conecte o Vimeo primeiro."));
+    }
+    const raw = String((req.params as { userId?: string }).userId ?? "").trim();
+    const userId = raw.replace(/^\/users\//i, "").replace(/\D/g, "") || raw;
+    if (!userId) {
+      return reply.status(400).send(err("invalid_input", "userId é obrigatório (ex: 123 ou /users/123)."));
+    }
+    try {
+      type AlbumItem = {
+        uri: string;
+        name: string;
+        description?: string | null;
+        created_time?: string | null;
+        modified_time?: string | null;
+        pictures?: { sizes?: Array<{ width?: number; link?: string }> };
+        metadata?: { connections?: { videos?: { total?: number } } };
+      };
+      type Res = { data: AlbumItem[]; paging?: { next?: string | null } };
+      const all: AlbumItem[] = [];
+      let page = 1;
+      const perPage = 100;
+      for (;;) {
+        const data = await vimeoGet<Res>({
+          accessToken: conn.accessToken,
+          path: `/users/${userId}/albums`,
+          query: { per_page: String(perPage), page: String(page), sort: "date", direction: "desc" }
+        });
+        if (data.data?.length) all.push(...data.data);
+        if (!data.data?.length || data.data.length < perPage || !data.paging?.next) break;
+        page++;
+      }
+      const showcases = all.map((a) => {
+        const id = (a.uri.match(/\/albums\/(\d+)/) || [])[1] || a.uri;
+        const totalVideos = a.metadata?.connections?.videos?.total ?? null;
+        return {
+          id,
+          name: a.name ?? null,
+          uri: a.uri ?? null,
+          totalVideos,
+          pictures: a.pictures ?? null,
+          modifiedTime: a.modified_time ?? null
+        };
+      });
+      return reply.send(ok({ showcases }));
+    } catch (e: unknown) {
+      return sendApiError(e, reply, reply.log);
+    }
+  });
+
   app.get("/showcases", async (_req, reply) => {
     const conn = await deps.getPrimaryVimeoConnection();
     if (!conn) {
