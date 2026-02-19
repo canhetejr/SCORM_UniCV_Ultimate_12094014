@@ -19,9 +19,18 @@ function normalizeBase(url: string): string {
   return u || "";
 }
 
+/** Considera x-forwarded-proto ao derivar esquema (evita mixed content quando AVA/site é https). */
+function requestProtocol(req: FastifyRequest): "https" | "http" {
+  const raw = (req.headers["x-forwarded-proto"] as string)?.toLowerCase();
+  const first = raw?.split(",")[0]?.trim();
+  if (first === "https") return "https";
+  return "http";
+}
+
 /**
  * Retorna a base URL pública para o player (embed/SCORM/preview).
  * Ordem: PUBLIC_BASE_URL → BASE_URL → Origin/Referer do request.
+ * Quando atrás de proxy, usa x-forwarded-proto para gerar https se o cliente estiver em https (evita Failed to fetch no AVA).
  * Em produção (NODE_ENV=production) nunca retorna localhost.
  */
 export function getPublicPlayerBaseUrl(
@@ -30,10 +39,19 @@ export function getPublicPlayerBaseUrl(
   env: { PUBLIC_BASE_URL?: string; BASE_URL?: string; NODE_ENV?: string }
 ): string {
   const isProd = env.NODE_ENV === "production";
+  const proto = requestProtocol(req);
 
   const publicBase = getConfig("PUBLIC_BASE_URL") ?? env.PUBLIC_BASE_URL ?? "";
   if (publicBase && isHttpUrl(publicBase)) {
-    const normalized = normalizeBase(publicBase);
+    let normalized = normalizeBase(publicBase);
+    if (normalized && proto === "https") {
+      try {
+        const u = new URL(normalized);
+        if (u.protocol === "http:") normalized = normalizeBase(`https://${u.host}${u.pathname}`);
+      } catch {
+        /* keep normalized */
+      }
+    }
     if (normalized) {
       if (isProd && isLocalhost(new URL(normalized))) {
         // fallthrough para não devolver localhost em prod
@@ -45,7 +63,15 @@ export function getPublicPlayerBaseUrl(
 
   const baseUrl = getConfig("BASE_URL") ?? env.BASE_URL ?? "";
   if (baseUrl && isHttpUrl(baseUrl)) {
-    const normalized = normalizeBase(baseUrl);
+    let normalized = normalizeBase(baseUrl);
+    if (normalized && proto === "https") {
+      try {
+        const u = new URL(normalized);
+        if (u.protocol === "http:") normalized = normalizeBase(`https://${u.host}${u.pathname}`);
+      } catch {
+        /* keep normalized */
+      }
+    }
     if (normalized) {
       if (isProd && isLocalhost(new URL(normalized))) {
         // fallthrough
@@ -64,7 +90,8 @@ export function getPublicPlayerBaseUrl(
           "Em produção não é permitido usar localhost. Configure PUBLIC_BASE_URL ou BASE_URL no servidor."
         );
       }
-      const resolved = normalizeBase(`${u.protocol}//${u.host}`);
+      const scheme = proto === "https" ? "https" : u.protocol.replace(":", "");
+      const resolved = normalizeBase(`${scheme}://${u.host}`);
       if (resolved) return resolved;
     } catch (e) {
       if (e instanceof Error && e.message.includes("produção")) throw e;
@@ -77,7 +104,16 @@ export function getPublicPlayerBaseUrl(
     );
   }
 
-  return normalizeBase(baseUrl) || "http://localhost:3002";
+  const fallback = normalizeBase(baseUrl) || "http://localhost:3002";
+  if (proto === "https" && fallback.startsWith("http://")) {
+    try {
+      const u = new URL(fallback);
+      return normalizeBase(`https://${u.host}${u.pathname}`);
+    } catch {
+      return fallback;
+    }
+  }
+  return fallback;
 }
 
 /**

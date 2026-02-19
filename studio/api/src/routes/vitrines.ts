@@ -225,7 +225,7 @@ const vitrinesRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opt
     const manualTitle = body.title ? String(body.title).trim() : "";
     if (!manualTitle) return reply.badRequest("title é obrigatório.");
     const manualThumb = typeof (body.thumbUrl ?? body.thumbnailUrl) === "string"
-      ? String(body.thumbUrl ?? body.thumbnailUrl).trim() || null
+      ? (String(body.thumbUrl ?? body.thumbnailUrl).trim()) || null
       : null;
     const manualDuration = typeof body.durationSec === "number" && body.durationSec >= 0 ? body.durationSec : null;
     const manualHash = body.embedHash ? String(body.embedHash).trim() : "";

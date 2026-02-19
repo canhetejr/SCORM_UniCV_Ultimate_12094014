@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
-import { getResolvedApiBase, getResolvedPublicBaseUrl, getLastFetchError } from "../api";
+import { getResolvedApiBase, getLastFetchError } from "../api";
 
 const WORKSPACE_KEY = "unicv_workspace";
 const SIDEBAR_KEY = "unicv_sidebar_collapsed";
@@ -71,16 +71,10 @@ export function AppLayout() {
                 Workspace: {workspace}
               </span>
             )}
-            {import.meta.env.DEV && (
-              <details className="unicv-diagnostic" style={{ marginLeft: 8, fontSize: 11 }}>
-                <summary>Diagnóstico</summary>
-                <pre style={{ margin: 4, whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
-                  origin: {window.location.origin}
-                  API_BASE: {getResolvedApiBase()}
-                  PUBLIC_BASE: {getResolvedPublicBaseUrl()}
-                  {getLastFetchError() ? `erro: ${getLastFetchError()}` : ""}
-                </pre>
-              </details>
+            {import.meta.env.DEV && getLastFetchError() && (
+              <span className="muted" style={{ fontSize: 11 }} title={getLastFetchError() ?? undefined}>
+                Erro de rede
+              </span>
             )}
           </div>
         </header>

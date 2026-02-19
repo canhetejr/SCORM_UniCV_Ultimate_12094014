@@ -59,7 +59,7 @@ const authVimeoRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, op
   });
 
   app.get("/vimeo/callback", async (req, reply) => {
-    const baseUrl = (getConfig("BASE_URL") ?? env.BASE_URL ?? "").replace(/\/+$/, "") || "/";
+    const baseUrl = ((getConfig("BASE_URL") ?? env.BASE_URL ?? "").replace(/\/+$/, "")) || "/";
 
     if (!vimeoClientId() || !vimeoClientSecret()) {
       const msg = "Configure VIMEO_CLIENT_ID e VIMEO_CLIENT_SECRET em Admin > Configurações.";

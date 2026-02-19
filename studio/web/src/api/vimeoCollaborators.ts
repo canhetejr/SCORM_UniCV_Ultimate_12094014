@@ -188,6 +188,19 @@ export async function exportCollaboratorShowcases(
   return unwrap(r);
 }
 
+/** POST .../showcases/export-batch — retorna { fileName, json } para download único */
+export async function exportCollaboratorShowcasesBatch(
+  collabId: string,
+  showcaseIds: string[]
+): Promise<{ fileName: string; json: VimeoCollaboratorExportItem[] }> {
+  const r = await apiPost<
+    ApiSuccess<{ fileName: string; json: VimeoCollaboratorExportItem[] }>
+  >(`${PREFIX}/${encodeURIComponent(collabId)}/showcases/export-batch`, {
+    showcaseIds
+  });
+  return unwrap(r);
+}
+
 /** POST /admin/vimeo-collaborators/:id/showcases/:vimeoShowcaseId/link — linka ao editor (cria Vitrine se necessário), retorna vitrineId */
 export async function linkShowcaseToStudio(
   collabId: string,

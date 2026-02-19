@@ -5,7 +5,7 @@ import {
   getCollaboratorShowcases,
   getShowcaseVideos,
   linkShowcaseToStudio,
-  exportCollaboratorShowcases,
+  exportCollaboratorShowcasesBatch,
   type VimeoCollaboratorItem,
   type VimeoCollaboratorShowcaseItem,
   type VimeoCollaboratorVideoItem
@@ -17,7 +17,8 @@ import { Button, Card, ToastContainer } from "../../components/ui";
 import { useToast } from "../../hooks/useToast";
 import { useVitrinesStore } from "../../store/vitrinesStore";
 import type { Vitrine } from "../../types/vitrine";
-import { useApiStatus } from "../../hooks/useApiStatus";
+import { getVimeoPing } from "../../api/adminVimeo";
+import { getResolvedApiBase } from "../../api";
 
 const PER_PAGE_OPTIONS = [12, 16];
 const DEFAULT_PER_PAGE = 12;
@@ -103,12 +104,12 @@ export function HomePage() {
   const toast = useToast();
   const vitrines = useVitrinesStore((s) => s.admin.vitrines);
   const setInitial = useVitrinesStore((s) => s.setInitial);
-  const { status: apiStatus } = useApiStatus();
+  const [vimeoPing, setVimeoPing] = useState<{ ok: boolean; message: string; at?: string } | null>(null);
 
   // URL state: collaboratorId, q, page, perPage
   const collaboratorIdFromUrl = searchParams.get("collaboratorId") ?? "";
   const qFromUrl = searchParams.get("q") ?? "";
-  const pageFromUrl = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1);
+  const pageFromUrl = Math.max(1, (parseInt(searchParams.get("page") ?? "1", 10) || 1));
   const perPageFromUrl = PER_PAGE_OPTIONS.includes(parseInt(searchParams.get("perPage") ?? "", 10))
     ? parseInt(searchParams.get("perPage") ?? "", 10)
     : DEFAULT_PER_PAGE;
@@ -121,8 +122,6 @@ export function HomePage() {
   const [showcases, setShowcases] = useState<VimeoCollaboratorShowcaseItem[]>([]);
   const [showcasesTotal, setShowcasesTotal] = useState(0);
   const [loadingCollaborators, setLoadingCollaborators] = useState(false);
-  const [loadingAdd, setLoadingAdd] = useState(false);
-  const [loadingSync, setLoadingSync] = useState(false);
   const [loadingShowcases, setLoadingShowcases] = useState(false);
   const [loadingLink, setLoadingLink] = useState<string | null>(null);
   const [loadingVitrines, setLoadingVitrines] = useState(false);
@@ -189,6 +188,13 @@ export function HomePage() {
       .catch((err) => toast.error(getErrorMessage(err)))
       .finally(() => setLoadingCollaborators(false));
   }, [toast]);
+
+  // Vimeo status badge (ping)
+  useEffect(() => {
+    getVimeoPing()
+      .then((r) => setVimeoPing({ ...r, at: new Date().toISOString() }))
+      .catch(() => setVimeoPing({ ok: false, message: "Erro ao verificar.", at: new Date().toISOString() }));
+  }, []);
 
   // Resolve colaborador padrão quando lista é carregada
   useEffect(() => {
@@ -267,7 +273,7 @@ export function HomePage() {
 
   // Load showcases when selected collaborator or q/page/perPage change
   const effectiveQ = searchParams.get("q") ?? "";
-  const effectivePage = parseInt(searchParams.get("page") ?? String(page), 10) || 1;
+  const effectivePage = (parseInt(searchParams.get("page") ?? String(page), 10)) || 1;
   const effectivePerPage = PER_PAGE_OPTIONS.includes(parseInt(searchParams.get("perPage") ?? "", 10))
     ? parseInt(searchParams.get("perPage") ?? "", 10)
     : perPage;
@@ -373,16 +379,14 @@ export function HomePage() {
     setExporting(true);
     try {
       const showcaseIds = Array.from(selectedShowcaseIds);
-      const res = await exportCollaboratorShowcases(selectedCollabId, showcaseIds);
-      const timestamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 13).replace("T", "_");
-      const filename = `collab_${res.collaboratorId}_export_${timestamp}.json`;
-      const blob = new Blob([JSON.stringify(res, null, 2)], {
+      const res = await exportCollaboratorShowcasesBatch(selectedCollabId, showcaseIds);
+      const blob = new Blob([JSON.stringify(res.json, null, 2)], {
         type: "application/json"
       });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = filename;
+      a.download = res.fileName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -401,96 +405,59 @@ export function HomePage() {
     <div className="page-home">
       <ToastContainer toasts={toast.toasts} onRemove={toast.remove} />
 
-      <Card plain>
-        <div className="flex gap-md items-center justify-between flex-wrap" style={{ marginBottom: 12 }}>
-          <div className="flex gap-md items-center flex-wrap">
-            <label className="flex items-center gap-sm">
-              <span className="muted">Colaborador:</span>
-              <select
-                className="input"
-                value={selectedCollabId}
-                onChange={(e) => {
-                  const id = e.target.value;
-                  setSelectedCollabId(id);
-                  updateUrl({ collaboratorId: id || undefined, page: 1 });
-                }}
-                style={{ minWidth: 200 }}
-                disabled={loadingCollaborators || collaborators.length === 0}
-              >
-                <option value="">— Selecionar —</option>
-                {collaborators.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.label || c.vimeoUserId} ({c.showcaseCount} vitrines, {c.videoCount} vídeos)
-                  </option>
-                ))}
-              </select>
-            </label>
-            {selectedCollab && (
-              <span className="muted" style={{ fontSize: 13 }}>
-                {selectedCollab.lastSyncAt
-                  ? `Último sync: ${new Date(selectedCollab.lastSyncAt).toLocaleString("pt-BR")}`
-                  : "Nunca sincronizado"}
-              </span>
-            )}
-          </div>
-          <div className="flex gap-md items-center flex-wrap">
-            {!selectionMode && (
-              <Button
-                variant="secondary"
-                onClick={toggleSelectionMode}
-                disabled={!selectedCollabId || loadingShowcases}
-              >
-                Selecionar
-              </Button>
-            )}
-            {selectionMode && (
-              <>
-                <span className="muted" style={{ fontSize: 13 }}>
-                  {selectedShowcaseIds.size} selecionada(s)
-                </span>
-                <Button
-                  onClick={handleExportSelected}
-                  disabled={selectedShowcaseIds.size === 0 || exporting}
-                >
-                  {exporting ? "Exportando…" : "Exportar selecionadas"}
-                </Button>
-                <Button variant="secondary" onClick={toggleSelectionMode}>
-                  Cancelar seleção
-                </Button>
-              </>
-            )}
-            {apiStatus && (
-              <span
-                className={`pill ${apiStatus.connected ? "connected" : "disconnected"}`}
-                title={
-                  `URL: ${apiStatus.url}\n` +
-                  `Último ping: ${
-                    apiStatus.lastPingAt
-                      ? new Date(apiStatus.lastPingAt).toLocaleString("pt-BR")
-                      : "—"
-                  }\n` +
-                  `Latência: ${
-                    apiStatus.latencyMs != null ? `${Math.round(apiStatus.latencyMs)} ms` : "—"
-                  }`
-                }
-              >
-                <strong>API:</strong>
-                <span>{apiStatus.connected ? "Conectado" : "Offline"}</span>
-              </span>
-            )}
-          </div>
-        </div>
-
-        {!selectedCollabId && !loadingCollaborators && (
-          <p className="muted" style={{ marginTop: 8, marginBottom: 0, fontSize: 13 }}>
-            Nenhum colaborador selecionado. Vá em <strong>Configurações</strong> para adicionar um
-            colaborador Vimeo.
+      {!selectedCollabId && !loadingCollaborators && (
+        <Card plain style={{ marginBottom: 16 }}>
+          <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+            Selecione um colaborador em <strong>Configurações &gt; Vimeo</strong> para ver as vitrines.
           </p>
-        )}
-      </Card>
+        </Card>
+      )}
 
       {selectedCollabId && (
-        <Card plain style={{ marginTop: 16 }}>
+        <Card plain>
+          <div className="flex gap-md items-center justify-between flex-wrap" style={{ marginBottom: 12 }}>
+            <div className="flex gap-md items-center flex-wrap">
+              <h1 className="h" style={{ margin: 0, fontSize: 18 }}>Vitrines</h1>
+              <span
+                className={`pill ${vimeoPing?.ok ? "connected" : "disconnected"}`}
+                title={
+                  `${getResolvedApiBase()}\n` +
+                  `Última verificação: ${vimeoPing?.at ? new Date(vimeoPing.at).toLocaleString("pt-BR") : "—"}\n` +
+                  (vimeoPing?.message ?? "")
+                }
+                style={{ fontSize: 12 }}
+              >
+                Vimeo: {vimeoPing?.ok ? "Conectado" : "Desconectado"}
+              </span>
+            </div>
+            <div className="flex gap-md items-center flex-wrap">
+              {!selectionMode && (
+                <Button
+                  variant="secondary"
+                  onClick={toggleSelectionMode}
+                  disabled={loadingShowcases}
+                >
+                  Selecionar
+                </Button>
+              )}
+              {selectionMode && (
+                <>
+                  <span className="muted" style={{ fontSize: 13 }}>
+                    Selecionadas: {selectedShowcaseIds.size}
+                  </span>
+                  <Button
+                    onClick={handleExportSelected}
+                    disabled={selectedShowcaseIds.size === 0 || exporting}
+                  >
+                    {exporting ? "Exportando…" : "Exportar selecionadas"}
+                  </Button>
+                  <Button variant="secondary" onClick={toggleSelectionMode}>
+                    Limpar seleção
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
           <div className="flex gap-md items-center flex-wrap" style={{ marginBottom: 12 }}>
             <input
               type="search"
@@ -701,12 +668,15 @@ export function HomePage() {
               maxHeight: "90vh",
               overflow: "hidden",
               display: "flex",
-              flexDirection: "column"
+              flexDirection: "column",
+              background: "var(--color-bg-elevated, var(--color-bg, #1e1e1e))",
+              color: "var(--color-text, #e0e0e0)",
+              border: "1px solid var(--color-border, #333)"
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ padding: 16, borderBottom: "1px solid var(--color-border, #ddd)" }}>
-              <h2 id="videos-modal-title" style={{ margin: 0, fontSize: 18 }}>
+            <div style={{ padding: 16, borderBottom: "1px solid var(--color-border, #333)" }}>
+              <h2 id="videos-modal-title" style={{ margin: 0, fontSize: 18, color: "inherit" }}>
                 Vídeos: {videosModal.showcaseName}
               </h2>
               <div className="flex gap-md items-center flex-wrap" style={{ marginTop: 12 }}>
@@ -760,7 +730,7 @@ export function HomePage() {
                 </Button>
               </div>
             </div>
-            <div style={{ flex: 1, overflow: "auto", padding: 16 }}>
+            <div style={{ flex: 1, overflow: "auto", padding: 16, background: "var(--color-bg, #1a1a1a)" }}>
               {loadingVideos && videos.length === 0 ? (
                 <div className="muted">A carregar vídeos…</div>
               ) : videos.length === 0 ? (
@@ -777,8 +747,9 @@ export function HomePage() {
                           gap: 12,
                           alignItems: "center",
                           padding: 8,
-                          background: "var(--color-bg-subtle, #f5f5f5)",
-                          borderRadius: 8
+                          background: "var(--color-bg-subtle, #2a2a2a)",
+                          borderRadius: 8,
+                          border: "1px solid var(--color-border, #333)"
                         }}
                       >
                         {thumb ? (
@@ -792,20 +763,20 @@ export function HomePage() {
                             style={{
                               width: 120,
                               height: 68,
-                              background: "var(--color-bg, #eee)",
+                              background: "var(--color-bg-muted, #252525)",
                               borderRadius: 4,
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
                               fontSize: 11,
-                              color: "var(--color-muted, #666)"
+                              color: "var(--color-muted, #999)"
                             }}
                           >
                             Sem thumb
                           </div>
                         )}
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 600 }}>{v.name ?? v.vimeoVideoId}</div>
+                          <div style={{ fontWeight: 600, color: "inherit" }}>{v.name ?? v.vimeoVideoId}</div>
                           <div className="muted" style={{ fontSize: 12 }}>
                             {formatDuration(v.duration)}
                             {v.link && (

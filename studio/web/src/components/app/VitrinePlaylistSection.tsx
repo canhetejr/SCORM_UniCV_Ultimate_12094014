@@ -76,7 +76,7 @@ export function VitrinePlaylistSection({
                     variant="secondary"
                     size="sm"
                     onClick={() => onMoveVideo(vv.video.id, "down")}
-                    disabled={playlistBusy || i === (vitrine.videos?.length ?? 1) - 1}
+                    disabled={playlistBusy || i === ((vitrine.videos?.length ?? 1) - 1)}
                     title="Mover para baixo"
                   >
                     ↓

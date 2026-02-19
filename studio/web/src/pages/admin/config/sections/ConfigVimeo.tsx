@@ -1,23 +1,28 @@
 import React from "react";
-import { apiGet, getVimeoOAuthStartUrl } from "../../../../api";
+import { apiGet, getVimeoOAuthStartUrl, getResolvedApiBase } from "../../../../api";
 import { useConfigStatus } from "../../../../hooks/useConfigStatus";
-import { useApiStatus } from "../../../../hooks/useApiStatus";
 import { listCollaborators, createCollaborator, syncCollaborator, type VimeoCollaboratorItem } from "../../../../api/vimeoCollaborators";
+import { getVimeoPing } from "../../../../api/adminVimeo";
 import { Button } from "../../../../components/ui/Button";
 import { useToast } from "../../../../hooks/useToast";
 import { ToastContainer } from "../../../../components/ui/ToastContainer";
+import { loadFromStorage, saveToStorage } from "../../../../lib/storage";
+
+const VIMEO_COLLAB_STORAGE_KEY = "studio.defaultCollaboratorId";
 
 export function ConfigVimeo() {
   const { data: configStatus, loading, refresh } = useConfigStatus();
-  const { status: apiStatus } = useApiStatus();
   const toast = useToast();
   const [vimeoStatus, setVimeoStatus] = React.useState<{
     connected: boolean;
     configured?: boolean;
     vimeoUserId?: string | null;
   } | null>(null);
+  const [vimeoPing, setVimeoPing] = React.useState<{ ok: boolean; message: string; at?: string } | null>(null);
   const [collaborators, setCollaborators] = React.useState<VimeoCollaboratorItem[]>([]);
-  const [selectedCollabId, setSelectedCollabId] = React.useState<string>("");
+  const [selectedCollabId, setSelectedCollabId] = React.useState<string>(() =>
+    loadFromStorage<string>(VIMEO_COLLAB_STORAGE_KEY, "")
+  );
   const [vimeoUserIdInput, setVimeoUserIdInput] = React.useState("");
   const [loadingCollaborators, setLoadingCollaborators] = React.useState(false);
   const [loadingAdd, setLoadingAdd] = React.useState(false);
@@ -30,13 +35,22 @@ export function ConfigVimeo() {
   }, []);
 
   React.useEffect(() => {
+    getVimeoPing()
+      .then((r) => setVimeoPing({ ...r, at: new Date().toISOString() }))
+      .catch(() => setVimeoPing({ ok: false, message: "Erro ao verificar.", at: new Date().toISOString() }));
+  }, [loadingSync]); // re-ping após sync
+
+  React.useEffect(() => {
     setLoadingCollaborators(true);
     listCollaborators()
       .then((res) => {
         setCollaborators(res.collaborators ?? []);
-        setSelectedCollabId((prev) =>
-          res.collaborators?.length && !prev ? res.collaborators[0].id : prev
-        );
+        const stored = loadFromStorage<string>(VIMEO_COLLAB_STORAGE_KEY, "");
+        setSelectedCollabId((prev) => {
+          const next = prev || stored || (res.collaborators?.length ? res.collaborators[0].id : "");
+          if (next && next !== stored) saveToStorage(VIMEO_COLLAB_STORAGE_KEY, next);
+          return next;
+        });
       })
       .catch((e) => toast.error(e?.message ?? "Erro ao carregar colaboradores."))
       .finally(() => setLoadingCollaborators(false));
@@ -56,6 +70,7 @@ export function ConfigVimeo() {
         return [res.collaborator, ...list];
       });
       setSelectedCollabId(res.collaborator.id);
+      saveToStorage(VIMEO_COLLAB_STORAGE_KEY, res.collaborator.id);
       toast.success("Colaborador salvo.");
     } catch (err) {
       toast.error((err as Error)?.message ?? "Erro ao adicionar colaborador.");
@@ -97,33 +112,21 @@ export function ConfigVimeo() {
         ) : (
           <>
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
-              <span className="pill">
-                <strong>Status</strong>
+              <span
+                className={`pill ${vimeoPing?.ok ? "connected" : "disconnected"}`}
+                title={
+                  `${getResolvedApiBase()}\n` +
+                  `Última verificação: ${vimeoPing?.at ? new Date(vimeoPing.at).toLocaleString("pt-BR") : "—"}\n` +
+                  (vimeoPing?.message ?? "")
+                }
+              >
+                <strong>Vimeo:</strong>
                 <span>
-                  {!configured ? "não configurado" : connected ? "conectado" : "desconectado"}
+                  {!configured ? "não configurado" : vimeoPing?.ok ? "Conectado" : "Desconectado"}
                 </span>
-                {connected && vimeoStatus?.vimeoUserId ? (
-                  <span className="muted">user {vimeoStatus.vimeoUserId}</span>
-                ) : null}
               </span>
-              {apiStatus && (
-                <span
-                  className={`pill ${apiStatus.connected ? "connected" : "disconnected"}`}
-                  title={
-                    `URL: ${apiStatus.url}\n` +
-                    `Último ping: ${
-                      apiStatus.lastPingAt
-                        ? new Date(apiStatus.lastPingAt).toLocaleString("pt-BR")
-                        : "—"
-                    }\n` +
-                    `Latência: ${
-                      apiStatus.latencyMs != null ? `${Math.round(apiStatus.latencyMs)} ms` : "—"
-                    }`
-                  }
-                >
-                  <strong>API:</strong>
-                  <span>{apiStatus.connected ? "Conectado" : "Offline"}</span>
-                </span>
+              {configured && !vimeoPing?.ok && vimeoPing?.message && (
+                <span className="muted" style={{ fontSize: 12 }}>{vimeoPing.message}</span>
               )}
               <Button variant="secondary" size="sm" onClick={() => refresh()}>
                 Atualizar
@@ -199,7 +202,11 @@ export function ConfigVimeo() {
             <select
               className="input"
               value={selectedCollabId}
-              onChange={(e) => setSelectedCollabId(e.target.value)}
+              onChange={(e) => {
+                const id = e.target.value;
+                setSelectedCollabId(id);
+                saveToStorage(VIMEO_COLLAB_STORAGE_KEY, id);
+              }}
               disabled={loadingCollaborators || !collaborators.length}
               style={{ minWidth: 220 }}
             >
@@ -221,7 +228,7 @@ export function ConfigVimeo() {
         </div>
         {selectedCollab && (
           <p className="muted" style={{ fontSize: 13, marginTop: 4 }}>
-            Último sync:{" "}
+            Última atualização:{" "}
             {selectedCollab.lastSyncAt
               ? new Date(selectedCollab.lastSyncAt).toLocaleString("pt-BR")
               : "—"}{" "}

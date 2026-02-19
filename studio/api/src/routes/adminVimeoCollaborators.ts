@@ -26,6 +26,69 @@ function normalizeVimeoUserId(raw: string): string {
   return digits.length > 0 ? digits : s || "";
 }
 
+/** Extrai URL da thumbnail do campo pictures (Json) do cache. */
+function thumbFromPictures(pictures: unknown): string | null {
+  if (!pictures || typeof pictures !== "object") return null;
+  const p = pictures as { sizes?: Array<{ link?: string; width?: number }> };
+  const sizes = p.sizes;
+  if (!Array.isArray(sizes) || sizes.length === 0) return null;
+  const withLink = sizes.filter((s: { link?: string }) => s?.link);
+  const sorted = [...withLink].sort((a, b) => (a.width ?? 0) - (b.width ?? 0));
+  return sorted[0]?.link ?? null;
+}
+
+/**
+ * Atualiza a playlist da Vitrine do Studio (VitrineVideo) a partir do cache do colaborador.
+ * Usado após sync e no link para que o editor mostre os vídeos.
+ */
+async function syncStudioVitrinePlaylistFromCache(
+  accountId: string,
+  vimeoShowcaseId: string,
+  cachedShowcaseId: string
+): Promise<void> {
+  const vitrine = await prisma.vitrine.findFirst({
+    where: { accountId, vimeoShowcaseId }
+  });
+  if (!vitrine) return;
+
+  const links = await prisma.vimeoCollaboratorShowcaseVideo.findMany({
+    where: { showcaseId: cachedShowcaseId, removedAt: null },
+    orderBy: { position: "asc" },
+    include: { video: true }
+  });
+
+  await prisma.vitrineVideo.deleteMany({ where: { vitrineId: vitrine.id } });
+
+  for (let position = 0; position < links.length; position++) {
+    const link = links[position];
+    const cv = link.video;
+    const title = (cv.name ?? `Vídeo ${cv.vimeoVideoId}`).trim().slice(0, 500) || `Vídeo ${cv.vimeoVideoId}`;
+    const thumbnailUrl = thumbFromPictures(cv.pictures);
+
+    const video = await prisma.video.upsert({
+      where: {
+        accountId_vimeoVideoId: { accountId, vimeoVideoId: cv.vimeoVideoId }
+      },
+      update: {
+        title,
+        thumbnailUrl: thumbnailUrl ?? undefined,
+        durationSec: cv.duration ?? undefined
+      },
+      create: {
+        accountId,
+        vimeoVideoId: cv.vimeoVideoId,
+        title,
+        thumbnailUrl,
+        durationSec: cv.duration ?? null
+      }
+    });
+
+    await prisma.vitrineVideo.create({
+      data: { vitrineId: vitrine.id, videoId: video.id, position }
+    });
+  }
+}
+
 function toClientMessage(code: string): string {
   const map: Record<string, string> = {
     vimeo_auth_failed: "Vimeo desconectado. Refazer conexão.",
@@ -132,6 +195,7 @@ const adminVimeoCollaboratorsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = 
     if (!conn) {
       return reply.status(401).send(err("vimeo_auth_failed", "Conecte o Vimeo primeiro."));
     }
+    const accountId = await deps.getDefaultAccountId();
 
     type AlbumItem = {
       uri: string;
@@ -271,7 +335,7 @@ const adminVimeoCollaboratorsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = 
       const currentVideoIds: string[] = [];
       let position = 0;
       for (const v of allVideos) {
-        const vimeoVideoId = (v.uri?.match(/\/videos\/(\d+)/) || [])[1] || (v.uri ?? "").replace(/\D/g, "") || "";
+        const vimeoVideoId = ((v.uri?.match(/\/videos\/(\d+)/) || [])[1]) || ((v.uri ?? "").replace(/\D/g, "") || "");
         if (!vimeoVideoId) continue;
         currentVideoIds.push(vimeoVideoId);
 
@@ -353,6 +417,8 @@ const adminVimeoCollaboratorsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = 
           linksRemovedMarked++;
         }
       }
+
+      await syncStudioVitrinePlaylistFromCache(accountId, vimeoShowcaseId, showcase.id);
     };
 
     const CONCURRENCY = 2;
@@ -388,8 +454,8 @@ const adminVimeoCollaboratorsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = 
   }>("/:id/showcases", async (req, reply) => {
     const id = String((req.params as { id?: string }).id ?? "").trim();
     if (!id) return reply.status(400).send(err("invalid_input", "id é obrigatório."));
-    const page = Math.max(1, parseInt(String((req.query as { page?: string }).page ?? "1"), 10) || 1);
-    const perPage = Math.min(100, Math.max(1, parseInt(String((req.query as { perPage?: string }).perPage ?? "12"), 10) || 12));
+    const page = Math.max(1, (parseInt(String((req.query as { page?: string }).page ?? "1"), 10) || 1));
+    const perPage = Math.min(100, Math.max(1, (parseInt(String((req.query as { perPage?: string }).perPage ?? "12"), 10) || 12)));
     const q = String((req.query as { q?: string }).q ?? "").trim().toLowerCase();
 
     const collaborator = await prisma.vimeoCollaborator.findUnique({ where: { id } });
@@ -534,6 +600,103 @@ const adminVimeoCollaboratorsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = 
     );
   });
 
+  /** E3b) POST /admin/vimeo-collaborators/:id/showcases/export-batch — exporta vitrines selecionadas (banco), retorna { fileName, json } */
+  app.post<{
+    Params: { id: string };
+    Body: { showcaseIds?: string[] };
+  }>("/:id/showcases/export-batch", async (req, reply) => {
+    const collabId = String((req.params as { id?: string }).id ?? "").trim();
+    if (!collabId) {
+      return reply.status(400).send(err("invalid_input", "id é obrigatório."));
+    }
+    const body = (req.body || {}) as { showcaseIds?: string[] };
+    const showcaseIds = Array.isArray(body.showcaseIds) ? body.showcaseIds.map((s) => String(s).trim()).filter(Boolean) : [];
+    if (!showcaseIds.length) {
+      return reply.status(400).send(err("invalid_input", "showcaseIds é obrigatório (array não vazio)."));
+    }
+
+    const collaborator = await prisma.vimeoCollaborator.findUnique({ where: { id: collabId } });
+    if (!collaborator) {
+      return reply.status(404).send(err("not_found", "Colaborador não encontrado."));
+    }
+
+    const showcases = await prisma.vimeoCollaboratorShowcase.findMany({
+      where: {
+        id: { in: showcaseIds },
+        collaboratorId: collabId
+      },
+      orderBy: [{ modifiedTime: "desc" }, { createdAt: "desc" }]
+    });
+
+    if (!showcases.length) {
+      return reply.status(404).send(err("not_found", "Nenhuma vitrine encontrada para os IDs informados."));
+    }
+
+    const showcaseIdsSet = new Set(showcases.map((s) => s.id));
+    const links = await prisma.vimeoCollaboratorShowcaseVideo.findMany({
+      where: {
+        showcaseId: { in: Array.from(showcaseIdsSet) },
+        removedAt: null
+      },
+      orderBy: { position: "asc" },
+      include: {
+        video: {
+          select: {
+            id: true,
+            vimeoVideoId: true,
+            name: true,
+            description: true,
+            duration: true,
+            link: true,
+            pictures: true,
+            createdTime: true,
+            modifiedTime: true
+          }
+        }
+      }
+    });
+
+    const byShowcase = new Map<string, typeof links>();
+    for (const link of links) {
+      const arr = byShowcase.get(link.showcaseId) ?? [];
+      arr.push(link);
+      byShowcase.set(link.showcaseId, arr);
+    }
+
+    const json = showcases.map((s) => {
+      const showcaseVideos = byShowcase.get(s.id) ?? [];
+      return {
+        showcaseId: s.id,
+        showcase: {
+          id: s.id,
+          collaboratorId: s.collaboratorId,
+          vimeoShowcaseId: s.vimeoShowcaseId,
+          name: s.name,
+          description: s.description,
+          totalVideos: s.totalVideos,
+          modifiedTime: s.modifiedTime,
+          pictures: s.pictures
+        },
+        videos: showcaseVideos.map((sv) => ({
+          id: sv.video.id,
+          vimeoVideoId: sv.video.vimeoVideoId,
+          name: sv.video.name,
+          description: sv.video.description,
+          duration: sv.video.duration,
+          link: sv.video.link,
+          pictures: sv.video.pictures,
+          position: sv.position,
+          addedTime: sv.addedTime,
+          removedAt: sv.removedAt
+        }))
+      };
+    });
+
+    const timestamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15).replace("T", "_");
+    const fileName = `vitrines_export_${collabId}_${timestamp}.json`;
+    return reply.send(ok({ fileName, json }));
+  });
+
   /** E2) GET /admin/vimeo-collaborators/:id/showcases/:showcaseId/videos?page&perPage&q= — vídeos da vitrine (cache) */
   app.get<{
     Params: { id: string; showcaseId: string };
@@ -544,8 +707,8 @@ const adminVimeoCollaboratorsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = 
     if (!collabId || !showcaseId) {
       return reply.status(400).send(err("invalid_input", "id e showcaseId são obrigatórios."));
     }
-    const page = Math.max(1, parseInt(String((req.query as { page?: string }).page ?? "1"), 10) || 1);
-    const perPage = Math.min(100, Math.max(1, parseInt(String((req.query as { perPage?: string }).perPage ?? "24"), 10) || 24));
+    const page = Math.max(1, (parseInt(String((req.query as { page?: string }).page ?? "1"), 10) || 1));
+    const perPage = Math.min(100, Math.max(1, (parseInt(String((req.query as { perPage?: string }).perPage ?? "24"), 10) || 24)));
     const q = String((req.query as { q?: string }).q ?? "").trim().toLowerCase();
 
     const collaborator = await prisma.vimeoCollaborator.findUnique({ where: { id: collabId } });
@@ -653,6 +816,9 @@ const adminVimeoCollaboratorsRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = 
             vimeoSource: VitrineSource.VIMEO_SHOWCASE
           }
         });
+      }
+      if (cached) {
+        await syncStudioVitrinePlaylistFromCache(accountId, vimeoShowcaseId, cached.id);
       }
       return reply.send(ok({ vitrineId: vitrine.id }));
     }

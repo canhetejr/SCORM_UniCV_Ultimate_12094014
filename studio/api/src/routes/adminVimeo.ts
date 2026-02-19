@@ -327,7 +327,7 @@ const adminVimeoRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, o
     }
     const accountId = await deps.getDefaultAccountId();
     const obj = json as { id?: string; title?: string; description?: string; status?: string; vimeoShowcaseId?: string; videos?: Array<{ vimeoVideoId: string; title?: string; position?: number }> };
-    const title = String(obj.title ?? "Importado").trim().slice(0, 500) || "Importado";
+    const title = (String(obj.title ?? "Importado").trim().slice(0, 500)) || "Importado";
     const vitrineId = typeof obj.id === "string" ? obj.id.trim().slice(0, 200) : undefined;
     const vimeoShowcaseId = typeof obj.vimeoShowcaseId === "string" ? obj.vimeoShowcaseId.trim().slice(0, 100) : null;
     const status: VitrineStatus =
