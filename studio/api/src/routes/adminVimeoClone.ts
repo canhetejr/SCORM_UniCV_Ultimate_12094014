@@ -77,7 +77,7 @@ const adminVimeoCloneRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (a
       }
       const vimeoUri = me.uri ?? null;
       const name = typeof me.name === "string" ? me.name.trim().slice(0, 500) || null : null;
-      const accessTokenEnc = encryptToken(accessToken, envKey());
+      const accessTokenEnc = encryptToken(accessToken, key);
 
       const profile = await prisma.vimeoProfile.upsert({
         where: { vimeoUserId },

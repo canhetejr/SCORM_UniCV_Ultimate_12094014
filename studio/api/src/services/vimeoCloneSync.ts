@@ -241,7 +241,7 @@ async function processShowcase(
       });
       removed++;
     }
-    add(1, videos.length, linksUpsertedInShowcase, removed);
+    add(1, linksUpsertedInShowcase, linksUpsertedInShowcase, removed);
   });
 }
 
