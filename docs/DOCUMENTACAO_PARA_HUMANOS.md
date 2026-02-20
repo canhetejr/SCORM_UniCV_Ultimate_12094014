@@ -24,13 +24,11 @@ SCORM_UniCV_Ultimate_12094014/
 ├── imsmanifest.xml         # Manifesto SCORM (Moodle)
 ├── style.css               # Estilos do player
 ├── scorm.js                # Ponte com API SCORM do Moodle
-├── builder.html            # Ferramenta auxiliar (builder)
-├── build-packages.js       # Script para gerar pacotes SCORM em lote
-├── disciplinas.csv         # CSV de exemplo (disciplina, vimeo_id)
-├── .env.studio.example     # Variáveis de ambiente (template)
-├── docker-compose.studio.yml  # Deploy: db + api + web
-│
-├── css/                    # CSS modular do player
+├── .env.example            # Variáveis de ambiente (template)
+├── tools/
+│   └── build-packages.js   # Script SCORM em lote (node tools/build-packages.js <csv>)
+├── packages/player/        # Player estático (index.html, css/, js/, style.css, scorm.js, imsmanifest.xml)
+│   ├── css/
 │   ├── base.css, components.css, layout.css, responsive.css, variables.css
 ├── js/                     # JavaScript do player ( vanilla )
 │   ├── config.js           # Config (SHOWCASE_ID, VITRINE_ID, N8N_BASE...)
@@ -42,10 +40,7 @@ SCORM_UniCV_Ultimate_12094014/
 │   ├── theme.js            # Tema claro/escuro
 │   └── main.js             # Inicialização
 │
-├── studio/
-│   ├── README.md           # Documentação do Studio
-│   ├── DEPLOY.md           # Deploy em produção
-│   │
+├── apps/
 │   ├── api/                # Backend Node (Fastify + Prisma)
 │   │   ├── src/
 │   │   │   ├── index.ts    # Ponto de entrada
@@ -65,17 +60,10 @@ SCORM_UniCV_Ultimate_12094014/
 │   │       └── schema.prisma  # Modelos: Account, Vitrine, Video, etc.
 │   │
 │   └── web/                # Painel React (Vite)
-│       ├── src/
-│       │   ├── main.tsx    # Ponto de entrada
-│       │   ├── App.tsx     # Router + Theme
-│       │   ├── api/index.ts  # Cliente HTTP (fetch) para a API
-│       │   ├── routes/index.tsx  # Rotas React (/, /dashboard, /admin/config)
-│       │   ├── pages/home/HomePage.tsx   # Vitrines, Vimeo, export
-│       │   ├── pages/dashboard/DashboardPage.tsx
-│       │   ├── pages/admin/config/ConfigPage.tsx
-│       │   └── components/, layouts/, contexts/, hooks/, styles/
-│       └── public/config.js   # Runtime: window.__UNICV_API_BASE
+│       ├── src/ (main.tsx, App.tsx, api/, routes/, pages/, components/, etc.)
+│       └── public/config.js
 │
+├── infra/docker/           # Dockerfile + docker-compose oficiais
 └── docs/
     ├── README.md
     ├── DOCUMENTACAO_PARA_HUMANOS.md  # Este arquivo
@@ -88,12 +76,12 @@ SCORM_UniCV_Ultimate_12094014/
 
 | Componente | Arquivo principal | Observação |
 |------------|-------------------|------------|
-| **Backend (Node)** | `studio/api/src/index.ts` | Chama `buildServer()` em `server.ts` |
-| **Rotas da API** | `studio/api/src/server.ts` | Registra todos os route plugins |
-| **Frontend (React)** | `studio/web/src/main.tsx` | Renderiza `<App />` com Router |
-| **Páginas / rotas React** | `studio/web/src/routes/index.tsx` | /, /dashboard, /admin/config |
+| **Backend (Node)** | `apps/api/src/index.ts` | Chama `buildServer()` em `server.ts` |
+| **Rotas da API** | `apps/api/src/server.ts` | Registra todos os route plugins |
+| **Frontend (React)** | `apps/web/src/main.tsx` | Renderiza `<App />` com Router |
+| **Páginas / rotas React** | `apps/web/src/routes/index.tsx` | /, /dashboard, /admin/config |
 | **Player (HTML/JS)** | `index.html` + `js/main.js` | Carrega config injetada e módulos em `js/` |
-| **Como o player é servido** | `studio/api/src/routes/player.ts` | Rota `/player/index.html` (prefixo `/player`) |
+| **Como o player é servido** | `apps/api/src/routes/player.ts` | Rota `/player/index.html` (prefixo `/player`) |
 | **Infra** | `docker-compose.studio.yml` | Serviços: db (Postgres), api (Node), web (nginx) |
 
 ---
@@ -102,18 +90,18 @@ SCORM_UniCV_Ultimate_12094014/
 
 | O quê | Onde |
 |-------|------|
-| Rotas HTTP da API | `studio/api/src/routes/*.ts` e `studio/api/src/server.ts` |
-| Modelos do banco | `studio/api/prisma/schema.prisma` |
-| Chamadas de API no React | `studio/web/src/api/index.ts` e páginas em `studio/web/src/pages/` |
+| Rotas HTTP da API | `apps/api/src/routes/*.ts` e `apps/api/src/server.ts` |
+| Modelos do banco | `apps/api/prisma/schema.prisma` |
+| Chamadas de API no React | `apps/web/src/api/index.ts` e páginas em `apps/web/src/pages/` |
 | Config do player | `js/config.js` + `window.UniCV_CONFIG` (injetado no HTML) |
 | Fetch da playlist | `js/api.js` → `UniCV.fetchPlaylist()` |
-| Export SCORM/HTML | `studio/api/src/services/exporter.ts` + `studio/api/src/routes/exports.ts` |
+| Export SCORM/HTML | `apps/api/src/services/exporter.ts` + `apps/api/src/routes/exports.ts` |
 
 ### Autenticação Admin (proteção das rotas de gestão)
 
 - **Rotas públicas (sem login):** `/health`, `/lti/*`, `/player/*`, `/v1/playlist`, `/v1/config/status`, `/v1/xapi/*`, `/auth/vimeo/callback`, `POST /v1/admin/login`.
 - **Rotas admin (exigem token JWT):** `/auth/vimeo/start`, `/v1/vimeo/*`, `/v1/config/env`, `/v1/vitrines/*`, `/v1/exports/*`, `/v1/dashboard/*`.
-- **Credenciais:** definidas no .env do servidor: `ADMIN_USER` e `ADMIN_PASSWORD`. Login: `POST /v1/admin/login` com `{ "username", "password" }`; resposta `{ "token" }`. O frontend guarda o token em `localStorage` e envia no header `Authorization: Bearer <token>` em todas as chamadas. Ver `.env.studio.example` e testes em (5)–(7) abaixo.
+- **Credenciais:** definidas no .env do servidor: `ADMIN_USER` e `ADMIN_PASSWORD`. Login: `POST /v1/admin/login` com `{ "username", "password" }`; resposta `{ "token" }`. O frontend guarda o token em `localStorage` e envia no header `Authorization: Bearer <token>` em todas as chamadas. Ver `.env.example` e testes em (5)–(7) abaixo.
 
 ---
 
@@ -130,11 +118,11 @@ SCORM_UniCV_Ultimate_12094014/
 1. **Conectar Vimeo**  
    - `GET /auth/vimeo/start` → redireciona para OAuth Vimeo  
    - `GET /auth/vimeo/callback` → troca code por token, salva em `VimeoConnection`  
-   - Arquivos: `studio/api/src/routes/auth-vimeo.ts`, `studio/api/src/services/vimeo.ts`
+   - Arquivos: `apps/api/src/routes/auth-vimeo.ts`, `apps/api/src/services/vimeo.ts`
 
 2. **Ou conectar com token (testes)**  
    - `POST /v1/vimeo/connect-token` body: `{ accessToken }`  
-   - Arquivo: `studio/api/src/routes/vimeo.ts`
+   - Arquivo: `apps/api/src/routes/vimeo.ts`
 
 3. **Listar showcases do Vimeo**  
    - `GET /v1/vimeo/showcases` ou `?userId=xxx`  
@@ -143,15 +131,15 @@ SCORM_UniCV_Ultimate_12094014/
 4. **Importar showcase do Vimeo**  
    - `POST /v1/vimeo/showcases/:id/import` body: `{ vimeoUserId? }`  
    - Cria/atualiza `Vitrine` com `vimeoShowcaseId` e `vimeoSource: VIMEO_SHOWCASE`  
-   - Arquivo: `studio/api/src/routes/vimeo.ts`
+   - Arquivo: `apps/api/src/routes/vimeo.ts`
 
 5. **Criar vitrine manual**  
    - `POST /v1/vitrines` body: `{ title, description? }`  
-   - Arquivo: `studio/api/src/routes/vitrines.ts`
+   - Arquivo: `apps/api/src/routes/vitrines.ts`
 
 6. **Adicionar vídeo à vitrine**  
    - `POST /v1/vitrines/:id/videos` body: `{ vimeoVideoId | url, title?, embedHash? }`  
-   - Arquivo: `studio/api/src/routes/vitrines.ts`
+   - Arquivo: `apps/api/src/routes/vitrines.ts`
 
 7. **Importar vídeos via CSV**  
    - `POST /v1/vitrines/:id/import/csv` body: CSV (text/plain)  
@@ -180,7 +168,7 @@ SCORM_UniCV_Ultimate_12094014/
 
 1. **Chamada**  
    - `GET /v1/playlist?vitrine_id=xxx` ou `?showcase_id=yyy` ou `?id=yyy`  
-   - Arquivo: `studio/api/src/routes/playlist.ts`
+   - Arquivo: `apps/api/src/routes/playlist.ts`
 
 2. **Resolução da vitrine**  
    - Se `vitrine_id`: busca por `Vitrine.id`  
@@ -209,7 +197,7 @@ SCORM_UniCV_Ultimate_12094014/
    - Via arquivo estático (ex.: GitHub Pages): `index.html` com `SHOWCASE_ID` no `js/config.js`
 
 2. **Injeção de config**  
-   - `studio/api/src/routes/player.ts` lê `index.html`, substitui `/* __UNICV_CONFIG__ */` por:  
+   - `apps/api/src/routes/player.ts` lê `index.html`, substitui `/* __UNICV_CONFIG__ */` por:  
      `window.UniCV_CONFIG = { VITRINE_ID, N8N_BASE: "/v1/playlist", ... }`  
    - Ou `{ SHOWCASE_ID, N8N_BASE: "/v1/playlist", ... }`
 
@@ -228,7 +216,7 @@ SCORM_UniCV_Ultimate_12094014/
 
 **Arquivos principais:**
 
-- `index.html`, `js/config.js`, `js/api.js`, `js/main.js`, `studio/api/src/routes/player.ts`
+- `index.html`, `js/config.js`, `js/api.js`, `js/main.js`, `apps/api/src/routes/player.ts`
 
 **Riscos/bugs prováveis:**  
 - Player standalone depende de N8N ou outra fonte; se N8N cair, playlist não carrega.  
@@ -245,10 +233,10 @@ SCORM_UniCV_Ultimate_12094014/
 1. **Solicitar export**  
    - `POST /v1/exports/scorm12` ou `POST /v1/exports/html`  
    - Body: `{ vitrineId, title, selfContained? }`  
-   - Arquivo: `studio/api/src/routes/exports.ts`
+   - Arquivo: `apps/api/src/routes/exports.ts`
 
 2. **Geração do ZIP**  
-   - `studio/api/src/services/exporter.ts`  
+   - `apps/api/src/services/exporter.ts`  
    - Lê `index.html` e `imsmanifest.xml` da raiz do repo  
    - Injeta config: `VITRINE_ID`, `N8N_BASE: {BASE_URL}/v1/playlist`, `XAPI_URL`  
    - Se `selfContained: true`: inclui `style.css`, `scorm.js`, `css/`, `js/` no ZIP  
@@ -297,8 +285,8 @@ npm install
 # DATABASE_URL deve apontar para um Postgres
 
 # Gerar cliente Prisma e rodar migrações
-npm --workspace studio/api run prisma:generate
-npm --workspace studio/api run prisma:migrate
+npm --workspace apps/api run prisma:generate
+npm --workspace apps/api run prisma:migrate
 
 # API (porta 3001)
 npm run studio:dev
@@ -422,7 +410,7 @@ Exemplo de resposta de `GET /v1/playlist?vitrine_id=xxx`:
 - Autenticação no painel admin  
 - Refresh automático do token Vimeo  
 - Modo “selfContained: false” com CDN documentado  
-- n8n: NÃO ENCONTRADO no repo (webhook externo; apenas referência em DOCUMENTACAO.md)  
+- n8n: NÃO ENCONTRADO no repo (webhook externo; apenas referência neste doc)  
 - nginx.conf customizado: NÃO ENCONTRADO (web Docker usa nginx:alpine padrão)  
 - Fila para exports assíncronos  
 - Testes automatizados
@@ -434,12 +422,12 @@ Exemplo de resposta de `GET /v1/playlist?vitrine_id=xxx`:
 ```
 .dockerignore
 .editorconfig
-.env.studio.example
+.env.example
 build-packages.js
 builder.html
 disciplinas.csv
 docker-compose.studio.yml
-DOCUMENTACAO.md
+docs/DOCUMENTACAO_PARA_HUMANOS.md
 imsmanifest.xml
 index.html
 LICENSE
@@ -469,64 +457,64 @@ js/state.js
 js/theme.js
 js/ui.js
 scripts/limpa-e-sobe.sh
-studio/DEPLOY.md
-studio/README.md
-studio/api/Dockerfile
-studio/api/package.json
-studio/api/tsconfig.json
-studio/api/prisma/schema.prisma
-studio/api/prisma/migrations/migration_lock.toml
-studio/api/prisma/migrations/20260213141753_add_app_config/migration.sql
-studio/api/prisma/migrations/20260213180000_add_dashboard_events/migration.sql
-studio/api/src/db.ts
-studio/api/src/env.ts
-studio/api/src/index.ts
-studio/api/src/server.ts
-studio/api/src/lib/repoRoot.ts
-studio/api/src/lib/xml.ts
-studio/api/src/routes/auth-vimeo.ts
-studio/api/src/routes/config.ts
-studio/api/src/routes/dashboard.ts
-studio/api/src/routes/deps.ts
-studio/api/src/routes/exports.ts
-studio/api/src/routes/health.ts
-studio/api/src/routes/lti.ts
-studio/api/src/routes/player.ts
-studio/api/src/routes/playlist.ts
-studio/api/src/routes/vimeo.ts
-studio/api/src/routes/vitrines.ts
-studio/api/src/routes/xapi.ts
-studio/api/src/services/appConfig.ts
-studio/api/src/services/exporter.ts
-studio/api/src/services/lti.ts
-studio/api/src/services/vimeo.ts
-studio/web/Dockerfile
-studio/web/index.html
-studio/web/package.json
-studio/web/tsconfig.json
-studio/web/vite.config.ts
-studio/web/public/config.js
-studio/web/src/App.tsx
-studio/web/src/main.tsx
-studio/web/src/api/index.ts
-studio/web/src/components/ui/Button.tsx
-studio/web/src/components/ui/Card.tsx
-studio/web/src/components/ui/Field.tsx
-studio/web/src/components/ui/index.ts
-studio/web/src/components/ui/Input.tsx
-studio/web/src/contexts/ThemeContext.tsx
-studio/web/src/hooks/useConfigStatus.ts
-studio/web/src/layouts/AppLayout.tsx
-studio/web/src/pages/admin/config/configModules.ts
-studio/web/src/pages/admin/config/ConfigPage.tsx
-studio/web/src/pages/admin/config/sections/ConfigEnv.tsx
-studio/web/src/pages/admin/config/sections/ConfigLrs.tsx
-studio/web/src/pages/admin/config/sections/ConfigLti.tsx
-studio/web/src/pages/admin/config/sections/ConfigVimeo.tsx
-studio/web/src/pages/dashboard/DashboardPage.tsx
-studio/web/src/pages/home/HomePage.tsx
-studio/web/src/routes/index.tsx
-studio/web/src/styles/themes.css
-studio/web/src/types/config.ts
-studio/web/src/types/vitrine.ts
+docs/DEPLOY.md
+docs/Studio.md
+apps/api/Dockerfile
+apps/api/package.json
+apps/api/tsconfig.json
+apps/api/prisma/schema.prisma
+apps/api/prisma/migrations/migration_lock.toml
+apps/api/prisma/migrations/20260213141753_add_app_config/migration.sql
+apps/api/prisma/migrations/20260213180000_add_dashboard_events/migration.sql
+apps/api/src/db.ts
+apps/api/src/env.ts
+apps/api/src/index.ts
+apps/api/src/server.ts
+apps/api/src/lib/repoRoot.ts
+apps/api/src/lib/xml.ts
+apps/api/src/routes/auth-vimeo.ts
+apps/api/src/routes/config.ts
+apps/api/src/routes/dashboard.ts
+apps/api/src/routes/deps.ts
+apps/api/src/routes/exports.ts
+apps/api/src/routes/health.ts
+apps/api/src/routes/lti.ts
+apps/api/src/routes/player.ts
+apps/api/src/routes/playlist.ts
+apps/api/src/routes/vimeo.ts
+apps/api/src/routes/vitrines.ts
+apps/api/src/routes/xapi.ts
+apps/api/src/services/appConfig.ts
+apps/api/src/services/exporter.ts
+apps/api/src/services/lti.ts
+apps/api/src/services/vimeo.ts
+apps/web/Dockerfile
+apps/web/index.html
+apps/web/package.json
+apps/web/tsconfig.json
+apps/web/vite.config.ts
+apps/web/public/config.js
+apps/web/src/App.tsx
+apps/web/src/main.tsx
+apps/web/src/api/index.ts
+apps/web/src/components/ui/Button.tsx
+apps/web/src/components/ui/Card.tsx
+apps/web/src/components/ui/Field.tsx
+apps/web/src/components/ui/index.ts
+apps/web/src/components/ui/Input.tsx
+apps/web/src/contexts/ThemeContext.tsx
+apps/web/src/hooks/useConfigStatus.ts
+apps/web/src/layouts/AppLayout.tsx
+apps/web/src/pages/admin/config/configModules.ts
+apps/web/src/pages/admin/config/ConfigPage.tsx
+apps/web/src/pages/admin/config/sections/ConfigEnv.tsx
+apps/web/src/pages/admin/config/sections/ConfigLrs.tsx
+apps/web/src/pages/admin/config/sections/ConfigLti.tsx
+apps/web/src/pages/admin/config/sections/ConfigVimeo.tsx
+apps/web/src/pages/dashboard/DashboardPage.tsx
+apps/web/src/pages/home/HomePage.tsx
+apps/web/src/routes/index.tsx
+apps/web/src/styles/themes.css
+apps/web/src/types/config.ts
+apps/web/src/types/vitrine.ts
 ```

@@ -71,7 +71,7 @@ log(`  API (${apiPort}):  ${apiInUse ? "❌ EM USO" : "✅ LIVRE"}`, apiInUse ? 
 log(`  Web (${webPort}): ${webInUse ? "❌ EM USO" : "✅ LIVRE"}`, webInUse ? "red" : "green");
 
 if (apiInUse || webInUse) {
-  log("\n⚠️  Se precisar liberar portas, veja studio/DEV.md (seção 'Resolver EADDRINUSE')", "yellow");
+  log("\n⚠️  Se precisar liberar portas, veja docs/DEV.md (seção problemas comuns)", "yellow");
 }
 
 // 2. URLs
@@ -82,14 +82,14 @@ log(`  Player: http://localhost:${apiPort}/player/index.html`, "cyan");
 
 // 3. Verificar .env da API
 log("\n🔧 VARIÁVEIS DE AMBIENTE:", "bold");
-const apiEnvPath = join(rootDir, "studio", "api", ".env");
+const apiEnvPath = join(rootDir, "apps", "api", ".env");
 const apiEnv = loadEnv(apiEnvPath);
 
 const requiredVars = [
   { key: "DATABASE_URL", desc: "Banco de dados" },
   { key: "ADMIN_USER", desc: "Usuário admin" },
   { key: "ADMIN_PASSWORD", desc: "Senha admin" },
-  { key: "SESSION_SECRET", desc: "Secret para sessões" }
+  { key: "COOKIE_SECRET", desc: "Secret para sessões/cookies" }
 ];
 
 const missingVars = [];
@@ -109,9 +109,9 @@ log(`  ${vimeoConfigured ? "✅" : "⚠️ "} VIMEO_CLIENT_ID/SECRET (Opcional)`
 log("\n" + "=".repeat(60), "cyan");
 if (missingVars.length > 0) {
   log("❌ AÇÃO NECESSÁRIA:", "red");
-  log(`\n  Copie .env.example para .env e defina:\n`, "yellow");
+  log(`\n  Crie apps/api/.env (pode basear em .env.example na raiz) e defina:\n`, "yellow");
   missingVars.forEach(v => log(`    - ${v}`, "yellow"));
-  log(`\n  📄 Arquivo: studio/api/.env\n`, "yellow");
+  log(`\n  📄 Arquivo: apps/api/.env\n`, "yellow");
 } else {
   log("✅ TUDO PRONTO PARA DESENVOLVIMENTO!", "green");
   log("\n  Execute: npm run dev\n", "cyan");

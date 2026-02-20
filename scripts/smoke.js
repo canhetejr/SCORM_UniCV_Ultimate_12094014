@@ -54,12 +54,13 @@ async function test(name, fn) {
 
 // Testes
 async function runTests() {
-  // 1. Health Check
+  // 1. Health Check (API retorna { ok: true })
   await test("Health Check", async () => {
     const res = await fetch(`${API_URL}/health`);
     if (!res.ok) throw new Error(`Status ${res.status}`);
     const data = await res.json();
-    if (data.status !== "ok") throw new Error(`Unexpected response: ${JSON.stringify(data)}`);
+    const ok = data.ok === true || data.status === "ok";
+    if (!ok) throw new Error(`Unexpected response: ${JSON.stringify(data)}`);
   });
 
   // 2. Config Status

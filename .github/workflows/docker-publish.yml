@@ -29,7 +29,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: studio/api/Dockerfile
+          file: infra/docker/Dockerfile
+          target: api
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/unicv-studio-api:${{ steps.tag.outputs.tag }}
@@ -39,7 +40,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: studio/web/Dockerfile
+          file: infra/docker/Dockerfile
+          target: web
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/unicv-studio-web:${{ steps.tag.outputs.tag }}

@@ -51,7 +51,7 @@ Closes #(issue number)
 ### Documentação
 
 - [ ] Atualizei `README.md` se necessário
-- [ ] Atualizei `DOCUMENTACAO.md` se necessário
+- [ ] Atualizei documentação em `docs/` se necessário
 - [ ] Comentei partes complexas do código quando apropriado
 
 ### SCORM

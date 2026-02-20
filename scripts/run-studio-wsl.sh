@@ -22,7 +22,7 @@ for i in {1..30}; do
 done
 
 echo "==> Prisma generate e migrate..."
-cd studio/api && npx prisma generate && npx prisma migrate deploy && cd ../..
+cd apps/api && npx prisma generate && npx prisma migrate deploy && cd ../..
 
 echo "==> Iniciando API (porta 3001) e Web (porta 3000)..."
 echo "    API: http://localhost:3001"
