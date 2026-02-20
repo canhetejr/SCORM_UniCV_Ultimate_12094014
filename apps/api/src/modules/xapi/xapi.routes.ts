@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
-import type { ServerDeps } from "./deps.js";
+import type { ServerDeps } from "../../routes/deps.js";
 
 const xapiRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts) => {
   app.post("/statements", async (req, reply) => {

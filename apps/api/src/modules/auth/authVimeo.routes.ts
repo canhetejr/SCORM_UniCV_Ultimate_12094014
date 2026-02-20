@@ -6,9 +6,9 @@ import {
   getRedirectUri,
   isVimeoApiError,
   parseVimeoUserIdFromUri
-} from "../services/vimeo.js";
-import { prisma } from "../db.js";
-import type { ServerDeps } from "./deps.js";
+} from "../vimeo/vimeo.service.js";
+import { prisma } from "../../db.js";
+import type { ServerDeps } from "../../routes/deps.js";
 
 function escapeHtml(s: string): string {
   return s

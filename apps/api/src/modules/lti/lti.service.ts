@@ -115,4 +115,3 @@ export async function verifyLtiIdToken(input: {
 
   return payload as LtiLaunchClaims;
 }
-

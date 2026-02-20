@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
-import { prisma } from "../db.js";
+import { prisma } from "../../db.js";
 
 const healthRoutes: FastifyPluginAsync = async (app) => {
   app.get("/health", async () => {

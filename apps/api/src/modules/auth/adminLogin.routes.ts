@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from "fastify";
 import { z, type ZodIssue } from "zod";
-import { signAdminToken } from "../services/adminAuth.js";
-import type { ServerDeps } from "./deps.js";
+import { signAdminToken } from "./adminAuth.service.js";
+import type { ServerDeps } from "../../routes/deps.js";
 
 const LoginBodySchema = z.object({
   username: z.string().min(1, "username obrigatório"),

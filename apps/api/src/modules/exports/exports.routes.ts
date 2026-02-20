@@ -2,10 +2,10 @@ import path from "node:path";
 import fs from "node:fs";
 import type { FastifyPluginAsync, FastifyRequest } from "fastify";
 import { Prisma, ExportStatus } from "@prisma/client";
-import { buildIframeSnippet, exportHtmlZip, exportScorm12Zip } from "../services/exporter.js";
-import { getPublicPlayerBaseUrl } from "../lib/publicUrl.js";
-import { prisma } from "../db.js";
-import type { ServerDeps } from "./deps.js";
+import { buildIframeSnippet, exportHtmlZip, exportScorm12Zip } from "./exporter.service.js";
+import { getPublicPlayerBaseUrl } from "../../lib/publicUrl.js";
+import { prisma } from "../../db.js";
+import type { ServerDeps } from "../../routes/deps.js";
 
 interface ExportsQuery {
   status?: string;

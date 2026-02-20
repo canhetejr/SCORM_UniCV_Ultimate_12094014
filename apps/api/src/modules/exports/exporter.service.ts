@@ -2,8 +2,8 @@ import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
 import archiver from "archiver";
-import { getRepoRoot } from "../lib/repoRoot.js";
-import { escapeXml } from "../lib/xml.js";
+import { getRepoRoot } from "../../lib/repoRoot.js";
+import { escapeXml } from "../../lib/xml.js";
 
 export type ScormExportInput = {
   title: string;
@@ -146,4 +146,3 @@ export async function exportHtmlZip(input: ScormExportInput): Promise<{ zipPath:
 
   return { zipPath };
 }
-

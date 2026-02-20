@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from "fastify";
-import { prisma } from "../db.js";
-import type { ServerDeps } from "./deps.js";
+import { prisma } from "../../db.js";
+import type { ServerDeps } from "../../routes/deps.js";
 
 const playlistRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts) => {
   app.get("/playlist", async (req, reply) => {

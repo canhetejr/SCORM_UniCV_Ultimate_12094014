@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { FastifyPluginAsync } from "fastify";
-import { prisma } from "../db.js";
-import type { ServerDeps } from "./deps.js";
+import { prisma } from "../../db.js";
+import type { ServerDeps } from "../../routes/deps.js";
 
 const UNAVAILABLE_HTML = `<!DOCTYPE html>
 <html lang="pt-br">

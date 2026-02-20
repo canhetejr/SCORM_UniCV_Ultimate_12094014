@@ -1,12 +1,12 @@
 import type { FastifyPluginAsync } from "fastify";
-import { getPublicPlayerBaseUrl } from "../lib/publicUrl.js";
+import { getPublicPlayerBaseUrl } from "../../lib/publicUrl.js";
 import {
   buildLtiAuthRedirect,
   createNonce,
   createState,
   verifyLtiIdToken
-} from "../services/lti.js";
-import type { ServerDeps } from "./deps.js";
+} from "./lti.service.js";
+import type { ServerDeps } from "../../routes/deps.js";
 
 const ltiRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts) => {
   const { deps } = opts;

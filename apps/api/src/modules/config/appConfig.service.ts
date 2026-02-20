@@ -1,4 +1,4 @@
-import type { Env } from "../env.js";
+import type { Env } from "../../env.js";
 import type { PrismaClient } from "@prisma/client";
 
 export const EDITABLE_KEYS = [

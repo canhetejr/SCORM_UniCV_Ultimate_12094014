@@ -7,9 +7,9 @@ import {
   isVimeoApiError,
   parseVimeoUserIdFromUri,
   vimeoGet
-} from "../services/vimeo.js";
-import { prisma } from "../db.js";
-import type { ServerDeps } from "./deps.js";
+} from "./vimeo.service.js";
+import { prisma } from "../../db.js";
+import type { ServerDeps } from "../../routes/deps.js";
 
 const VIMEO_PROFILES_KEY = "vimeo_profiles";
 

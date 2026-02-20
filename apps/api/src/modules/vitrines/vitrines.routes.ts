@@ -1,8 +1,8 @@
 import type { FastifyPluginAsync } from "fastify";
 import { Prisma, VitrineStatus } from "@prisma/client";
-import { extractEmbedHash, vimeoGet } from "../services/vimeo.js";
-import { prisma } from "../db.js";
-import type { ServerDeps } from "./deps.js";
+import { extractEmbedHash, vimeoGet } from "../vimeo/vimeo.service.js";
+import { prisma } from "../../db.js";
+import type { ServerDeps } from "../../routes/deps.js";
 
 function parseCSVLine(line: string): string[] {
   const result: string[] = [];

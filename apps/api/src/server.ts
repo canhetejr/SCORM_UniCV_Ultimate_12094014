@@ -5,27 +5,27 @@ import cookie from "@fastify/cookie";
 import formbody from "@fastify/formbody";
 import { prisma } from "./db.js";
 import { loadEnv } from "./env.js";
-import { loadToolKeys } from "./services/lti.js";
-import { loadDbConfig, createConfigGetter } from "./services/appConfig.js";
+import { loadToolKeys } from "./modules/lti/lti.service.js";
+import { loadDbConfig, createConfigGetter } from "./modules/config/appConfig.service.js";
 import { getRepoRoot } from "./lib/repoRoot.js";
 import type { ServerDeps, ToolKeys } from "./routes/deps.js";
-import { verifyAdminToken } from "./services/adminAuth.js";
-import healthRoutes from "./routes/health.js";
-import ltiRoutes from "./routes/lti.js";
-import authVimeoRoutes from "./routes/auth-vimeo.js";
-import playerRoutes from "./routes/player.js";
-import adminLoginRoutes from "./routes/adminLogin.js";
-import collabRoutes from "./routes/collab.js";
-import adminVimeoRoutes from "./routes/adminVimeo.js";
-import adminVimeoCollaboratorsRoutes from "./routes/adminVimeoCollaborators.js";
-import vimeoRoutes from "./routes/vimeo.js";
-import configRoutes from "./routes/config.js";
-import playlistRoutes from "./routes/playlist.js";
-import vitrinesRoutes from "./routes/vitrines.js";
-import exportsRoutes from "./routes/exports.js";
-import xapiRoutes from "./routes/xapi.js";
-import dashboardRoutes from "./routes/dashboard.js";
-import publishedRoutes from "./routes/published.js";
+import { verifyAdminToken } from "./modules/auth/adminAuth.service.js";
+import healthRoutes from "./modules/health/health.routes.js";
+import ltiRoutes from "./modules/lti/lti.routes.js";
+import authVimeoRoutes from "./modules/auth/authVimeo.routes.js";
+import playerRoutes from "./modules/player/player.routes.js";
+import adminLoginRoutes from "./modules/auth/adminLogin.routes.js";
+import collabRoutes from "./modules/collab/collab.routes.js";
+import adminVimeoRoutes from "./modules/vimeo/adminVimeo.routes.js";
+import adminVimeoCollaboratorsRoutes from "./modules/vimeo/adminVimeoCollaborators.routes.js";
+import vimeoRoutes from "./modules/vimeo/vimeo.routes.js";
+import configRoutes from "./modules/config/config.routes.js";
+import playlistRoutes from "./modules/playlist/playlist.routes.js";
+import vitrinesRoutes from "./modules/vitrines/vitrines.routes.js";
+import exportsRoutes from "./modules/exports/exports.routes.js";
+import xapiRoutes from "./modules/xapi/xapi.routes.js";
+import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
+import publishedRoutes from "./modules/published/published.routes.js";
 
 export async function buildServer(): Promise<FastifyInstance> {
   const env = loadEnv();
@@ -90,7 +90,7 @@ export async function buildServer(): Promise<FastifyInstance> {
     privateKeyPem: getConfig("LTI_TOOL_PRIVATE_KEY_PEM") ?? env.LTI_TOOL_PRIVATE_KEY_PEM ?? null
   });
 
-  function getLtiPlatform(): import("./services/lti.js").LtiPlatformConfig {
+  function getLtiPlatform(): import("./modules/lti/lti.service.js").LtiPlatformConfig {
     const issuer = getConfig("LTI_PLATFORM_ISSUER") ?? env.LTI_PLATFORM_ISSUER;
     const clientId = getConfig("LTI_PLATFORM_CLIENT_ID") ?? env.LTI_PLATFORM_CLIENT_ID;
     const authLoginUrl = getConfig("LTI_PLATFORM_AUTH_LOGIN_URL") ?? env.LTI_PLATFORM_AUTH_LOGIN_URL;

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { FastifyPluginAsync } from "fastify";
-import type { ServerDeps } from "./deps.js";
+import type { ServerDeps } from "../../routes/deps.js";
 
 const playerCssFiles = new Set(["base.css", "components.css", "layout.css", "responsive.css", "variables.css"]);
 const playerJsFiles = new Set([

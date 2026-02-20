@@ -1,8 +1,8 @@
 import type { FastifyPluginAsync } from "fastify";
-import { resolveBaseUrlForStatus, resolvePublicBaseUrlForStatus } from "../lib/publicUrl.js";
-import { buildConfigItems, EDITABLE_KEYS } from "../services/appConfig.js";
-import { prisma } from "../db.js";
-import type { ServerDeps } from "./deps.js";
+import { resolveBaseUrlForStatus, resolvePublicBaseUrlForStatus } from "../../lib/publicUrl.js";
+import { buildConfigItems, EDITABLE_KEYS } from "./appConfig.service.js";
+import { prisma } from "../../db.js";
+import type { ServerDeps } from "../../routes/deps.js";
 
 const configRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts) => {
   const { deps } = opts;
