@@ -2,7 +2,7 @@ import type { FastifyPluginAsync, FastifyReply } from "fastify";
 import { VitrineSource } from "@prisma/client";
 import { vimeoGet, isVimeoApiError } from "./vimeo.service.js";
 import type { VimeoApiError } from "./vimeo.service.js";
-import { prisma } from "../../db.js";
+import { prisma } from "../../infra/prisma/client.js";
 import type { ServerDeps } from "../../routes/deps.js";
 
 const VIMEO_SYNC_TIMEOUT_MS = 15000;

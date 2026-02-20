@@ -8,7 +8,7 @@ import {
   parseVimeoUserIdFromUri,
   vimeoGet
 } from "./vimeo.service.js";
-import { prisma } from "../../db.js";
+import { prisma } from "../../infra/prisma/client.js";
 import type { ServerDeps } from "../../routes/deps.js";
 
 const VIMEO_PROFILES_KEY = "vimeo_profiles";

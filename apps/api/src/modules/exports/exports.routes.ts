@@ -4,7 +4,7 @@ import type { FastifyPluginAsync, FastifyRequest } from "fastify";
 import { Prisma, ExportStatus } from "@prisma/client";
 import { buildIframeSnippet, exportHtmlZip, exportScorm12Zip } from "./exporter.service.js";
 import { getPublicPlayerBaseUrl } from "../../lib/publicUrl.js";
-import { prisma } from "../../db.js";
+import { prisma } from "../../infra/prisma/client.js";
 import type { ServerDeps } from "../../routes/deps.js";
 
 interface ExportsQuery {

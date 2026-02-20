@@ -3,7 +3,7 @@ import cors from "@fastify/cors";
 import sensible from "@fastify/sensible";
 import cookie from "@fastify/cookie";
 import formbody from "@fastify/formbody";
-import { prisma } from "./db.js";
+import { prisma } from "./infra/prisma/client.js";
 import { loadEnv } from "./env.js";
 import { loadToolKeys } from "./modules/lti/lti.service.js";
 import { loadDbConfig, createConfigGetter } from "./modules/config/appConfig.service.js";

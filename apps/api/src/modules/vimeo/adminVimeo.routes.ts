@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync, FastifyReply } from "fastify";
 import { VitrineStatus } from "@prisma/client";
 import { vimeoGet, vimeoPut, vimeoDelete, isVimeoApiError } from "./vimeo.service.js";
-import { prisma } from "../../db.js";
+import { prisma } from "../../infra/prisma/client.js";
 import type { ServerDeps } from "../../routes/deps.js";
 
 const SHOWCASE_ID_MAX = 50;

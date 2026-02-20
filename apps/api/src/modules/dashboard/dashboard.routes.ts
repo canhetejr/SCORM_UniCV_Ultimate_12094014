@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from "fastify";
 import { Prisma } from "@prisma/client";
-import { prisma } from "../../db.js";
+import { prisma } from "../../infra/prisma/client.js";
 import type { ServerDeps } from "../../routes/deps.js";
 
 const dashboardRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts) => {
