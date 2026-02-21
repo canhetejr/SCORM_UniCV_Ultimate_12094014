@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from "fastify";
 import type { ServerDeps } from "../../routes/deps.js";
+import { BadRequestError } from "../../shared/errors/AppError.js";
 import * as vitrinesService from "./vitrines.service.js";
 
 const vitrinesRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opts) => {
@@ -13,6 +14,9 @@ const vitrinesRoutes: FastifyPluginAsync<{ deps: ServerDeps }> = async (app, opt
   app.post("/vitrines", async (req, reply) => {
     const accountId = await deps.getDefaultAccountId();
     const body = (req.body || {}) as { title?: string; slug?: string; status?: string; description?: string };
+    if (!body?.title) {
+      throw new BadRequestError("title is required");
+    }
     const result = await vitrinesService.createVitrineForAccount(accountId, {
       title: body.title,
       slug: body.slug,

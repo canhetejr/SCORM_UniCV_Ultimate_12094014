@@ -2,7 +2,7 @@ import type { Env } from "../env.js";
 import type { PrismaClient } from "@prisma/client";
 import type { LtiPlatformConfig } from "../modules/lti/lti.service.js";
 
-export type ToolKeys = { publicJwk: object };
+export type ToolKeys = { publicJwk: Record<string, unknown> };
 
 export interface ServerDeps {
   env: Env;
