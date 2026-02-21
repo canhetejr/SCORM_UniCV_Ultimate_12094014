@@ -1,5 +1,6 @@
 import type { Env } from "../../env.js";
 import type { PrismaClient } from "@prisma/client";
+import { findAllAppConfig } from "./config.repository.js";
 
 export const EDITABLE_KEYS = [
   "BASE_URL",
@@ -62,7 +63,7 @@ export function createConfigGetter(
 }
 
 export async function loadDbConfig(prisma: PrismaClient): Promise<Map<string, string>> {
-  const rows = await prisma.appConfig.findMany();
+  const rows = await findAllAppConfig(prisma);
   const map = new Map<string, string>();
   for (const r of rows) {
     if (r.value != null && r.value !== "") map.set(r.key, r.value);

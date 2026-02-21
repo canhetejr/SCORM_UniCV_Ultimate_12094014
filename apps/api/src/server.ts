@@ -26,6 +26,7 @@ import exportsRoutes from "./modules/exports/exports.routes.js";
 import xapiRoutes from "./modules/xapi/xapi.routes.js";
 import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
 import publishedRoutes from "./modules/published/published.routes.js";
+import { AppError } from "./shared/errors/AppError.js";
 
 export async function buildServer(): Promise<FastifyInstance> {
   const env = loadEnv();
@@ -193,6 +194,22 @@ export async function buildServer(): Promise<FastifyInstance> {
         message: "Token em falta ou inválido. Faça login em /login."
       });
     }
+  });
+
+  app.setErrorHandler((error, request, reply) => {
+    if (error instanceof AppError) {
+      return reply.status(error.statusCode).send({
+        error: error.code,
+        message: error.message,
+      });
+    }
+
+    request.log.error(error);
+
+    return reply.status(500).send({
+      error: "INTERNAL_ERROR",
+      message: "Internal server error",
+    });
   });
 
   return app;

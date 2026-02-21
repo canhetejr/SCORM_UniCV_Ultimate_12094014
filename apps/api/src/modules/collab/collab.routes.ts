@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
+import * as collabService from "./collab.service.js";
 
 /**
  * Rotas de colaborador. Exigem autenticação.
@@ -6,10 +7,8 @@ import type { FastifyPluginAsync } from "fastify";
  */
 const collabRoutes: FastifyPluginAsync = async (app) => {
   app.get("/vitrines", async (_req, reply) => {
-    return reply.status(403).send({
-      code: "collab_not_available",
-      message: "Modo colaborador não disponível para esta conta."
-    });
+    const result = await collabService.getVitrinesForCollab();
+    return reply.send(result);
   });
 };
 

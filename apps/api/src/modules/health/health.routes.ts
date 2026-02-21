@@ -1,10 +1,10 @@
 import type { FastifyPluginAsync } from "fastify";
-import { prisma } from "../../infra/prisma/client.js";
+import * as healthService from "./health.service.js";
 
 const healthRoutes: FastifyPluginAsync = async (app) => {
-  app.get("/health", async () => {
-    await prisma.$queryRaw`SELECT 1`;
-    return { ok: true };
+  app.get("/health", async (_req, reply) => {
+    const result = await healthService.getHealth();
+    return reply.send(result);
   });
 };
 
