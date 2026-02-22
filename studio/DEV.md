@@ -23,10 +23,10 @@ cp studio/api/.env.example studio/api/.env
 **Variáveis obrigatórias** (edite `studio/api/.env`):
 
 ```env
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/unicv?schema=public"
 ADMIN_USER="admin"
 ADMIN_PASSWORD="suasenha123"
-SESSION_SECRET="gereumsecretaleatorioaqui"
+COOKIE_SECRET="gereumsecretaleatorioaqui123"
 ```
 
 **Variáveis opcionais** (para integração Vimeo):
@@ -43,9 +43,9 @@ npm run dev
 ```
 
 Isso inicia **API + Web** simultaneamente:
-- **API:** http://localhost:3001
+- **API:** http://localhost:3002
 - **Web:** http://localhost:5173
-- **Player:** http://localhost:3001/player/index.html
+- **Player:** http://localhost:3002/player/index.html
 
 ---
 
@@ -71,8 +71,8 @@ Isso inicia **API + Web** simultaneamente:
 **Windows (PowerShell):**
 
 ```powershell
-# Porta 3001 (API)
-netstat -ano | findstr :3001
+# Porta 3002 (API)
+netstat -ano | findstr :3002
 # Anote o PID e mate:
 taskkill /PID <PID> /F
 
@@ -84,8 +84,8 @@ taskkill /PID <PID> /F
 **Linux/macOS:**
 
 ```bash
-# Porta 3001 (API)
-lsof -i :3001
+# Porta 3002 (API)
+lsof -i :3002
 kill -9 <PID>
 
 # Porta 5173 (Web)
@@ -174,19 +174,19 @@ npm run doctor
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📡 PORTAS:
-  API (3001):  ✅ LIVRE
+  API (3002):  ✅ LIVRE
   Web (5173): ✅ LIVRE
 
 🌐 URLS:
-  API:    http://localhost:3001
+  API:    http://localhost:3002
   Web:    http://localhost:5173
-  Player: http://localhost:3001/player/index.html
+  Player: http://localhost:3002/player/index.html
 
 🔧 VARIÁVEIS DE AMBIENTE:
   ✅ DATABASE_URL        (Banco de dados)
   ✅ ADMIN_USER          (Usuário admin)
   ✅ ADMIN_PASSWORD      (Senha admin)
-  ✅ SESSION_SECRET      (Secret para sessões)
+  ✅ COOKIE_SECRET       (Secret para cookies/sessões)
   ✅ VIMEO_CLIENT_ID/SECRET (Opcional)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -202,7 +202,7 @@ npm run doctor
 
 - [ ] `npm install` executado
 - [ ] `.env` copiado de `.env.example`
-- [ ] Variáveis obrigatórias definidas (ADMIN_USER, ADMIN_PASSWORD, etc)
+- [ ] Variáveis obrigatórias definidas (ADMIN_USER, ADMIN_PASSWORD, COOKIE_SECRET)
 - [ ] `npm run doctor` retorna ✅ verde
 - [ ] `npm run dev` inicia sem erros
 - [ ] Web abre em http://localhost:5173

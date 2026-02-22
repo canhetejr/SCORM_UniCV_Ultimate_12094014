@@ -4,8 +4,11 @@ node_modules/
 .env.*
 !.env.studio.example
 !.env.development
+
+# Sistema
 .DS_Store
 Thumbs.db
+Desktop.ini
 
 # Studio (nova app)
 studio/.env
@@ -13,10 +16,6 @@ studio/node_modules/
 studio/dist/
 studio/.next/
 studio/.turbo/
-# Sistema
-Thumbs.db
-Desktop.ini
-.DS_Store
 
 # IDEs / editores
 .vscode/
@@ -29,6 +28,3 @@ Desktop.ini
 
 # Pacotes ZIP de release (opcional)
 # *.zip
-
-# Output do build-packages.js
-dist/

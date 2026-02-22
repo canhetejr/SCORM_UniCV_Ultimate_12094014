@@ -56,8 +56,8 @@ npm install
 node build-packages.js disciplinas.csv
 
 # Studio (API + painel)
-npm run studio:dev          # API em http://localhost:3001
-npm run studio:web:dev       # Painel em http://localhost:3000
+npm run studio:dev          # API em http://localhost:3002
+npm run studio:web:dev       # Painel em http://localhost:5173
 
 # Tudo com Docker (raiz do repo)
 docker compose -f docker-compose.studio.yml up -d

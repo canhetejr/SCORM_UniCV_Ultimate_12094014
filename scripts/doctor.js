@@ -89,7 +89,7 @@ const requiredVars = [
   { key: "DATABASE_URL", desc: "Banco de dados" },
   { key: "ADMIN_USER", desc: "Usuário admin" },
   { key: "ADMIN_PASSWORD", desc: "Senha admin" },
-  { key: "SESSION_SECRET", desc: "Secret para sessões" }
+  { key: "COOKIE_SECRET", desc: "Secret para cookies/sessões" }
 ];
 
 const missingVars = [];
