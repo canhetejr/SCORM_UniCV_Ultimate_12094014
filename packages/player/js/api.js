@@ -103,6 +103,9 @@
             if (typeof v.hash === "string" && v.hash) {
               video.hash = v.hash;
             }
+            if (v.createdAt != null) {
+              video.createdAt = typeof v.createdAt === "string" ? v.createdAt : (v.created_at != null ? String(v.created_at) : null);
+            }
             videos.push(video);
           }
         }

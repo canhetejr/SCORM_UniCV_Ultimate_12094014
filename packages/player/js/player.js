@@ -1,5 +1,6 @@
 /**
  * UniCV Play — Módulo do player
+ * 5E: play abre modal e define src; closeModal limpa iframe.src.
  */
 (function (global) {
   "use strict";
@@ -19,10 +20,10 @@
       src += "&h=" + encodeURIComponent(v.hash);
     }
     els.frame.src = src;
-    els.title.textContent = idx + 1 + ". " + v.name;
-    els.boot.style.display = "none";
+    if (els.title) els.title.textContent = v.name || "";
     UniCV.updateUI();
-    var row = document.getElementById("v_" + idx);
+    UniCV.openModal();
+    var row = document.querySelector('.video-card[data-idx="' + idx + '"]');
     if (row) row.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 

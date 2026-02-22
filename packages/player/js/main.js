@@ -1,5 +1,6 @@
 /**
  * UniCV Play — Inicialização e binding de eventos
+ * 5A–5C + 5E: skeleton -> fetch -> render grid; busca/ordenação; modal.
  */
 (function (global) {
   "use strict";
@@ -10,19 +11,14 @@
   var CONFIG = UniCV.CONFIG;
 
   function bindEvents() {
-    var startAt = UniCV.state.activeIdx >= 0 ? UniCV.state.activeIdx : 0;
     var videos = UniCV.state.videos;
-    if (UniCV.state.activeIdx < 0) {
-      for (var i = 0; i < videos.length; i++) {
-        if (!UniCV.state.progress[i]) {
-          startAt = i;
-          break;
-        }
-      }
-    }
-    UniCV.showBootOverlay(startAt, UniCV.play);
+    if (videos.length === 0) return;
 
-    els.markBtn.onclick = function () {
+    if (els.sortSelect) {
+      UniCV.state.sortBy = els.sortSelect.value || "recent";
+    }
+
+    function onMark() {
       var idx = UniCV.state.activeIdx;
       if (idx < 0 || idx >= UniCV.state.videos.length) return;
       UniCV.state.progress[idx] = !UniCV.state.progress[idx];
@@ -37,53 +33,67 @@
           UniCV.play(idx + 1);
         }, CONFIG.AUTO_NEXT_DELAY_MS);
       }
-    };
-    els.prev.onclick = function () {
+    }
+
+    function onPrev() {
       UniCV.play(UniCV.state.activeIdx - 1);
-    };
-    els.next.onclick = function () {
+    }
+    function onNext() {
       UniCV.play(UniCV.state.activeIdx + 1);
-    };
-    els.theme.onclick = UniCV.toggleTheme;
+    }
+
+    if (els.markBtn) els.markBtn.onclick = onMark;
+    if (els.modalMarkBtn) els.modalMarkBtn.onclick = onMark;
+    if (els.prev) els.prev.onclick = onPrev;
+    if (els.modalPrev) els.modalPrev.onclick = onPrev;
+    if (els.next) els.next.onclick = onNext;
+    if (els.modalNext) els.modalNext.onclick = onNext;
+    if (els.theme) els.theme.onclick = UniCV.toggleTheme;
+
+    UniCV.showBootOverlay(0, UniCV.play);
+    UniCV.bindSearchAndSort();
+    UniCV.bindModal();
   }
 
   function init() {
     UniCV.applyTheme();
+    UniCV.renderSkeleton();
+    if (els.vitrineDesc) els.vitrineDesc.textContent = "Carregando...";
+
     UniCV.fetchPlaylist()
       .then(function (videos) {
         UniCV.state.videos = videos;
         UniCV.state.activeIdx = -1;
         UniCV.state.progress = {};
+        UniCV.state.searchQuery = "";
+        UniCV.state.sortBy = els.sortSelect ? els.sortSelect.value : "recent";
+
         if (videos.length === 0) {
           UniCV.showEmptyList();
-          els.title.textContent = "Nenhum vídeo";
-          els.boot.style.display = "none";
+          if (els.vitrineDesc) els.vitrineDesc.textContent = "Nenhum vídeo.";
           return;
         }
-        els.title.textContent = "Carregando...";
+
+        if (els.vitrineDesc) els.vitrineDesc.textContent = videos.length + " vídeo(s) disponível(is).";
+
         return UniCV.scormService
-          .waitForScorm(CONFIG.SCORM_WAIT_TIMEOUT_MS)
-          .then(function () {
-            UniCV.state.progress = UniCV.scormService.loadProgress();
-            var savedLocation = UniCV.scormService.loadLessonLocation();
-            if (
-              savedLocation >= 0 &&
-              savedLocation < UniCV.state.videos.length
-            ) {
-              UniCV.state.activeIdx = savedLocation;
-            }
-            UniCV.renderPlaylist(UniCV.play);
-            UniCV.updateUI();
-            els.title.textContent = "Selecione uma aula";
-            bindEvents();
-          });
+          ? UniCV.scormService.waitForScorm(CONFIG.SCORM_WAIT_TIMEOUT_MS).then(function () {
+              UniCV.state.progress = UniCV.scormService.loadProgress();
+              var savedLocation = UniCV.scormService.loadLessonLocation();
+              if (savedLocation >= 0 && savedLocation < UniCV.state.videos.length) {
+                UniCV.state.activeIdx = savedLocation;
+              }
+              UniCV.renderPlaylist(UniCV.play);
+              UniCV.updateUI();
+              bindEvents();
+            })
+          : (UniCV.renderPlaylist(UniCV.play), UniCV.updateUI(), bindEvents());
       })
       .catch(function (err) {
-        els.boot.style.display = "none";
         UniCV.showError(
           err && err.message ? err.message : "Erro ao carregar vitrine."
         );
-        els.title.textContent = "Erro";
+        if (els.vitrineDesc) els.vitrineDesc.textContent = "Erro ao carregar.";
       });
   }
 

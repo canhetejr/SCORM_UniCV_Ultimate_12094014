@@ -89,87 +89,55 @@
   }
 }
 
-/* 768px — tablets */
+/* 768px — tablets: grid 3 colunas */
 @media (min-width: 768px) {
+  .video-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .vitrine-header-inner {
+    padding: 24px 24px 14px;
+  }
+
+  .vitrine-title {
+    font-size: 1.5rem;
+  }
+
+  .controls-bar {
+    padding: 14px 24px;
+  }
+
   .content-scroll {
-    max-height: 45vh;
+    padding: 20px 24px 28px;
   }
 }
 
-/* 1024px — desktop: layout lado a lado */
+/* 1024px — desktop: grid 4 colunas */
 @media (min-width: 1024px) {
-  .app-shell {
-    flex-direction: row;
+  .video-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
   }
 
-  .viewport-player {
-    flex: 1;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    box-shadow: none;
+  .video-card-title {
+    font-size: 15px;
   }
 
-  .aspect-ratio-box {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  .content-scroll {
-    width: 420px;
-    min-width: 420px;
-    max-width: 420px;
-    height: 100vh;
-    max-height: none;
-    border-left: 1px solid var(--border);
-    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.06);
-  }
-
-  .theme-dark .content-scroll {
-    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.2);
-  }
-
-  .course-header {
-    padding: 20px 24px 22px;
-  }
-
-  .main-actions {
-    gap: 10px;
-    margin-top: 18px;
-  }
-
-  .playlist {
-    padding: 16px 20px 24px;
-  }
-
-  .video-item {
-    padding: 14px;
-    margin-bottom: 10px;
-  }
-
-  .thumb-wrap {
-    width: 120px;
-    height: 68px;
-  }
-
-  .check-tag {
-    width: 22px;
-    height: 22px;
-    top: 6px;
-    right: 6px;
+  .modal-content {
+    max-width: 960px;
+    padding: 24px;
   }
 }
 
 /* 1280px+ — telas grandes */
 @media (min-width: 1280px) {
-  .aspect-ratio-box {
-    max-width: 1400px;
+  .video-grid {
+    gap: 24px;
   }
 
   .content-scroll {
-    width: 460px;
-    min-width: 460px;
-    max-width: 460px;
+    padding: 24px 28px 32px;
   }
 }
 
