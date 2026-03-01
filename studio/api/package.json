@@ -26,8 +26,8 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
-    "@types/archiver": "^6.0.0",
-    "@types/node": "^22.0.0",
+    "@types/archiver": "^7.0.0",
+    "@types/node": "^25.3.3",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
   }
