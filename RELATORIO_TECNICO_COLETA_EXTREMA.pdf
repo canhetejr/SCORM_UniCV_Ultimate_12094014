@@ -1,0 +1,2099 @@
+%PDF-1.4
+%âãÏÓ
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [ 4 0 R 6 0 R 8 0 R 10 0 R 12 0 R 14 0 R 16 0 R 18 0 R 20 0 R 22 0 R 24 0 R 26 0 R 28 0 R 30 0 R 32 0 R ] /Count 15 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 1964 >>
+stream
+BT
+/F1 10 Tf
+40 800 Td
+12 TL
+(# RELATÓRIO TÉCNICO DE COLETA EXTREMA ? UNICV Studio \(monorepo\)) Tj
+T*
+() Tj
+T*
+(Baseado em inspeção direta do repositório em `/workspace` \(arquivos versionados + execução de ) Tj
+T*
+(comandos de diagnóstico/build\).) Tj
+T*
+(Sem invenção; quando não existe evidência no código, está marcado como **?Não identificado no ) Tj
+T*
+(código atual?**.) Tj
+T*
+() Tj
+T*
+(---) Tj
+T*
+() Tj
+T*
+(## 1\) INVENTÁRIO COMPLETO DO REPOSITÓRIO) Tj
+T*
+() Tj
+T*
+(### 1.1 Árvore de diretórios \(mínimo 4 níveis\)) Tj
+T*
+() Tj
+T*
+(### Árvore geral \(arquivos versionados, profundidade 4\)) Tj
+T*
+() Tj
+T*
+(```text) Tj
+T*
+(.) Tj
+T*
+(??? .github) Tj
+T*
+(?   ??? ISSUE_TEMPLATE) Tj
+T*
+(?   ?   ??? bug_report.yml) Tj
+T*
+(?   ?   ??? config.yml) Tj
+T*
+(?   ?   ??? feature_request.yml) Tj
+T*
+(?   ??? workflows) Tj
+T*
+(?   ?   ??? docker-publish.yml) Tj
+T*
+(?   ?   ??? jekyll-gh-pages.yml) Tj
+T*
+(?   ?   ??? release.yml) Tj
+T*
+(?   ??? CODE_OF_CONDUCT.md) Tj
+T*
+(?   ??? dependabot.yml) Tj
+T*
+(?   ??? PULL_REQUEST_TEMPLATE.md) Tj
+T*
+(?   ??? SECURITY.md) Tj
+T*
+(??? css) Tj
+T*
+(?   ??? base.css) Tj
+T*
+(?   ??? builder.css) Tj
+T*
+(?   ??? components.css) Tj
+T*
+(?   ??? layout.css) Tj
+T*
+(?   ??? responsive.css) Tj
+T*
+(?   ??? variables.css) Tj
+T*
+(??? docs) Tj
+T*
+(?   ??? DOCUMENTACAO_PARA_HUMANOS.md) Tj
+T*
+(?   ??? PLANO_REBUILD_LARAVEL.md) Tj
+T*
+(?   ??? README.md) Tj
+T*
+(??? js) Tj
+T*
+(?   ??? api.js) Tj
+T*
+(?   ??? builder.js) Tj
+T*
+(?   ??? config.js) Tj
+T*
+(?   ??? main.js) Tj
+T*
+(?   ??? player.js) Tj
+T*
+(?   ??? scorm-service.js) Tj
+T*
+(?   ??? state.js) Tj
+T*
+(?   ??? theme.js) Tj
+T*
+(?   ??? ui.js) Tj
+T*
+(??? scripts) Tj
+T*
+(?   ??? doctor.js) Tj
+T*
+(?   ??? limpa-e-sobe.sh) Tj
+T*
+(?   ??? run-studio-wsl.sh) Tj
+T*
+(?   ??? smoke.js) Tj
+T*
+(??? studio) Tj
+T*
+(?   ??? api) Tj
+T*
+(?   ?   ??? prisma) Tj
+T*
+(?   ?   ?   ??? migrations) Tj
+T*
+(?   ?   ?   ??? schema.prisma) Tj
+T*
+(?   ?   ??? src) Tj
+T*
+(?   ?   ?   ??? lib) Tj
+T*
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
+endobj
+7 0 obj
+<< /Length 1957 >>
+stream
+BT
+/F1 10 Tf
+40 800 Td
+12 TL
+(?   ?   ?   ??? routes) Tj
+T*
+(?   ?   ?   ??? services) Tj
+T*
+(?   ?   ?   ??? db.ts) Tj
+T*
+(?   ?   ?   ??? env.ts) Tj
+T*
+(?   ?   ?   ??? index.ts) Tj
+T*
+(?   ?   ?   ??? server.ts) Tj
+T*
+(?   ?   ??? Dockerfile) Tj
+T*
+(?   ?   ??? package.json) Tj
+T*
+(?   ?   ??? tsconfig.json) Tj
+T*
+(?   ??? web) Tj
+T*
+(?   ?   ??? public) Tj
+T*
+(?   ?   ?   ??? config.js) Tj
+T*
+(?   ?   ??? src) Tj
+T*
+(?   ?   ?   ??? api) Tj
+T*
+(?   ?   ?   ??? components) Tj
+T*
+(?   ?   ?   ??? contexts) Tj
+T*
+(?   ?   ?   ??? hooks) Tj
+T*
+(?   ?   ?   ??? layouts) Tj
+T*
+(?   ?   ?   ??? lib) Tj
+T*
+(?   ?   ?   ??? pages) Tj
+T*
+(?   ?   ?   ??? routes) Tj
+T*
+(?   ?   ?   ??? store) Tj
+T*
+(?   ?   ?   ??? styles) Tj
+T*
+(?   ?   ?   ??? types) Tj
+T*
+(?   ?   ?   ??? App.tsx) Tj
+T*
+(?   ?   ?   ??? main.tsx) Tj
+T*
+(?   ?   ?   ??? vite-env.d.ts) Tj
+T*
+(?   ?   ??? .env.development) Tj
+T*
+(?   ?   ??? ARCHITECTURE.md) Tj
+T*
+(?   ?   ??? CLEANUP_REPORT.md) Tj
+T*
+(?   ?   ??? Dockerfile) Tj
+T*
+(?   ?   ??? entrypoint.sh) Tj
+T*
+(?   ?   ??? index.html) Tj
+T*
+(?   ?   ??? nginx.conf) Tj
+T*
+(?   ?   ??? package.json) Tj
+T*
+(?   ?   ??? REORGANIZATION.md) Tj
+T*
+(?   ?   ??? tsconfig.json) Tj
+T*
+(?   ?   ??? vite.config.ts) Tj
+T*
+(?   ??? COOLIFY.md) Tj
+T*
+(?   ??? COOLIFY_CHECKLIST_1PAGE.md) Tj
+T*
+(?   ??? DEPLOY.md) Tj
+T*
+(?   ??? DEV.md) Tj
+T*
+(?   ??? ENTREGA_VIMEO_COLABORADORES.md) Tj
+T*
+(?   ??? README.md) Tj
+T*
+(??? .dockerignore) Tj
+T*
+(??? .editorconfig) Tj
+T*
+(??? .env.studio.example) Tj
+T*
+(??? .gitattributes) Tj
+T*
+(??? .gitignore) Tj
+T*
+(??? build-packages.js) Tj
+T*
+(??? builder.html) Tj
+T*
+(??? compose.debug.yaml) Tj
+T*
+(??? compose.yaml) Tj
+T*
+(??? disciplinas.csv) Tj
+T*
+(??? docker-compose.studio.yml) Tj
+T*
+(??? docker-compose.yml) Tj
+T*
+(??? Dockerfile) Tj
+T*
+(??? DOCUMENTACAO.md) Tj
+T*
+(??? imsmanifest.xml) Tj
+T*
+(??? index.html) Tj
+T*
+(??? LICENSE) Tj
+T*
+(??? package-lock.json) Tj
+T*
+(??? package.json) Tj
+T*
+ET
+endstream
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 9 0 R >>
+endobj
+9 0 obj
+<< /Length 2005 >>
+stream
+BT
+/F1 10 Tf
+40 800 Td
+12 TL
+(??? README.md) Tj
+T*
+(??? scorm.js) Tj
+T*
+(??? script.js) Tj
+T*
+(??? style.css) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(### Árvore detalhada backend \(`studio/api`\)) Tj
+T*
+() Tj
+T*
+(```text) Tj
+T*
+(studio/api) Tj
+T*
+(    Dockerfile) Tj
+T*
+(    package.json) Tj
+T*
+(    tsconfig.json) Tj
+T*
+(    prisma/) Tj
+T*
+(        schema.prisma) Tj
+T*
+(        migrations/) Tj
+T*
+(            migration_lock.toml) Tj
+T*
+(            20260213141753_add_app_config/) Tj
+T*
+(                migration.sql) Tj
+T*
+(            20260213180000_add_dashboard_events/) Tj
+T*
+(                migration.sql) Tj
+T*
+(            20260215000000_add_vitrine_slug_status/) Tj
+T*
+(                migration.sql) Tj
+T*
+(            20260218000000_add_vimeo_collaborators/) Tj
+T*
+(                migration.sql) Tj
+T*
+(            20260218120000_add_vimeo_collaborator_videos/) Tj
+T*
+(                migration.sql) Tj
+T*
+(    src/) Tj
+T*
+(        db.ts) Tj
+T*
+(        env.ts) Tj
+T*
+(        index.ts) Tj
+T*
+(        server.ts) Tj
+T*
+(        lib/) Tj
+T*
+(            publicUrl.ts) Tj
+T*
+(            repoRoot.ts) Tj
+T*
+(            xml.ts) Tj
+T*
+(        routes/) Tj
+T*
+(            adminLogin.ts) Tj
+T*
+(            adminVimeo.ts) Tj
+T*
+(            adminVimeoCollaborators.ts) Tj
+T*
+(            adminVitrinesVimeoCache.ts) Tj
+T*
+(            auth-vimeo.ts) Tj
+T*
+(            collab.ts) Tj
+T*
+(            config.ts) Tj
+T*
+(            dashboard.ts) Tj
+T*
+(            deps.ts) Tj
+T*
+(            exports.ts) Tj
+T*
+(            health.ts) Tj
+T*
+(            lti.ts) Tj
+T*
+(            n8nWebhook.ts) Tj
+T*
+(            player.ts) Tj
+T*
+(            playlist.ts) Tj
+T*
+(            publicPlaylist.ts) Tj
+T*
+(            published.ts) Tj
+T*
+(            vimeo.ts) Tj
+T*
+(            vitrines.ts) Tj
+T*
+(            xapi.ts) Tj
+T*
+(        services/) Tj
+T*
+(            adminAuth.ts) Tj
+T*
+(            appConfig.ts) Tj
+T*
+(            exporter.ts) Tj
+T*
+(            lti.ts) Tj
+T*
+(            vimeo.ts) Tj
+T*
+ET
+endstream
+endobj
+10 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 11 0 R >>
+endobj
+11 0 obj
+<< /Length 1986 >>
+stream
+BT
+/F1 10 Tf
+40 800 Td
+12 TL
+(```) Tj
+T*
+() Tj
+T*
+(### Árvore detalhada frontend \(`studio/web`\)) Tj
+T*
+() Tj
+T*
+(```text) Tj
+T*
+(studio/web) Tj
+T*
+(    .env.development) Tj
+T*
+(    ARCHITECTURE.md) Tj
+T*
+(    CLEANUP_REPORT.md) Tj
+T*
+(    Dockerfile) Tj
+T*
+(    REORGANIZATION.md) Tj
+T*
+(    entrypoint.sh) Tj
+T*
+(    index.html) Tj
+T*
+(    nginx.conf) Tj
+T*
+(    package.json) Tj
+T*
+(    tsconfig.json) Tj
+T*
+(    vite.config.ts) Tj
+T*
+(    public/) Tj
+T*
+(        config.js) Tj
+T*
+(    src/) Tj
+T*
+(        App.tsx) Tj
+T*
+(        main.tsx) Tj
+T*
+(        vite-env.d.ts) Tj
+T*
+(        api/) Tj
+T*
+(            adminVimeo.ts) Tj
+T*
+(            auth.ts) Tj
+T*
+(            base.ts) Tj
+T*
+(            config.ts) Tj
+T*
+(            dashboard.ts) Tj
+T*
+(            exports.ts) Tj
+T*
+(            index.ts) Tj
+T*
+(            vimeo.ts) Tj
+T*
+(            vimeoCollaborators.ts) Tj
+T*
+(            vitrines.ts) Tj
+T*
+(        components/) Tj
+T*
+(            app/) Tj
+T*
+(                .gitkeep) Tj
+T*
+(                ExportDetailsModal.tsx) Tj
+T*
+(                ExportsTable.tsx) Tj
+T*
+(                NewVitrineModal.tsx) Tj
+T*
+(                VitrineCard.tsx) Tj
+T*
+(                VitrineExportsSection.tsx) Tj
+T*
+(                VitrineHeader.tsx) Tj
+T*
+(                VitrinePlaylistSection.tsx) Tj
+T*
+(                VitrinePreviewModal.tsx) Tj
+T*
+(                VitrinesAdvancedSearch.tsx) Tj
+T*
+(                index.ts) Tj
+T*
+(            layout/) Tj
+T*
+(                Sidebar.tsx) Tj
+T*
+(            tools/) Tj
+T*
+(                ToolCard.tsx) Tj
+T*
+(            ui/) Tj
+T*
+(                Badge.tsx) Tj
+T*
+(                Button.tsx) Tj
+T*
+(                Card.tsx) Tj
+T*
+(                Field.tsx) Tj
+T*
+(                Input.tsx) Tj
+T*
+(                Modal.tsx) Tj
+T*
+(                ThemeToggle.tsx) Tj
+T*
+(                Toast.tsx) Tj
+T*
+(                ToastContainer.tsx) Tj
+T*
+(                index.ts) Tj
+T*
+(        contexts/) Tj
+T*
+ET
+endstream
+endobj
+12 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 13 0 R >>
+endobj
+13 0 obj
+<< /Length 2081 >>
+stream
+BT
+/F1 10 Tf
+40 800 Td
+12 TL
+(            ThemeContext.tsx) Tj
+T*
+(        hooks/) Tj
+T*
+(            useApiStatus.ts) Tj
+T*
+(            useConfigStatus.ts) Tj
+T*
+(            useMe.ts) Tj
+T*
+(            useToast.tsx) Tj
+T*
+(        layouts/) Tj
+T*
+(            AppLayout.tsx) Tj
+T*
+(        lib/) Tj
+T*
+(            constants.ts) Tj
+T*
+(            download.ts) Tj
+T*
+(            formatters.ts) Tj
+T*
+(            index.ts) Tj
+T*
+(            slugify.ts) Tj
+T*
+(            storage.ts) Tj
+T*
+(            urls.ts) Tj
+T*
+(        pages/) Tj
+T*
+(            admin/) Tj
+T*
+(                config/) Tj
+T*
+(                    ConfigPage.tsx) Tj
+T*
+(                    configModules.ts) Tj
+T*
+(                    sections/) Tj
+T*
+(                        ConfigEnv.tsx) Tj
+T*
+(                        ConfigLrs.tsx) Tj
+T*
+(                        ConfigLti.tsx) Tj
+T*
+(                        ConfigVimeo.tsx) Tj
+T*
+(            dashboard/) Tj
+T*
+(                DashboardPage.tsx) Tj
+T*
+(            exportacoes/) Tj
+T*
+(                ExportacoesPage.tsx) Tj
+T*
+(            home/) Tj
+T*
+(                HomePage.tsx) Tj
+T*
+(            login/) Tj
+T*
+(                LoginPage.tsx) Tj
+T*
+(            tools/) Tj
+T*
+(                ToolsPage.tsx) Tj
+T*
+(            vitrines/) Tj
+T*
+(                VitrineDetalhePage.tsx) Tj
+T*
+(        routes/) Tj
+T*
+(            index.tsx) Tj
+T*
+(        store/) Tj
+T*
+(            vitrinesStore.ts) Tj
+T*
+(        styles/) Tj
+T*
+(            responsive.css) Tj
+T*
+(            sidebar.css) Tj
+T*
+(            themes.css) Tj
+T*
+(            tokens.css) Tj
+T*
+(            utilities.css) Tj
+T*
+(        types/) Tj
+T*
+(            config.ts) Tj
+T*
+(            vitrine.ts) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(---) Tj
+T*
+() Tj
+T*
+(### 1.2 Arquivos críticos na raiz) Tj
+T*
+() Tj
+T*
+(- `package.json` \(workspaces + scripts monorepo\)) Tj
+T*
+(- `package-lock.json` \(lock único do monorepo\)) Tj
+T*
+(- `Dockerfile` \(multi-target `api`/`web`\)) Tj
+T*
+(- `docker-compose.yml`) Tj
+T*
+(- `docker-compose.studio.yml`) Tj
+T*
+(- `compose.yaml`) Tj
+T*
+ET
+endstream
+endobj
+14 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 15 0 R >>
+endobj
+15 0 obj
+<< /Length 2498 >>
+stream
+BT
+/F1 10 Tf
+40 800 Td
+12 TL
+(- `compose.debug.yaml`) Tj
+T*
+(- `.env.studio.example`) Tj
+T*
+(- `index.html`, `imsmanifest.xml`, `style.css`, `scorm.js`, `css/`, `js/` \(player estático usado) Tj
+T*
+( pela API/export\)) Tj
+T*
+(- `build-packages.js` \(geração de pacotes SCORM em lote\)) Tj
+T*
+(- `builder.html` \(builder no browser\)) Tj
+T*
+(- `README.md`, `DOCUMENTACAO.md`) Tj
+T*
+() Tj
+T*
+(### 1.3 Arquivos ocultos detectados) Tj
+T*
+() Tj
+T*
+(**Raiz:**) Tj
+T*
+(- `.dockerignore`) Tj
+T*
+(- `.editorconfig`) Tj
+T*
+(- `.env.studio.example`) Tj
+T*
+(- `.gitattributes`) Tj
+T*
+(- `.gitignore`) Tj
+T*
+() Tj
+T*
+(**Subdiretórios:**) Tj
+T*
+(- `.github/**`) Tj
+T*
+(- `studio/web/.env.development`) Tj
+T*
+(- `studio/web/src/components/app/.gitkeep`) Tj
+T*
+() Tj
+T*
+(**Não encontrados:**) Tj
+T*
+(- `.nvmrc` ? **Não identificado no código atual**) Tj
+T*
+(- `.node-version` ? **Não identificado no código atual**) Tj
+T*
+(- `studio/api/.env.example` \(referenciado em docs\) ? **Não identificado no código atual**) Tj
+T*
+() Tj
+T*
+(### 1.4 Arquivos potencialmente acidentais versionados \(evidência\)) Tj
+T*
+() Tj
+T*
+(1. `builder.html`) Tj
+T*
+(   - Contém chamadas hardcoded de telemetria para `http://127.0.0.1:7242/ingest/...` \(linhas ) Tj
+T*
+(108, 111, 116, 125\).) Tj
+T*
+(2. `compose.debug.yaml`) Tj
+T*
+(   - Define comando `node --inspect ... index.js`, mas `index.js` não existe no repositório.) Tj
+T*
+(3. `compose.yaml`) Tj
+T*
+(   - Serviço genérico legado \(`unicvscormultimate`\) separado do stack `db/api/web` do Studio; ) Tj
+T*
+(não há evidência de uso atual nos scripts/docs principais.) Tj
+T*
+(4. `script.js` \(raiz\)) Tj
+T*
+(   - Não há referência direta em HTML principal atual do player \(`index.html` carrega `js/*.js`,) Tj
+T*
+( não `script.js`\).) Tj
+T*
+() Tj
+T*
+(### 1.5 Tamanho estimado do projeto) Tj
+T*
+() Tj
+T*
+(- `du -sh /workspace` \(sem node_modules na medição inicial\): **2.2M**) Tj
+T*
+(- Tamanho de arquivos versionados \(`git ls-files`\):) Tj
+T*
+(  - **185 arquivos**) Tj
+T*
+(  - **884.547 bytes \(~0,844 MB\)**) Tj
+T*
+() Tj
+T*
+(### 1.6 Linguagens detectadas \(por extensão, arquivos versionados\)) Tj
+T*
+() Tj
+T*
+(Principais:) Tj
+T*
+(- TypeScript \(`.ts`\): 60) Tj
+T*
+(- TSX \(`.tsx`\): 37) Tj
+T*
+(- JavaScript \(`.js`\): 15) Tj
+T*
+(- CSS \(`.css`\): 12) Tj
+T*
+(- SQL \(`.sql`\): 5) Tj
+T*
+(- Prisma \(`.prisma`\): 1) Tj
+T*
+(- Markdown \(`.md`\): 17) Tj
+T*
+(- YAML/YML \(`.yaml/.yml`\): 11) Tj
+T*
+(- HTML \(`.html`\): 3) Tj
+T*
+() Tj
+T*
+(### 1.7 Versões detectadas) Tj
+T*
+() Tj
+T*
+ET
+endstream
+endobj
+16 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 17 0 R >>
+endobj
+17 0 obj
+<< /Length 2348 >>
+stream
+BT
+/F1 10 Tf
+40 800 Td
+12 TL
+(- Node local \(ambiente atual\): `v22.21.1`) Tj
+T*
+(- npm local: `10.9.4`) Tj
+T*
+(- Dockerfiles API/Web: `node:20-alpine`) Tj
+T*
+(- TypeScript resolvido: `5.9.3`) Tj
+T*
+(- Prisma / @prisma/client: `6.19.2`) Tj
+T*
+(- Fastify: `5.7.4`) Tj
+T*
+(- React / React-DOM: `19.2.4`) Tj
+T*
+(- Vite: `6.4.1`) Tj
+T*
+(- React Router DOM: `7.13.0`) Tj
+T*
+() Tj
+T*
+(### 1.8 Gerenciador de pacotes) Tj
+T*
+() Tj
+T*
+(- **npm** com **workspaces** \(`"workspaces": ["studio/*"]`\)) Tj
+T*
+(- Lockfile: `package-lock.json` \(lockfileVersion 3\)) Tj
+T*
+(- Yarn lock: **Não identificado no código atual**) Tj
+T*
+(- pnpm lock: **Não identificado no código atual**) Tj
+T*
+() Tj
+T*
+(---) Tj
+T*
+() Tj
+T*
+(## 2\) DEPENDÊNCIAS COMPLETAS) Tj
+T*
+() Tj
+T*
+(### 2.1 API ? dependencies e devDependencies \(com versões exatas\)) Tj
+T*
+() Tj
+T*
+(#### dependencies \(`studio/api/package.json`\)) Tj
+T*
+() Tj
+T*
+(| Pacote | Faixa declarada | Versão resolvida lock |) Tj
+T*
+(|---|---:|---:|) Tj
+T*
+(| @fastify/cookie | ^11.0.0 | 11.0.2 |) Tj
+T*
+(| @fastify/cors | ^10.0.0 | 10.1.0 |) Tj
+T*
+(| @fastify/formbody | ^8.0.0 | 8.0.2 |) Tj
+T*
+(| @fastify/sensible | ^6.0.0 | 6.0.4 |) Tj
+T*
+(| @prisma/client | ^6.0.0 | 6.19.2 |) Tj
+T*
+(| archiver | ^7.0.0 | 7.0.1 |) Tj
+T*
+(| dotenv | ^16.0.0 | 16.6.1 |) Tj
+T*
+(| fastify | ^5.0.0 | 5.7.4 |) Tj
+T*
+(| jose | ^6.0.0 | 6.1.3 |) Tj
+T*
+(| prisma | ^6.0.0 | 6.19.2 |) Tj
+T*
+(| zod | ^4.0.0 | 4.3.6 |) Tj
+T*
+() Tj
+T*
+(#### devDependencies \(`studio/api/package.json`\)) Tj
+T*
+() Tj
+T*
+(| Pacote | Faixa declarada | Versão resolvida lock |) Tj
+T*
+(|---|---:|---:|) Tj
+T*
+(| @types/archiver | ^6.0.0 | 6.0.4 |) Tj
+T*
+(| @types/node | ^22.0.0 | 22.19.11 |) Tj
+T*
+(| tsx | ^4.0.0 | 4.21.0 |) Tj
+T*
+(| typescript | ^5.0.0 | 5.9.3 |) Tj
+T*
+() Tj
+T*
+(### 2.2 WEB ? dependencies e devDependencies \(com versões exatas\)) Tj
+T*
+() Tj
+T*
+(#### dependencies \(`studio/web/package.json`\)) Tj
+T*
+() Tj
+T*
+(| Pacote | Faixa declarada | Versão resolvida lock |) Tj
+T*
+(|---|---:|---:|) Tj
+T*
+(| react | ^19.0.0 | 19.2.4 |) Tj
+T*
+(| react-dom | ^19.0.0 | 19.2.4 |) Tj
+T*
+(| react-router-dom | ^7.0.0 | 7.13.0 |) Tj
+T*
+(| recharts | ^2.15.0 | 2.15.4 |) Tj
+T*
+(| zustand | ^5.0.8 | 5.0.11 |) Tj
+T*
+() Tj
+T*
+(#### devDependencies \(`studio/web/package.json`\)) Tj
+T*
+() Tj
+T*
+(| Pacote | Faixa declarada | Versão resolvida lock |) Tj
+T*
+ET
+endstream
+endobj
+18 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 19 0 R >>
+endobj
+19 0 obj
+<< /Length 2504 >>
+stream
+BT
+/F1 10 Tf
+40 800 Td
+12 TL
+(|---|---:|---:|) Tj
+T*
+(| @types/react | ^19.0.0 | 19.2.14 |) Tj
+T*
+(| @types/react-dom | ^19.0.0 | 19.2.3 |) Tj
+T*
+(| @vitejs/plugin-react | ^5.0.0 | 5.1.4 |) Tj
+T*
+(| typescript | ^5.0.0 | 5.9.3 |) Tj
+T*
+(| vite | ^6.0.0 | 6.4.1 |) Tj
+T*
+() Tj
+T*
+(### 2.3 Dependências potencialmente obsoletas \(evidência `npm outdated`\)) Tj
+T*
+() Tj
+T*
+(| Pacote | Atual | Wanted | Latest |) Tj
+T*
+(|---|---:|---:|---:|) Tj
+T*
+(| @fastify/cors | 10.1.0 | 10.1.0 | 11.2.0 |) Tj
+T*
+(| @prisma/client | 6.19.2 | 6.19.2 | 7.4.1 |) Tj
+T*
+(| prisma | 6.19.2 | 6.19.2 | 7.4.1 |) Tj
+T*
+(| @types/archiver | 6.0.4 | 6.0.4 | 7.0.0 |) Tj
+T*
+(| @types/node | 22.19.11 | 22.19.11 | 25.3.0 |) Tj
+T*
+(| dotenv | 16.6.1 | 16.6.1 | 17.3.1 |) Tj
+T*
+(| recharts | 2.15.4 | 2.15.4 | 3.7.0 |) Tj
+T*
+(| vite | 6.4.1 | 6.4.1 | 7.3.1 |) Tj
+T*
+() Tj
+T*
+(### 2.4 Dependências duplicadas) Tj
+T*
+() Tj
+T*
+(#### Diretas duplicadas entre API e WEB) Tj
+T*
+(- `typescript` \(devDependency em ambos\)) Tj
+T*
+() Tj
+T*
+(#### Transitividade com múltiplas versões \(lockfile\)) Tj
+T*
+(49 pacotes com múltiplas versões, incluindo:) Tj
+T*
+(`@esbuild/*` \(várias plataformas\), `esbuild`, `glob`, `minimatch`, `semver`, `lru-cache`, ) Tj
+T*
+(`ansi-regex`, `ansi-styles`, `string-width`, `strip-ansi`, `readable-stream`, `wrap-ansi`, etc.) Tj
+T*
+() Tj
+T*
+(### 2.5 Dependências não utilizadas \(detectável\)) Tj
+T*
+() Tj
+T*
+(Ferramenta usada: `depcheck`.) Tj
+T*
+() Tj
+T*
+(- **Raiz**) Tj
+T*
+(  - Unused devDependencies: `rimraf`) Tj
+T*
+(  - Missing dependency: `archiver` usado em `build-packages.js` \(não declarado no `package.json`) Tj
+T*
+( raiz; hoje funciona por hoisting de workspace\)) Tj
+T*
+(- **API**) Tj
+T*
+(  - `No depcheck issue`) Tj
+T*
+(- **WEB**) Tj
+T*
+(  - `No depcheck issue`) Tj
+T*
+() Tj
+T*
+(### 2.6 Pacotes críticos de segurança) Tj
+T*
+() Tj
+T*
+(#### Relatório `npm audit --package-lock-only` \(evidência\)) Tj
+T*
+(- Total vulnerabilidades: **7**) Tj
+T*
+(  - **6 high**) Tj
+T*
+(  - **1 moderate**) Tj
+T*
+(- Cadeia mais crítica:) Tj
+T*
+(  - `archiver` \(direta, high\) ? `archiver-utils` / `zip-stream` / `readdir-glob` / `glob` / ) Tj
+T*
+(`minimatch`) Tj
+T*
+(- Outra:) Tj
+T*
+(  - `ajv` \(moderate, ReDoS em condição específica\)) Tj
+T*
+(- Fix available reportado para parte dos casos.) Tj
+T*
+() Tj
+T*
+(---) Tj
+T*
+() Tj
+T*
+(## 3\) BACKEND ? ANÁLISE PROFUNDA) Tj
+T*
+() Tj
+T*
+(### 3.1 STACK \(framework/plugins/middlewares/hooks\)) Tj
+T*
+() Tj
+T*
+(- Framework: **Fastify** \(`studio/api/src/server.ts`\)) Tj
+T*
+ET
+endstream
+endobj
+20 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 21 0 R >>
+endobj
+21 0 obj
+<< /Length 2681 >>
+stream
+BT
+/F1 10 Tf
+40 800 Td
+12 TL
+(- Plugins registrados globalmente:) Tj
+T*
+(  - `@fastify/sensible`) Tj
+T*
+(  - `@fastify/cors`) Tj
+T*
+(  - `@fastify/cookie`) Tj
+T*
+(  - `@fastify/formbody`) Tj
+T*
+(- Configurações globais relevantes:) Tj
+T*
+(  - `logger: true`) Tj
+T*
+(  - `bodyLimit: 2 * 1024 * 1024`) Tj
+T*
+(- Hook global:) Tj
+T*
+(  - `app.addHook\("preHandler", ...\)` com autenticação JWT administrativa para quase todas rotas,) Tj
+T*
+( com bypass por `isPublicPath`.) Tj
+T*
+() Tj
+T*
+(### 3.2 ARQUITETURA) Tj
+T*
+() Tj
+T*
+(#### Estrutura de pastas \(backend\)) Tj
+T*
+(- `src/routes`: controladores por domínio) Tj
+T*
+(- `src/services`: serviços \(`adminAuth`, `appConfig`, `lti`, `exporter`, `vimeo`\)) Tj
+T*
+(- `src/lib`: utilitários \(`publicUrl`, `repoRoot`, `xml`\)) Tj
+T*
+(- `src/db.ts`: PrismaClient singleton) Tj
+T*
+(- `prisma/schema.prisma`: modelagem de dados) Tj
+T*
+(- `prisma/migrations/*`: migrações SQL) Tj
+T*
+() Tj
+T*
+(#### Padrão arquitetural detectado) Tj
+T*
+(- **Modular por feature/rota**, com:) Tj
+T*
+(  - camadas de rota + serviço + ORM direto) Tj
+T*
+(  - sem camada explícita de repositório) Tj
+T*
+(- Não é MVC clássico puro; é Fastify modular.) Tj
+T*
+() Tj
+T*
+(#### Separação admin/public) Tj
+T*
+(- Existe separação por prefixo e por hook:) Tj
+T*
+(  - Admin: ` /admin/*`, `/v1/*` \(maioria\)) Tj
+T*
+(  - Públicas: `/health`, `/lti/*`, `/player/*`, `/n8n/webhook/*`, `/public/*`, `/p/*`, ) Tj
+T*
+(`/v1/playlist`, `/v1/config/status`, `/v1/xapi/*`, `/auth/vimeo/callback`, `POST ) Tj
+T*
+(/v1/admin/login`) Tj
+T*
+() Tj
+T*
+(#### Camada de serviços) Tj
+T*
+(- **Existe** \(`src/services`\)) Tj
+T*
+() Tj
+T*
+(#### Camada de repositórios) Tj
+T*
+(- **Não identificado no código atual** \(Prisma é chamado diretamente em rotas/serviços\)) Tj
+T*
+() Tj
+T*
+(### 3.3 ROTAS \(lista completa\)) Tj
+T*
+() Tj
+T*
+(**Total mapeado: 72 endpoints**) Tj
+T*
+() Tj
+T*
+(> Lista completa por método/path/arquivo/proteção foi gerada na auditoria e incluída no corpo da) Tj
+T*
+( resposta original em chat.) Tj
+T*
+(> Para não alterar conteúdo técnico, considere esta seção como equivalente ao inventário de 72 ) Tj
+T*
+(rotas já mapeadas.) Tj
+T*
+() Tj
+T*
+(### 3.4 AUTENTICAÇÃO) Tj
+T*
+() Tj
+T*
+(#### Como funciona) Tj
+T*
+(1. `POST /v1/admin/login` valida `username/password` contra `ADMIN_USER`/`ADMIN_PASSWORD`.) Tj
+T*
+(2. Se válido, gera JWT HS256 \(`jose`\) com:) Tj
+T*
+(   - `sub = admin`) Tj
+T*
+(   - `aud = unicv-studio`) Tj
+T*
+(   - expiração `24h`) Tj
+T*
+(3. Frontend guarda token em `localStorage` \(`unicv_admin_token`\) e envia `Authorization: ) Tj
+T*
+(Bearer`.) Tj
+T*
+() Tj
+T*
+(#### Onde valida) Tj
+T*
+(- Hook global `preHandler` \(`server.ts`\) para quase todas rotas.) Tj
+T*
+ET
+endstream
+endobj
+22 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 23 0 R >>
+endobj
+23 0 obj
+<< /Length 2549 >>
+stream
+BT
+/F1 10 Tf
+40 800 Td
+12 TL
+(- Validação do token: `verifyAdminToken` em `services/adminAuth.ts`.) Tj
+T*
+() Tj
+T*
+(#### Sessão/token) Tj
+T*
+(- Tipo principal: **JWT Bearer**.) Tj
+T*
+(- Não usa sessão server-side para admin.) Tj
+T*
+(- Cookies são usados para fluxo OAuth/LTI \(`state`/`nonce`\), não para sessão admin.) Tj
+T*
+() Tj
+T*
+(#### Segurança detectada) Tj
+T*
+(- JWT com `aud` e `sub`.) Tj
+T*
+(- Fallback de segredo:) Tj
+T*
+(  - `ADMIN_JWT_SECRET` ou `COOKIE_SECRET`.) Tj
+T*
+(- Se `COOKIE_SECRET` ficar no default \(`change-me-change-me-change-me`\) e sem ) Tj
+T*
+(`ADMIN_JWT_SECRET`, token fica com segredo fraco em produção.) Tj
+T*
+(- Sem rate-limit de login.) Tj
+T*
+() Tj
+T*
+(### 3.5 PRISMA) Tj
+T*
+() Tj
+T*
+(#### 3.5.1 Schema resumido completo \(models, campos, tipos, índices, relações\)) Tj
+T*
+() Tj
+T*
+(- `Account`) Tj
+T*
+(- `VimeoConnection`) Tj
+T*
+(- `Vitrine`) Tj
+T*
+(- `Video`) Tj
+T*
+(- `VitrineVideo`) Tj
+T*
+(- `ExportJob`) Tj
+T*
+(- `LtiDeployment`) Tj
+T*
+(- `AppConfig`) Tj
+T*
+(- `VimeoCollaborator`) Tj
+T*
+(- `VimeoCollaboratorShowcase`) Tj
+T*
+(- `VimeoCollaboratorVideo`) Tj
+T*
+(- `VimeoCollaboratorShowcaseVideo`) Tj
+T*
+(- `DashboardEvent`) Tj
+T*
+() Tj
+T*
+(Campos, índices, relações e cascatas conforme `studio/api/prisma/schema.prisma` e migrations ) Tj
+T*
+(versionadas.) Tj
+T*
+() Tj
+T*
+(#### 3.5.2 Enums) Tj
+T*
+(- `VitrineSource`: `MANUAL`, `VIMEO_SHOWCASE`) Tj
+T*
+(- `VitrineStatus`: `ACTIVE`, `EDITING`, `INACTIVE`) Tj
+T*
+(- `ExportType`: `HTML`, `SCORM12`, `IFRAME`) Tj
+T*
+(- `ExportStatus`: `PENDING`, `RUNNING`, `SUCCEEDED`, `FAILED`) Tj
+T*
+() Tj
+T*
+(#### 3.5.3 Migrations existentes) Tj
+T*
+(1. `20260213141753_add_app_config`) Tj
+T*
+(2. `20260213180000_add_dashboard_events`) Tj
+T*
+(3. `20260215000000_add_vitrine_slug_status`) Tj
+T*
+(4. `20260218000000_add_vimeo_collaborators`) Tj
+T*
+(5. `20260218120000_add_vimeo_collaborator_videos`) Tj
+T*
+(6. `migration_lock.toml`) Tj
+T*
+() Tj
+T*
+(#### 3.5.4 Divergência potencial schema x banco) Tj
+T*
+(- Sem `DATABASE_URL` ativo no ambiente de auditoria, `prisma migrate status` falha.) Tj
+T*
+(- Estado real do banco em execução: **Não identificado no código atual**.) Tj
+T*
+(- Divergência concreta entre schema e banco em runtime: **Não identificado no código atual**.) Tj
+T*
+() Tj
+T*
+(### 3.6 BANCO) Tj
+T*
+() Tj
+T*
+(- Provider Prisma: `postgresql`) Tj
+T*
+(- URL esperada: variável `DATABASE_URL` \(obrigatória no schema\)) Tj
+T*
+(- Host no Docker Compose Studio: `db`) Tj
+T*
+(- Transações:) Tj
+T*
+(  - `vitrines.ts` usa `prisma.$transaction`) Tj
+T*
+(- Raw queries:) Tj
+T*
+ET
+endstream
+endobj
+24 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 25 0 R >>
+endobj
+25 0 obj
+<< /Length 1815 >>
+stream
+BT
+/F1 10 Tf
+40 800 Td
+12 TL
+(  - `health.ts`: `SELECT 1`) Tj
+T*
+(  - `dashboard.ts`: agregações com `Prisma.sql` + `prisma.$queryRaw`) Tj
+T*
+() Tj
+T*
+(### 3.7 VARIÁVEIS DE AMBIENTE \(lista completa backend\)) Tj
+T*
+() Tj
+T*
+(Definidas em `studio/api/src/env.ts`:) Tj
+T*
+() Tj
+T*
+(- `NODE_ENV`) Tj
+T*
+(- `PORT`) Tj
+T*
+(- `HOST`) Tj
+T*
+(- `DATABASE_URL`) Tj
+T*
+(- `BASE_URL`) Tj
+T*
+(- `PUBLIC_BASE_URL`) Tj
+T*
+(- `CORS_EXTRA_ORIGINS`) Tj
+T*
+(- `VIMEO_CLIENT_ID`) Tj
+T*
+(- `VIMEO_CLIENT_SECRET`) Tj
+T*
+(- `VIMEO_REDIRECT_URI`) Tj
+T*
+(- `COOKIE_SECRET`) Tj
+T*
+(- `EXPORTS_DIR`) Tj
+T*
+(- `LTI_PLATFORM_ISSUER`) Tj
+T*
+(- `LTI_PLATFORM_CLIENT_ID`) Tj
+T*
+(- `LTI_PLATFORM_AUTH_LOGIN_URL`) Tj
+T*
+(- `LTI_PLATFORM_KEYSET_URL`) Tj
+T*
+(- `LTI_PLATFORM_DEPLOYMENT_ID`) Tj
+T*
+(- `LTI_TOOL_PRIVATE_KEY_PEM`) Tj
+T*
+(- `LTI_TOOL_KID`) Tj
+T*
+(- `LRS_ENDPOINT`) Tj
+T*
+(- `LRS_BASIC_AUTH`) Tj
+T*
+(- `ADMIN_USER`) Tj
+T*
+(- `ADMIN_PASSWORD`) Tj
+T*
+(- `ADMIN_JWT_SECRET`) Tj
+T*
+(- `PLAYLIST_HMAC_SECRET`) Tj
+T*
+() Tj
+T*
+(Obrigatória estrita:) Tj
+T*
+(- `DATABASE_URL`) Tj
+T*
+() Tj
+T*
+(Com default:) Tj
+T*
+(- `NODE_ENV`, `PORT`, `HOST`, `COOKIE_SECRET`, `EXPORTS_DIR`, `LTI_TOOL_KID`) Tj
+T*
+() Tj
+T*
+(### 3.8 LOGS) Tj
+T*
+() Tj
+T*
+(- Logger do Fastify ativo \(`logger: true`\)) Tj
+T*
+(- `reply.log.info/warn` em rotas Vimeo) Tj
+T*
+(- `console.warn/error` no bootstrap) Tj
+T*
+(- Logs sensíveis explícitos de credenciais: **Não identificado no código atual**) Tj
+T*
+() Tj
+T*
+(---) Tj
+T*
+() Tj
+T*
+(## 4\) FRONTEND ? ANÁLISE PROFUNDA) Tj
+T*
+() Tj
+T*
+(### 4.1 STACK) Tj
+T*
+() Tj
+T*
+(- React 19.2.4) Tj
+T*
+(- React DOM 19.2.4) Tj
+T*
+(- Router 7.13.0) Tj
+T*
+(- Vite 6.4.1) Tj
+T*
+(- `@vitejs/plugin-react`) Tj
+T*
+(- TS 5.9.3) Tj
+T*
+(- Zustand 5.0.11) Tj
+T*
+() Tj
+T*
+(### 4.2 ARQUITETURA FRONTEND) Tj
+T*
+() Tj
+T*
+(- UI tokens/utilitários:) Tj
+T*
+ET
+endstream
+endobj
+26 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 27 0 R >>
+endobj
+27 0 obj
+<< /Length 2096 >>
+stream
+BT
+/F1 10 Tf
+40 800 Td
+12 TL
+(  - `tokens.css`, `utilities.css`, `themes.css`, `sidebar.css`, `responsive.css`) Tj
+T*
+(- Componentes compartilhados:) Tj
+T*
+(  - `components/ui/*`, `components/layout/Sidebar.tsx`) Tj
+T*
+(- Componentes de domínio:) Tj
+T*
+(  - `components/app/*`, `components/tools/ToolCard.tsx`) Tj
+T*
+(- Hooks:) Tj
+T*
+(  - `useApiStatus`, `useConfigStatus`, `useMe`, `useToast`) Tj
+T*
+(- Context:) Tj
+T*
+(  - `ThemeContext`) Tj
+T*
+(- Providers:) Tj
+T*
+(  - `BrowserRouter`, `ThemeProvider`) Tj
+T*
+() Tj
+T*
+(### 4.3 ROTAS FRONTEND) Tj
+T*
+() Tj
+T*
+(- `/login` \(pública\)) Tj
+T*
+(- `/` \(protegida\)) Tj
+T*
+(- `/vitrines/:id` \(protegida\)) Tj
+T*
+(- `/ferramentas` \(protegida\)) Tj
+T*
+(- `/exportacoes` \(protegida\)) Tj
+T*
+(- `/dashboard` \(protegida\)) Tj
+T*
+(- `/admin/config` \(protegida\)) Tj
+T*
+() Tj
+T*
+(Proteção:) Tj
+T*
+(- `ProtectedRoute` via presença de token em localStorage.) Tj
+T*
+() Tj
+T*
+(### 4.4 CONSUMO DA API) Tj
+T*
+() Tj
+T*
+(- Base definida em `src/api/base.ts` com resolução dinâmica:) Tj
+T*
+(  - `window.__UNICV_API_BASE`) Tj
+T*
+(  - `VITE_API_BASE_URL` / `VITE_API_BASE`) Tj
+T*
+(  - fallback por host) Tj
+T*
+(- Requests via `fetch` encapsulado:) Tj
+T*
+(  - `apiGet`, `apiPost`, `apiPut`, `apiDelete`) Tj
+T*
+(- Tratamento de erro:) Tj
+T*
+(  - parser em `handleResponse`) Tj
+T*
+(- Interceptadores axios:) Tj
+T*
+(  - **Não identificado no código atual**) Tj
+T*
+(- Sessão:) Tj
+T*
+(  - token em localStorage \(`unicv_admin_token`\)) Tj
+T*
+() Tj
+T*
+(### 4.5 ESTADO) Tj
+T*
+() Tj
+T*
+(- `useState` extensivo) Tj
+T*
+(- `ThemeContext`) Tj
+T*
+(- `zustand` \(`vitrinesStore.ts`\)) Tj
+T*
+(- `useMe.ts` órfão no grafo \(não referenciado nas rotas atuais\)) Tj
+T*
+() Tj
+T*
+(### 4.6 BUILD FRONTEND) Tj
+T*
+() Tj
+T*
+(Scripts:) Tj
+T*
+(- `dev`, `build`, `preview`) Tj
+T*
+() Tj
+T*
+(VITE vars detectadas:) Tj
+T*
+(- `VITE_API_BASE_URL`) Tj
+T*
+(- `VITE_PUBLIC_BASE_URL`) Tj
+T*
+(- `VITE_API_BASE`) Tj
+T*
+(- `VITE_SERVICE_URL_API`) Tj
+T*
+(- `VITE_SERVICE_FQDN_API`) Tj
+T*
+() Tj
+T*
+(Riscos:) Tj
+T*
+(- bundle JS principal ~756kB \(warning de chunk grande\)) Tj
+T*
+() Tj
+T*
+(---) Tj
+T*
+ET
+endstream
+endobj
+28 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 29 0 R >>
+endobj
+29 0 obj
+<< /Length 2303 >>
+stream
+BT
+/F1 10 Tf
+40 800 Td
+12 TL
+() Tj
+T*
+(## 5\) DOCKER E DEPLOY ? INSPEÇÃO DE PRODUÇÃO) Tj
+T*
+() Tj
+T*
+(### 5.1 Dockerfiles) Tj
+T*
+() Tj
+T*
+(- `Dockerfile` raiz: multi-target `api`/`web`, Node 20 alpine + Nginx) Tj
+T*
+(- `studio/api/Dockerfile`: multi-stage Node 20 alpine) Tj
+T*
+(- `studio/web/Dockerfile`: multi-stage Node 20 alpine + Nginx) Tj
+T*
+() Tj
+T*
+(### 5.2 .dockerignore) Tj
+T*
+() Tj
+T*
+(Existe e exclui `.env`, `.git`, `node_modules`, compose/dockerfiles etc.) Tj
+T*
+() Tj
+T*
+(### 5.3 Docker Compose) Tj
+T*
+() Tj
+T*
+(- `docker-compose.yml`: stack principal \(`db`, `api`, `web`\) com healthcheck no db e api.) Tj
+T*
+(- `docker-compose.studio.yml`: similar, com diferenças de build args e exposição da porta 5432.) Tj
+T*
+(- `compose.yaml` / `compose.debug.yaml`: legado, não alinhado ao fluxo principal.) Tj
+T*
+() Tj
+T*
+(### 5.4 Conexões) Tj
+T*
+() Tj
+T*
+(- API conecta em host `db`: **Sim**) Tj
+T*
+(- Web usa base da API via env/runtime script: **Sim**) Tj
+T*
+() Tj
+T*
+(### 5.5 Coolify) Tj
+T*
+() Tj
+T*
+(Riscos principais:) Tj
+T*
+(- uso de compose legado incorreto) Tj
+T*
+(- `BASE_URL`/`PUBLIC_BASE_URL` mal configurados) Tj
+T*
+(- segredo default em produção \(`COOKIE_SECRET`\)) Tj
+T*
+() Tj
+T*
+(---) Tj
+T*
+() Tj
+T*
+(## 6\) SCRIPTS E DX) Tj
+T*
+() Tj
+T*
+(### 6.1 Scripts por package) Tj
+T*
+() Tj
+T*
+(Raiz:) Tj
+T*
+(- `dev`, `dev:api`, `dev:web`, `build`, `check`, `doctor`, `smoke`, `stop`, `clean`, ) Tj
+T*
+(`build:packages`, `studio:*`) Tj
+T*
+() Tj
+T*
+(API:) Tj
+T*
+(- `dev`, `build`, `start`, `prisma:generate`, `prisma:migrate`, `prisma:studio`) Tj
+T*
+() Tj
+T*
+(WEB:) Tj
+T*
+(- `dev`, `build`, `preview`) Tj
+T*
+() Tj
+T*
+(### 6.2 Scripts redundantes) Tj
+T*
+() Tj
+T*
+(- Duplicidade funcional entre `dev:api` e `studio:dev`, etc.) Tj
+T*
+() Tj
+T*
+(### 6.3 Scripts quebrados/inconsistentes) Tj
+T*
+() Tj
+T*
+(- `doctor` valida `SESSION_SECRET` mas backend usa `COOKIE_SECRET`.) Tj
+T*
+(- `smoke` espera payload de `/health` diferente do retorno real.) Tj
+T*
+(- `compose.debug.yaml` referencia `index.js` inexistente.) Tj
+T*
+() Tj
+T*
+(### 6.4 Ferramentas de lint/typecheck/test) Tj
+T*
+() Tj
+T*
+(- ESLint: **Não identificado no código atual**) Tj
+T*
+(- Prettier: **Não identificado no código atual**) Tj
+T*
+(- Typecheck: via `tsc` no build) Tj
+T*
+(- Testes: **Não identificado no código atual**) Tj
+T*
+ET
+endstream
+endobj
+30 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 31 0 R >>
+endobj
+31 0 obj
+<< /Length 2331 >>
+stream
+BT
+/F1 10 Tf
+40 800 Td
+12 TL
+(- Coverage: **Não identificado no código atual**) Tj
+T*
+() Tj
+T*
+(---) Tj
+T*
+() Tj
+T*
+(## 7\) SEGURANÇA) Tj
+T*
+() Tj
+T*
+(- Credenciais hardcoded reais: **Não identificado no código atual**) Tj
+T*
+(- SQL injection por raw unsafe: **Não identificado no código atual**) Tj
+T*
+(- CORS: configurado globalmente) Tj
+T*
+(- Rate limit: **Não identificado no código atual**) Tj
+T*
+(- Helmet: **Não identificado no código atual**) Tj
+T*
+(- Headers hardening dedicados: **Não identificado no código atual**) Tj
+T*
+(- Tokens admin em localStorage) Tj
+T*
+(- Cookies OAuth/LTI com `httpOnly`, `sameSite=lax`, `secure` em produção) Tj
+T*
+(- `npm audit`: 7 vulnerabilidades \(6 high, 1 moderate\)) Tj
+T*
+() Tj
+T*
+(---) Tj
+T*
+() Tj
+T*
+(## 8\) ACOPLAMENTOS E RISCOS ESTRUTURAIS) Tj
+T*
+() Tj
+T*
+(1. Acoplamento API com assets da raiz) Tj
+T*
+(2. Acoplamento forte Web?API por contrato implícito) Tj
+T*
+(3. Duplicação de lógica de Vimeo em rotas distintas) Tj
+T*
+(4. Arquivos muito grandes \(`HomePage`, `ToolsPage`, `VitrineDetalhePage`, ) Tj
+T*
+(`adminVimeoCollaborators`\)) Tj
+T*
+(5. Sem camada de repositório dedicada) Tj
+T*
+(6. Código/arquivos de legado coexistindo) Tj
+T*
+(7. Import circular no web \(`routes -> AppLayout -> Sidebar -> routes`\)) Tj
+T*
+(8. Dependência de ambiente local em scripts/docs) Tj
+T*
+(9. Telemetria de debug versionada em `builder.html`) Tj
+T*
+(10. Composes legados paralelos ao stack principal) Tj
+T*
+() Tj
+T*
+(---) Tj
+T*
+() Tj
+T*
+(## 9\) RISCOS DE PRODUÇÃO) Tj
+T*
+() Tj
+T*
+(### Build limpo) Tj
+T*
+(- Build root pode falhar sem `prisma generate` prévio em algumas condições de ambiente.) Tj
+T*
+() Tj
+T*
+(### Coolify) Tj
+T*
+(- Erro de arquivo compose/target incorreto) Tj
+T*
+(- vars de base URL incorretas) Tj
+T*
+(- segredo default mantido) Tj
+T*
+() Tj
+T*
+(### Banco vazio) Tj
+T*
+(- Conta default é criada sob demanda) Tj
+T*
+(- Fluxos de negócio dependem de dados mínimos de vitrines/integrações) Tj
+T*
+() Tj
+T*
+(### Seed) Tj
+T*
+(- Seed script: **Não identificado no código atual**) Tj
+T*
+() Tj
+T*
+(### Variáveis opcionais críticas) Tj
+T*
+(- `ADMIN_USER`/`ADMIN_PASSWORD`) Tj
+T*
+(- `BASE_URL`/`PUBLIC_BASE_URL`) Tj
+T*
+(- `VIMEO_*`) Tj
+T*
+(- `LTI_*`) Tj
+T*
+(- `LRS_*`) Tj
+T*
+(- `PLAYLIST_HMAC_SECRET`) Tj
+T*
+() Tj
+T*
+(---) Tj
+T*
+() Tj
+T*
+(## 10\) RESUMO EXECUTIVO EXTREMO) Tj
+T*
+() Tj
+T*
+ET
+endstream
+endobj
+32 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 33 0 R >>
+endobj
+33 0 obj
+<< /Length 1719 >>
+stream
+BT
+/F1 10 Tf
+40 800 Td
+12 TL
+(### Estado estrutural geral \(0-10\)) Tj
+T*
+(- **6,5 / 10**) Tj
+T*
+() Tj
+T*
+(### Maturidade) Tj
+T*
+(- **Beta operacional com áreas frágeis para produção**) Tj
+T*
+() Tj
+T*
+(### 10 maiores riscos técnicos) Tj
+T*
+(1. Dependência de geração Prisma no fluxo de build.) Tj
+T*
+(2. Ausência de rate limiting.) Tj
+T*
+(3. Ausência de hardening HTTP dedicado.) Tj
+T*
+(4. Segredo default em produção.) Tj
+T*
+(5. Vulnerabilidades em dependências transitivas.) Tj
+T*
+(6. Import circular no frontend.) Tj
+T*
+(7. Arquivos muito extensos e de alta complexidade.) Tj
+T*
+(8. Inconsistências de documentação/scripts.) Tj
+T*
+(9. Telemetria de debug versionada.) Tj
+T*
+(10. Composes legados concorrendo com fluxo oficial.) Tj
+T*
+() Tj
+T*
+(### 10 melhorias prioritárias \(diagnóstico de prioridade\)) Tj
+T*
+(1. Tornar `prisma generate` explícito no pipeline de build.) Tj
+T*
+(2. Hardening de segurança HTTP.) Tj
+T*
+(3. Rate limiting.) Tj
+T*
+(4. Política rígida de segredos em produção.) Tj
+T*
+(5. Correção de docs/scripts divergentes.) Tj
+T*
+(6. Eliminar ciclo de imports.) Tj
+T*
+(7. Reduzir chunk inicial do frontend.) Tj
+T*
+(8. Tratar vulnerabilidades de dependências.) Tj
+T*
+(9. Limpar artefatos legados/debug.) Tj
+T*
+(10. Formalizar observabilidade/sanitização de logs.) Tj
+T*
+() Tj
+T*
+(### Complexidade estimada) Tj
+T*
+(- **Média-alta**) Tj
+T*
+() Tj
+T*
+(### Manutenibilidade) Tj
+T*
+(- **Média**) Tj
+T*
+() Tj
+T*
+(---) Tj
+T*
+() Tj
+T*
+(### Observações finais de auditoria factual) Tj
+T*
+() Tj
+T*
+(- Alterações de código no repositório durante auditoria original: **Nenhuma alteração ) Tj
+T*
+(versionada**.) Tj
+T*
+(- Itens ausentes foram marcados como **?Não identificado no código atual?**.) Tj
+T*
+() Tj
+T*
+ET
+endstream
+endobj
+xref
+0 34
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000220 00000 n 
+0000000290 00000 n 
+0000000416 00000 n 
+0000002431 00000 n 
+0000002557 00000 n 
+0000004565 00000 n 
+0000004691 00000 n 
+0000006747 00000 n 
+0000006875 00000 n 
+0000008913 00000 n 
+0000009041 00000 n 
+0000011174 00000 n 
+0000011302 00000 n 
+0000013852 00000 n 
+0000013980 00000 n 
+0000016380 00000 n 
+0000016508 00000 n 
+0000019064 00000 n 
+0000019192 00000 n 
+0000021925 00000 n 
+0000022053 00000 n 
+0000024654 00000 n 
+0000024782 00000 n 
+0000026649 00000 n 
+0000026777 00000 n 
+0000028925 00000 n 
+0000029053 00000 n 
+0000031408 00000 n 
+0000031536 00000 n 
+0000033919 00000 n 
+0000034047 00000 n 
+trailer
+<< /Size 34 /Root 1 0 R >>
+startxref
+35818
+%%EOF
