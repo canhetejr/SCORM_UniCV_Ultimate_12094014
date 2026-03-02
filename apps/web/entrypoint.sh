@@ -20,7 +20,7 @@ printf '(function(){' >> "$CONFIG"
 cat >> "$CONFIG" << 'INNER'
 var host=window.location.hostname,proto=window.location.protocol,port=window.location.port;
 if(!window.__UNICV_API_BASE){
-  if(host==="localhost"||host==="127.0.0.1")window.__UNICV_API_BASE="http://localhost:3002";
+  if(host==="localhost"||host==="127.0.0.1")window.__UNICV_API_BASE="http://localhost:3001";
   else if(host.indexOf("sslip.io")!==-1||host.indexOf("web")!==-1){
     var apiHost=host.replace(/^web\./,"api.").replace(/\.web\./,".api.");
     var std=(port==="80"||port==="443"||port==="");var px=std?"":(port?":"+port:"");

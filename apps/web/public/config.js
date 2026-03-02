@@ -9,7 +9,7 @@
     var port = window.location.port;
     var isStandardPort = port === "80" || port === "443" || port === "";
     if (host === "localhost" || host === "127.0.0.1") {
-      window.__UNICV_API_BASE = "http://localhost:3002";
+      window.__UNICV_API_BASE = "http://localhost:3001";
     } else if (host.indexOf("sslip.io") !== -1 || host.indexOf("web") !== -1) {
       var apiHost = host.replace(/^web\./, "api.").replace(/\.web\./, ".api.");
       var portSuffix = isStandardPort ? "" : (port ? ":" + port : "");

@@ -10,7 +10,7 @@ COPY apps/api/tsconfig.json apps/api/tsconfig.json
 COPY apps/api/prisma apps/api/prisma
 COPY apps/api/src apps/api/src
 WORKDIR /app/apps/api
-RUN npm install
+RUN npm install --legacy-peer-deps --no-audit --no-fund --loglevel=info
 RUN npm run prisma:generate
 RUN npm run build
 
@@ -29,16 +29,18 @@ COPY packages/player /app/packages/player
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
 
 # ---------- WEB ----------
+# Build apenas apps/web (sem depender de package-lock.json na raiz)
 FROM node:20-alpine AS web-build
 ARG VITE_API_BASE_URL=
 ARG VITE_PUBLIC_BASE_URL=
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 ENV VITE_PUBLIC_BASE_URL=$VITE_PUBLIC_BASE_URL
-WORKDIR /app
-COPY package.json package-lock.json ./
-COPY apps apps
-RUN npm ci --include=dev
-RUN npm --workspace apps/web run build
+WORKDIR /app/apps/web
+COPY apps/web/package.json apps/web/tsconfig.json apps/web/vite.config.ts apps/web/index.html ./
+COPY apps/web/src ./src
+COPY apps/web/public ./public
+RUN npm install --legacy-peer-deps --no-audit --no-fund --loglevel=info
+RUN npm run build
 
 FROM nginx:alpine AS web
 COPY --from=web-build /app/apps/web/dist/ /usr/share/nginx/html/
