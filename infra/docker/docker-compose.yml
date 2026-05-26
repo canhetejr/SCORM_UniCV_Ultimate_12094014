@@ -1,10 +1,10 @@
 # UniCV Studio — deploy via Docker (Coolify)
-# Para local: usar `docker compose --project-directory . -f infra/docker/docker-compose.yml up -d`
+# Para local: usar `docker compose -f infra/docker/docker-compose.yml up -d` (a partir da raiz do repo)
 # Para Coolify: usar infra/docker/docker-compose.coolify.yml (sem ports: para evitar conflito de porta)
 #
 # Build: contexto na raiz do repositório. Executar na raiz do repo:
-#   docker compose --project-directory . -f infra/docker/docker-compose.yml build
-#   docker compose --project-directory . -f infra/docker/docker-compose.yml up -d
+#   docker compose -f infra/docker/docker-compose.yml build
+#   docker compose -f infra/docker/docker-compose.yml up -d
 #
 # ENV REQUIRED em produção: ADMIN_USER, ADMIN_PASSWORD, COOKIE_SECRET, PUBLIC_BASE_URL
 # DATABASE_URL é montado com host "db" (serviço Postgres). Volumes: unicv_pg, exports_data
@@ -27,7 +27,7 @@ services:
 
   api:
     build:
-      context: .
+      context: ../..
       dockerfile: infra/docker/Dockerfile
       target: api
     restart: unless-stopped
@@ -69,7 +69,7 @@ services:
 
   web:
     build:
-      context: .
+      context: ../..
       dockerfile: infra/docker/Dockerfile
       target: web
       args:

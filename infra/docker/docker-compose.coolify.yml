@@ -1,8 +1,8 @@
 # UniCV Studio — deploy via Docker (Coolify)
 # Sem `ports:` para evitar "port is already allocated" no Coolify (proxy publica as portas).
 # Build: contexto na raiz do repositório. Executar na raiz do repo:
-#   docker compose --project-directory . -f infra/docker/docker-compose.coolify.yml build
-#   docker compose --project-directory . -f infra/docker/docker-compose.coolify.yml up -d
+#   docker compose -f infra/docker/docker-compose.coolify.yml build
+#   docker compose -f infra/docker/docker-compose.coolify.yml up -d
 #
 # ENV REQUIRED em produção: ADMIN_USER, ADMIN_PASSWORD, COOKIE_SECRET, PUBLIC_BASE_URL
 # DATABASE_URL é montado com host "db" (serviço Postgres). Volumes: unicv_pg, exports_data
@@ -25,7 +25,7 @@ services:
 
   api:
     build:
-      context: .
+      context: ../..
       dockerfile: infra/docker/Dockerfile
       target: api
     restart: unless-stopped
@@ -66,7 +66,7 @@ services:
 
   web:
     build:
-      context: .
+      context: ../..
       dockerfile: infra/docker/Dockerfile
       target: web
       args:
