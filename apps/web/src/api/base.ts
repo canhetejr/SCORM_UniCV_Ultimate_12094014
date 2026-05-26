@@ -48,14 +48,14 @@ function resolveApiBaseRaw(): string {
       return ensureHttpsWhenSecure(base);
     }
     if (host === "localhost" || host === "127.0.0.1") {
-      return "http://localhost:3002";
+      return "http://localhost:3001";
     }
     const isStandardPort = port === "80" || port === "443" || port === "";
     const sameOrigin = `${protocol}//${host}${isStandardPort ? "" : (port ? ":" + port : "")}`;
     return ensureHttpsWhenSecure(sameOrigin);
   }
 
-  return "http://localhost:3002";
+  return "http://localhost:3001";
 }
 
 function resolvePublicBaseUrlRaw(): string {
@@ -79,7 +79,7 @@ export function getResolvedPublicBaseUrl(): string {
 }
 
 /** @deprecated Use getResolvedApiBase() para obter a URL que o fetch usa. */
-export const API_BASE = typeof window !== "undefined" ? getResolvedApiBase() : "http://localhost:3002";
+export const API_BASE = typeof window !== "undefined" ? getResolvedApiBase() : "http://localhost:3001";
 
 /** @deprecated Use getResolvedPublicBaseUrl(). */
 export const PUBLIC_BASE_URL = getResolvedPublicBaseUrl();
