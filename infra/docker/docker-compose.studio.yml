@@ -1,0 +1,48 @@
+# UniCV Studio — Next.js + Supabase
+# Para Coolify: sem ports: (proxy gerencia)
+# Executar a partir da raiz:
+#   docker compose -f infra/docker/docker-compose.studio.yml up -d
+
+services:
+  studio:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.studio
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?set-me}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:?set-me}
+        NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
+      DATABASE_URL: ${DATABASE_URL:?set-me}
+      DIRECT_URL: ${DIRECT_URL:-}
+      NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
+      EXPORTS_DIR: ${EXPORTS_DIR:-/tmp/exports}
+      VIMEO_CLIENT_ID: ${VIMEO_CLIENT_ID:-}
+      VIMEO_CLIENT_SECRET: ${VIMEO_CLIENT_SECRET:-}
+      VIMEO_REDIRECT_URI: ${VIMEO_REDIRECT_URI:-}
+      LTI_PLATFORM_ISSUER: ${LTI_PLATFORM_ISSUER:-}
+      LTI_PLATFORM_CLIENT_ID: ${LTI_PLATFORM_CLIENT_ID:-}
+      LTI_PLATFORM_AUTH_LOGIN_URL: ${LTI_PLATFORM_AUTH_LOGIN_URL:-}
+      LTI_PLATFORM_KEYSET_URL: ${LTI_PLATFORM_KEYSET_URL:-}
+      LTI_PLATFORM_DEPLOYMENT_ID: ${LTI_PLATFORM_DEPLOYMENT_ID:-}
+      LTI_TOOL_PRIVATE_KEY_PEM: ${LTI_TOOL_PRIVATE_KEY_PEM:-}
+      LTI_TOOL_KID: ${LTI_TOOL_KID:-unicv-tool-1}
+      LRS_ENDPOINT: ${LRS_ENDPOINT:-}
+      LRS_BASIC_AUTH: ${LRS_BASIC_AUTH:-}
+    volumes:
+      - exports_data:/tmp/exports
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  exports_data:

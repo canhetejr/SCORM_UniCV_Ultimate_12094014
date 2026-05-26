@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>UniCV Play</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body id="app" class="theme-dark">
+    <div class="app-shell">
+        <!-- Header: título/descrição placeholders; banner opcional -->
+        <header class="vitrine-header">
+            <div class="vitrine-banner" id="vitrineBanner" aria-hidden="true"></div>
+            <div class="vitrine-header-inner">
+                <h1 id="vitrineTitle" class="vitrine-title">Vitrine</h1>
+                <p id="vitrineDesc" class="vitrine-desc">Carregando...</p>
+                <button id="themeToggle" class="theme-btn" type="button" aria-label="Alternar tema">
+                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+            </div>
+            <!-- LTI/SCORM: progresso e ações (reposicionado, mantido) -->
+            <div class="course-header vitrine-course-header">
+                <div class="progress-container">
+                    <div class="progress-labels">
+                        <span>Progresso Geral</span>
+                        <strong id="percentTxt">0%</strong>
+                    </div>
+                    <div class="progress-track"><div id="pBar" class="progress-bar"></div></div>
+                </div>
+                <div class="main-actions">
+                    <button id="prev" class="action-btn" disabled type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg></button>
+                    <button id="markBtn" class="action-btn primary-btn" type="button">MARCAR CONCLUÍDA</button>
+                    <button id="next" class="action-btn" disabled type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Barra sticky: busca + ordenação -->
+        <div class="controls-bar">
+            <input type="search" id="searchInput" class="search-input" placeholder="Buscar por título..." autocomplete="off" aria-label="Buscar vídeos">
+            <select id="sortSelect" class="sort-select" aria-label="Ordenar lista">
+                <option value="recent">Mais recentes</option>
+                <option value="oldest">Mais antigos</option>
+                <option value="shortest">Mais curtos</option>
+                <option value="longest">Mais longos</option>
+            </select>
+        </div>
+
+        <!-- Área principal: grid de cards -->
+        <section class="content-scroll">
+            <div class="playlist">
+                <div id="videoList" class="video-grid">
+                    <!-- Skeleton ou cards injetados por JS -->
+                </div>
+            </div>
+        </section>
+
+        <footer class="vitrine-footer">
+            <p class="vitrine-footer-text">UniCV Play</p>
+        </footer>
+    </div>
+
+    <!-- Modal do player: overlay + iframe; ESC/fechar limpa src -->
+    <div id="modalOverlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
+        <div class="modal-backdrop" id="modalBackdrop"></div>
+        <div class="modal-content">
+            <div class="modal-player-wrap">
+                <iframe id="mainPlayer" src="" allow="autoplay; fullscreen" allowfullscreen title="Player de vídeo"></iframe>
+            </div>
+            <h2 id="modalTitle" class="modal-title"></h2>
+            <div class="modal-actions">
+                <button id="modalPrev" class="action-btn" type="button" disabled><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg></button>
+                <button id="modalMarkBtn" class="action-btn primary-btn" type="button">MARCAR CONCLUÍDA</button>
+                <button id="modalNext" class="action-btn" type="button" disabled><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></button>
+            </div>
+            <button type="button" class="modal-close" id="modalClose" aria-label="Fechar">×</button>
+        </div>
+    </div>
+
+    <script>/* __UNICV_CONFIG__ */</script>
+    <script src="scorm.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/scorm-service.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

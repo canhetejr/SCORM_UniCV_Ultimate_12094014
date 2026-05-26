@@ -1,0 +1,251 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Account {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  vimeoConnections VimeoConnection[]
+  vitrines         Vitrine[]
+  videos           Video[]
+  exports          ExportJob[]
+  ltiDeployments   LtiDeployment[]
+  dashboardEvents  DashboardEvent[]
+
+  @@index([createdAt])
+}
+
+model VimeoConnection {
+  id          String    @id @default(cuid())
+  accountId   String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  vimeoUserId String?
+  accessToken String
+  refreshToken String?
+  tokenType   String?
+  scope       String?
+  expiresAt   DateTime?
+  lastSyncAt  DateTime?
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([vimeoUserId])
+}
+
+model Vitrine {
+  id              String        @id @default(cuid())
+  accountId       String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  title           String
+  description     String?
+  slug            String?
+  status          VitrineStatus @default(ACTIVE)
+  vimeoShowcaseId String?
+  vimeoSource     VitrineSource @default(MANUAL)
+
+  videos  VitrineVideo[]
+  account Account        @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([vimeoShowcaseId])
+}
+
+model Video {
+  id           String   @id @default(cuid())
+  accountId    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  vimeoVideoId String
+  title        String
+  thumbnailUrl String?
+  durationSec  Int?
+  embedHash    String?
+  playerUrl    String?
+
+  vitrines VitrineVideo[]
+  account  Account        @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, vimeoVideoId])
+  @@index([accountId])
+}
+
+model VitrineVideo {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  vitrineId String
+  videoId   String
+  position  Int
+
+  vitrine Vitrine @relation(fields: [vitrineId], references: [id], onDelete: Cascade)
+  video   Video   @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([vitrineId, videoId])
+  @@unique([vitrineId, position])
+  @@index([videoId])
+}
+
+model ExportJob {
+  id           String       @id @default(cuid())
+  accountId    String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  type         ExportType
+  status       ExportStatus @default(PENDING)
+  vitrineId    String?
+  title        String
+  artifactPath String?
+  errorMessage String?
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId, createdAt])
+  @@index([status])
+}
+
+model LtiDeployment {
+  id           String   @id @default(cuid())
+  accountId    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  issuer       String
+  clientId     String
+  deploymentId String
+  jwksKid      String
+  launchUrl    String
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([issuer, clientId, deploymentId])
+  @@index([accountId])
+}
+
+model AppConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String?
+  updatedAt DateTime @updatedAt
+}
+
+model VimeoCollaborator {
+  id          String    @id @default(cuid())
+  vimeoUserId String    @unique
+  label       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastSyncAt  DateTime?
+  lastSyncMsg String?
+
+  showcases VimeoCollaboratorShowcase[]
+  videos    VimeoCollaboratorVideo[]
+}
+
+model VimeoCollaboratorShowcase {
+  id              String    @id @default(cuid())
+  collaboratorId  String
+  vimeoShowcaseId String
+  name            String?
+  description     String?
+  totalVideos     Int?
+  modifiedTime    DateTime?
+  pictures        Json?
+  raw             Json?
+  lastFetchedAt   DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  collaborator   VimeoCollaborator              @relation(fields: [collaboratorId], references: [id], onDelete: Cascade)
+  showcaseVideos VimeoCollaboratorShowcaseVideo[]
+
+  @@unique([collaboratorId, vimeoShowcaseId])
+  @@index([collaboratorId])
+}
+
+model VimeoCollaboratorVideo {
+  id             String    @id @default(cuid())
+  collaboratorId String
+  vimeoVideoId   String
+  uri            String?
+  name           String?
+  description    String?
+  duration       Int?
+  link           String?
+  embedHtml      String?
+  privacy        String?
+  createdTime    DateTime?
+  modifiedTime   DateTime?
+  pictures       Json?
+  raw            Json?
+  lastFetchedAt  DateTime  @default(now())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  collaborator   VimeoCollaborator              @relation(fields: [collaboratorId], references: [id], onDelete: Cascade)
+  showcaseVideos VimeoCollaboratorShowcaseVideo[]
+
+  @@unique([collaboratorId, vimeoVideoId])
+  @@index([collaboratorId])
+}
+
+model VimeoCollaboratorShowcaseVideo {
+  showcaseId String
+  videoId    String
+  position   Int?
+  addedTime  DateTime?
+  removedAt  DateTime?
+
+  showcase VimeoCollaboratorShowcase @relation(fields: [showcaseId], references: [id], onDelete: Cascade)
+  video    VimeoCollaboratorVideo    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@id([showcaseId, videoId])
+}
+
+model DashboardEvent {
+  id        String   @id @default(cuid())
+  accountId String?
+  type      String
+  source    String?
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  account Account? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+
+  @@index([accountId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+enum VitrineSource {
+  MANUAL
+  VIMEO_SHOWCASE
+}
+
+enum VitrineStatus {
+  ACTIVE
+  EDITING
+  INACTIVE
+}
+
+enum ExportType {
+  HTML
+  SCORM12
+  IFRAME
+}
+
+enum ExportStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
+}

@@ -1,0 +1,167 @@
+/* ========== Responsividade — mobile-first ========== */
+
+/* 360px — celulares pequenos */
+@media (min-width: 360px) {
+  .course-header {
+    padding: 18px 22px 20px;
+  }
+  .course-title {
+    font-size: 1.1rem;
+  }
+  .playlist {
+    padding: 14px 18px 24px;
+  }
+  .video-item {
+    padding: 14px;
+    gap: 14px;
+  }
+  .thumb-wrap {
+    width: 110px;
+    height: 62px;
+  }
+  .video-info h4 {
+    font-size: 13px;
+  }
+  .play-icon {
+    width: 64px;
+    height: 64px;
+  }
+  .play-icon svg {
+    width: 26px;
+    height: 26px;
+  }
+  .boot-screen p {
+    font-size: 12px;
+  }
+}
+
+/* 480px — celulares maiores / phablets */
+@media (min-width: 480px) {
+  .course-header {
+    padding: 20px 24px 22px;
+  }
+  .course-title {
+    font-size: 1.15rem;
+  }
+  .progress-labels {
+    font-size: 11px;
+  }
+  .action-btn {
+    font-size: 13px;
+  }
+  .action-btn.primary-btn {
+    font-size: 12px;
+  }
+  .playlist {
+    padding: 16px 20px 24px;
+  }
+  .video-item {
+    padding: 14px;
+    gap: 14px;
+    margin-bottom: 10px;
+  }
+  .thumb-wrap {
+    width: 120px;
+    height: 68px;
+  }
+  .video-info h4 {
+    font-size: 14px;
+  }
+  .video-info span {
+    font-size: 12px;
+  }
+  .play-icon {
+    width: 72px;
+    height: 72px;
+  }
+  .play-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+  .boot-screen p {
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    margin-top: 18px;
+  }
+  .skeleton-thumb {
+    width: 120px;
+    height: 68px;
+  }
+}
+
+/* 768px — tablets: grid 3 colunas */
+@media (min-width: 768px) {
+  .video-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .vitrine-header-inner {
+    padding: 24px 24px 14px;
+  }
+
+  .vitrine-title {
+    font-size: 1.5rem;
+  }
+
+  .controls-bar {
+    padding: 14px 24px;
+  }
+
+  .content-scroll {
+    padding: 20px 24px 28px;
+  }
+}
+
+/* 1024px — desktop: grid 4 colunas */
+@media (min-width: 1024px) {
+  .video-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
+  }
+
+  .video-card-title {
+    font-size: 15px;
+  }
+
+  .modal-content {
+    max-width: 960px;
+    padding: 24px;
+  }
+}
+
+/* 1280px+ — telas grandes */
+@media (min-width: 1280px) {
+  .video-grid {
+    gap: 24px;
+  }
+
+  .content-scroll {
+    padding: 24px 28px 32px;
+  }
+}
+
+/* Orientação paisagem em mobile: vídeo mais compacto */
+@media (max-height: 500px) and (orientation: landscape) {
+  .aspect-ratio-box {
+    padding-bottom: 45%;
+  }
+
+  .content-scroll {
+    max-height: 50vh;
+  }
+
+  .boot-screen p {
+    display: none;
+  }
+
+  .play-icon {
+    width: 50px;
+    height: 50px;
+  }
+
+  .play-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+}
