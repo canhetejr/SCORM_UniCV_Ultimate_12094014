@@ -1,15 +1,31 @@
 # Documentação — UniCV Studio
 
+## Guias principais
+
 | Documento | Conteúdo |
 |-----------|----------|
-| [Studio.md](Studio.md) | Visão geral da aplicação (API + Web) |
-| [DEV.md](DEV.md) | Desenvolvimento local, scripts, problemas comuns |
-| [DEPLOY.md](DEPLOY.md) | Docker, variáveis, volumes |
-| [COOLIFY.md](COOLIFY.md) | Deploy no Coolify |
-| [COOLIFY_CHECKLIST.md](COOLIFY_CHECKLIST.md) | Checklist 1 página Coolify |
-| [DOCUMENTACAO_PARA_HUMANOS.md](DOCUMENTACAO_PARA_HUMANOS.md) | Player, arquitetura, fluxos |
-| [PLANO_REBUILD_LARAVEL.md](PLANO_REBUILD_LARAVEL.md) | Plano de rebuild Laravel (referência) |
-| [ENTREGA_VIMEO_COLABORADORES.md](ENTREGA_VIMEO_COLABORADORES.md) | Entrega colaboradores Vimeo |
-| [env.coolify.example](env.coolify.example) | Exemplo de variáveis para Coolify |
+| [DEV.md](DEV.md) | Setup local, scripts, problemas comuns |
+| [DEPLOY.md](DEPLOY.md) | Docker, variáveis, volumes (Studio + Legado) |
+| [COOLIFY.md](COOLIFY.md) | Deploy no Coolify (Studio + Legado) |
+| [COOLIFY_CHECKLIST.md](COOLIFY_CHECKLIST.md) | Checklist 1 página |
 
-Variáveis de ambiente: ver `.env.example` na raiz.
+## Apps
+
+| App | Stack | Docs |
+|-----|-------|------|
+| `apps/studio` | Next.js 15 + Supabase Auth + Prisma | [DEV.md](DEV.md) · [DEPLOY.md](DEPLOY.md) |
+| `apps/api` *(legado)* | Fastify 5 + Postgres + JWT | — |
+| `apps/web` *(legado)* | React 19 + Vite | — |
+
+## Variáveis de ambiente
+
+- Studio: `apps/studio/.env.example`
+- Legado: `.env.example` na raiz
+
+## Referências internas
+
+| Documento | Conteúdo |
+|-----------|----------|
+| [Studio.md](Studio.md) | Visão geral da aplicação |
+| [DOCUMENTACAO_PARA_HUMANOS.md](DOCUMENTACAO_PARA_HUMANOS.md) | Player, arquitetura, fluxos |
+| [env.coolify.example](env.coolify.example) | Exemplo vars Coolify (legado) |
